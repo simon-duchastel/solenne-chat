@@ -1,20 +1,22 @@
 [versions]
-agp = "8.5.2"
+agp = "8.9.1"
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
 androidx-activityCompose = "1.10.1"
 androidx-appcompat = "1.7.0"
 androidx-constraintlayout = "2.2.1"
-androidx-core-ktx = "1.15.0"
+androidx-core-ktx = "1.16.0"
 androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.4"
 androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
 compose-multiplatform = "1.7.3"
+circuit = "0.27.1"
 junit = "4.13.2"
-kotlin = "2.1.10"
-kotlinx-coroutines = "1.10.1"
+kotlin = "2.1.20"
+kotlinx-coroutines = "1.10.2"
+metro = "0.1.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -30,6 +32,11 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+circuit-foundation = { group = "com.slack.circuit", name = "circuit-foundation", version.ref = "circuit" }
+circuit-runtime = { group = "com.slack.circuit", name = "circuit-runtime", version.ref = "circuit" }
+circuit-codegen-annotations = { group = "com.slack.circuit", name = "circuit-codegen-annotations", version.ref = "circuit" }
+circuit-codegen = { group = "com.slack.circuit", name = "circuit-codegen", version.ref = "circuit" }
+metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -37,3 +44,4 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }

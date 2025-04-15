@@ -1,2 +1,28 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-*
+# Kotlin/Java/Compose/Multiplatform build outputs
+/build/
+/out/
+kotlin-js-store/yarn.lock
+.kotlin/
+
+# Gradle
+.gradle/
+build/
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ/Android Studio/VS Code project files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS System files
+.DS_Store
+Thumbs.db
+
+# Local configuration
+local.properties
+
+# Log files 
+*.log
