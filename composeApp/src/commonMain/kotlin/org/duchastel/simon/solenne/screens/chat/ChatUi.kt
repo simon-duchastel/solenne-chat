@@ -2,7 +2,6 @@ package org.duchastel.simon.solenne.screens.chat
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import com.slack.circuit.runtime.ui.Ui
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -14,6 +13,8 @@ class ChatUi : Ui<ChatScreen.State> {
     }
 }
 
+// Previews in commonMain aren't supported yet in Android Support but will be imminently:
+// https://youtrack.jetbrains.com/issue/KTIJ-32720/Support-common-org.jetbrains.compose.ui.tooling.preview.Preview-in-IDEA-and-Android-Studio
 @Preview
 @Composable
 fun ChatUi_Preview() {
