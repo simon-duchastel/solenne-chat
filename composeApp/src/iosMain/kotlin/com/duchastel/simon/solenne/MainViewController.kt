@@ -1,8 +1,8 @@
 package com.duchastel.simon.solenne
 
-import androidx.compose.material.Text
 import androidx.compose.ui.window.ComposeUIViewController
+import com.duchastel.simon.solenne.di.IosApplicationGraph
 
-fun MainViewController() = ComposeUIViewController {
-    Text("iOS is not yet supported")
+fun makeUiViewController(graph: IosApplicationGraph) = ComposeUIViewController {
+    App(graph.circuit)
 }
