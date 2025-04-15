@@ -3,21 +3,16 @@ package org.duchastel.simon.solenne
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import dev.zacsweers.metro.createGraph
+import org.duchastel.simon.solenne.di.ApplicationGraph
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val applicationComponent = createGraph<ApplicationGraph>()
         setContent {
-            App()
+            App(applicationComponent.circuit)
         }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

@@ -3,11 +3,13 @@ package org.duchastel.simon.solenne
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import kotlinx.browser.document
-import androidx.compose.material.Text
+import dev.zacsweers.metro.createGraph
+import org.duchastel.simon.solenne.di.ApplicationGraph
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    val applicationGraph = createGraph<ApplicationGraph>()
     ComposeViewport(document.body!!) {
-        Text("Web is not yet supported")
+        App(applicationGraph.circuit)
     }
 }
