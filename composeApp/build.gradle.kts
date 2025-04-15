@@ -18,7 +18,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
             freeCompilerArgs.addAll(
                 "-P",
-                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=org.duchastel.simon.solenne.parcel.Parcelize",
+                "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.duchastel.simon.solenne.parcel.Parcelize",
             )
         }
     }
@@ -99,11 +99,11 @@ kotlin {
 }
 
 android {
-    namespace = "org.duchastel.simon.solenne"
+    namespace = "com.duchastel.simon.solenne"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "org.duchastel.simon.solenne"
+        applicationId = "com.duchastel.simon.solenne"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -131,11 +131,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "org.duchastel.simon.solenne.MainKt"
+        mainClass = "com.duchastel.simon.solenne.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.duchastel.simon.solenne"
+            packageName = "com.duchastel.simon.solenne"
             packageVersion = "1.0.0"
         }
     }
