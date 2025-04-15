@@ -1,5 +1,6 @@
 package org.duchastel.simon.solenne
 
+import androidx.compose.material.Text
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
@@ -8,6 +9,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "SolenneChatApp",
     ) {
-        App()
+        Text("Desktop is not yet supported")
     }
 }
