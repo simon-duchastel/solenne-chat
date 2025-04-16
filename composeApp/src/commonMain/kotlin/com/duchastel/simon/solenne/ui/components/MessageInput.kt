@@ -7,38 +7,56 @@ import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun MessageInput(
-    onSend: (String) -> Unit,
+    input: String,
+    onInputChange: (String) -> Unit,
+    onSend: () -> Unit,
+    sendEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
-    var input by remember { mutableStateOf("") }
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = input,
-            onValueChange = { input = it },
+            onValueChange = onInputChange,
             modifier = Modifier.weight(1f),
             placeholder = { Text("Type a message...") }
         )
         Spacer(Modifier.width(8.dp))
         Button(
             onClick = {
-                if (input.isNotBlank()) {
-                    onSend(input)
-                    input = ""
-                }
+                onSend()
             },
-            enabled = input.isNotBlank()
+            enabled = sendEnabled
         ) {
             Text("Send")
         }
     }
+}
+
+@Preview
+@Composable
+fun MessageInputEnabled_Preview() {
+    MessageInput(
+        input = "Hello!",
+        onInputChange = {},
+        onSend = {},
+        sendEnabled = true,
+    )
+}
+
+@Preview
+@Composable
+fun wMessageInputDisabled_Preview() {
+    MessageInput(
+        input = "",
+        onInputChange = {},
+        onSend = {},
+        sendEnabled = false,
+    )
 }
