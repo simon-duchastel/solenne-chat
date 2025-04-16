@@ -12,21 +12,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.duchastel.simon.solenne.data.ChatMessage
+import com.duchastel.simon.solenne.data.MessageAuthor.AI
+import com.duchastel.simon.solenne.data.MessageAuthor.User
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
-import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ChatMessage(
-    message: ChatScreen.ChatMessage,
+    message: ChatMessage,
     modifier: Modifier = Modifier,
 ) {
-    val bubbleColor = if (message.isUser) Color(0xFFE1FFC7) else Color(0xFFF1F0F0)
+    val bubbleColor = if (message.author is User) Color(0xFFE1FFC7) else Color(0xFFF1F0F0)
     Row(
         modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
+        horizontalArrangement = if (message.author is User) Arrangement.End else Arrangement.Start
     ) {
         Box(
             modifier = Modifier
@@ -46,7 +48,7 @@ fun ChatMessage(
 @Composable
 fun UserChatMessage_Preview() {
     ChatMessage(
-        message = ChatMessagesFake.chatMessages.first { it.isUser },
+        message = ChatMessagesFake.chatMessages.first { it.author is User },
     )
 }
 
@@ -54,6 +56,6 @@ fun UserChatMessage_Preview() {
 @Composable
 fun LLMChatMessage_Preview() {
     ChatMessage(
-        message = ChatMessagesFake.chatMessages.first { !it.isUser },
+        message = ChatMessagesFake.chatMessages.first { it.author is AI },
     )
 }
