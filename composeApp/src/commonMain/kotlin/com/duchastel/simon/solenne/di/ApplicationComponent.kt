@@ -21,7 +21,7 @@ interface ApplicationGraph {
                 ChatPresenter()
             }
             .addUi<ChatScreen, ChatScreen.State> { state, modifier ->
-                ChatUi().Content(state, modifier)
+                ChatUi(state, modifier)
             }
             .build()
     }

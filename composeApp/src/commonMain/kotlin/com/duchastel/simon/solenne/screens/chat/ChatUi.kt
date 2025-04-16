@@ -7,11 +7,9 @@ import com.slack.circuit.runtime.ui.Ui
 import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-class ChatUi : Ui<ChatScreen.State> {
-    @Composable
-    override fun Content(state: ChatScreen.State, modifier: Modifier) {
-        Text(text = "Work in progress", modifier = modifier)
-    }
+@Composable
+fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
+    Text(text = "Work in progress", modifier = modifier)
 }
 
 // Previews in commonMain aren't supported yet in Android Support but will be imminently:
@@ -19,7 +17,7 @@ class ChatUi : Ui<ChatScreen.State> {
 @Preview
 @Composable
 fun ChatUi_Preview() {
-    ChatUi().Content(
+    ChatUi(
         modifier = Modifier,
         state = ChatScreen.State()
     )
