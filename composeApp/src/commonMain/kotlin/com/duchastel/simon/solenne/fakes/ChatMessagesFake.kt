@@ -1,0 +1,48 @@
+package com.duchastel.simon.solenne.fakes
+
+import com.duchastel.simon.solenne.screens.chat.ChatScreen.ChatMessage
+
+object ChatMessagesFake {
+    val chatMessages = listOf(
+        ChatMessage(text = "Hi, how can I help you?", isUser = false),
+        ChatMessage(text = "I've been having trouble sleeping lately. Any suggestions?", isUser = true),
+        ChatMessage(text = "I'm sorry to hear that. Have you tried establishing a regular sleep schedule?", isUser = false),
+        ChatMessage(text = "Yes, I try to go to bed at the same time every night.", isUser = true),
+        ChatMessage(text = "That's good. What about avoiding screens before bedtime?", isUser = false),
+        ChatMessage(text = "I usually watch TV or check my phone before sleeping. Is that bad?", isUser = true),
+        ChatMessage(text = "The blue light from screens can interfere with melatonin production. Try avoiding screens 1-2 hours before bed.", isUser = false),
+        ChatMessage(text = "I didn't know that. I'll try to read a book instead.", isUser = true),
+        ChatMessage(text = "Reading is excellent! Also consider keeping your bedroom cool and dark.", isUser = false),
+        ChatMessage(text = "My room does get pretty warm at night. I'll try adjusting the temperature.", isUser = true),
+        ChatMessage(text = "Perfect. What about your caffeine intake during the day?", isUser = false),
+        ChatMessage(text = "I usually have coffee until about 4pm. Is that too late?", isUser = true),
+        ChatMessage(text = "Ideally, avoid caffeine after noon. It can stay in your system for up to 8 hours.", isUser = false),
+        ChatMessage(text = "That's longer than I thought! I'll cut back on afternoon coffee.", isUser = true),
+        ChatMessage(text = "Great plan. How about exercise? Regular physical activity can improve sleep quality.", isUser = false),
+        ChatMessage(text = "I work out in the evenings. Is that good timing?", isUser = true),
+        ChatMessage(text = "Try to finish exercising at least 3 hours before bedtime. Morning or afternoon workouts are ideal for sleep.", isUser = false),
+        ChatMessage(text = "I'll see if I can shift my schedule. Any relaxation techniques you'd recommend?", isUser = true),
+        ChatMessage(text = "Deep breathing, progressive muscle relaxation, or meditation can all help calm your mind before sleep.", isUser = false),
+        ChatMessage(text = "I've never tried meditation. Any tips for beginners?", isUser = true),
+        ChatMessage(text = "Start with just 5 minutes of focusing on your breath. There are also great guided meditation apps available.", isUser = false),
+        ChatMessage(text = "That sounds manageable. I'll download an app today.", isUser = true),
+        ChatMessage(text = "Wonderful! Another suggestion is to use your bed only for sleep, not for working or watching TV.", isUser = false),
+        ChatMessage(text = "I do tend to work from bed sometimes. I'll stop that habit.", isUser = true),
+        ChatMessage(text = "Great! Your brain will start to associate your bed with sleep rather than alertness.", isUser = false),
+        ChatMessage(text = "Makes sense. What about naps during the day?", isUser = true),
+        ChatMessage(text = "Short naps (20-30 minutes) before 3pm are fine, but avoid longer naps or napping later in the day.", isUser = false),
+        ChatMessage(text = "Got it. What about diet? Does what I eat affect my sleep?", isUser = true),
+        ChatMessage(text = "Absolutely! Avoid heavy meals close to bedtime. Try to finish eating 2-3 hours before sleep.", isUser = false),
+        ChatMessage(text = "And alcohol? I sometimes have a nightcap to help me sleep.", isUser = true),
+        ChatMessage(text = "While alcohol might help you fall asleep, it reduces sleep quality and disrupts REM sleep.", isUser = false),
+        ChatMessage(text = "I didn't realize that. I'll skip the nightcap.", isUser = true),
+        ChatMessage(text = "Good choice. What about your bedroom environment? Is it comfortable?", isUser = false),
+        ChatMessage(text = "I think so, but my mattress is quite old.", isUser = true),
+        ChatMessage(text = "An uncomfortable mattress can definitely impact sleep quality. Consider investing in a new one if possible.", isUser = false),
+        ChatMessage(text = "I've been thinking about it. Any recommendations for mattress type?", isUser = true),
+        ChatMessage(text = "It depends on your preferences - memory foam, innerspring, hybrid, etc. Test different types if you can.", isUser = false),
+        ChatMessage(text = "I'll do some research and testing. What about pillows?", isUser = true),
+        ChatMessage(text = "A good pillow that properly supports your neck is important. Replace pillows every 1-2 years.", isUser = false),
+        ChatMessage(text = "Mine are definitely older than that! I'll get new ones.", isUser = true),
+    )
+}
