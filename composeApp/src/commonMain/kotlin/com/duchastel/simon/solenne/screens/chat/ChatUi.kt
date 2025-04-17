@@ -14,9 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.duchastel.simon.solenne.data.ChatMessage
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.ui.components.ChatMessage
 import com.duchastel.simon.solenne.ui.components.MessageInput
+import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import kotlinx.collections.immutable.toPersistentList
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -51,7 +53,9 @@ internal fun ChatUi_Preview() {
     ChatUi(
         modifier = Modifier,
         state = ChatScreen.State(
-            messages = ChatMessagesFake.chatMessages.toPersistentList()
+            messages = ChatMessagesFake.chatMessages
+                .map(ChatMessage::toUIChatMessage)
+                .toPersistentList()
         )
     )
 }
