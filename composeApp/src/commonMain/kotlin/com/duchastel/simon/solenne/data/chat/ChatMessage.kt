@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.data
+package com.duchastel.simon.solenne.data.chat
 
 // ConversationId is the parent for messages but not a property per-message; associating is contextually done.
 data class ChatMessage(

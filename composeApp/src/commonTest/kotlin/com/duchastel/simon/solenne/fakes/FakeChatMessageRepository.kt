@@ -1,7 +1,7 @@
 package com.duchastel.simon.solenne.fakes
 
-import com.duchastel.simon.solenne.data.ChatMessage
-import com.duchastel.simon.solenne.data.ChatMessageRepository
+import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

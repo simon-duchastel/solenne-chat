@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.data
 
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
