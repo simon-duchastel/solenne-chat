@@ -44,16 +44,16 @@ class ChatMessageRepositoryImpl @Inject constructor(
                     timestamp = Clock.System.now().toEpochMilliseconds(),
                 )
             )
-    //        val response = geminiApi.generateContent(text)
-    //        chatMessageDb.writeMessage(
-    //            DbMessage(
-    //                id = Uuid.random().toHexString(),
-    //                conversationId = conversationId,
-    //                author = 1L,
-    //                content = response,
-    //                timestamp = Clock.System.now().toEpochMilliseconds(),
-    //            )
-    //        )
+            val response = geminiApi.generateContent(text)
+            chatMessageDb.writeMessage(
+                DbMessage(
+                    id = Uuid.random().toHexString(),
+                    conversationId = conversationId,
+                    author = 1L,
+                    content = response,
+                    timestamp = Clock.System.now().toEpochMilliseconds(),
+                )
+            )
         }
     }
 }
