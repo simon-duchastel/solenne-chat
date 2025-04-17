@@ -26,18 +26,16 @@ class ChatPresenter @Inject constructor(
     override fun present(): ChatScreen.State {
         val messages by repository.getMessagesForConversation(screen.conversationId)
             .collectAsState(initial = listOf())
-        var saveButtonEnabled by rememberSaveable { mutableStateOf(true) }
         var textInput by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
         return ChatScreen.State(
-            saveButtonEnabled = saveButtonEnabled,
+            saveButtonEnabled = textInput.isNotBlank(),
             textInput = textInput,
             messages = messages.map(ChatMessage::toUIChatMessage).toPersistentList(),
         ) {
             when (it) {
                 is ChatScreen.Event.SendMessage -> coroutineScope.launch {
-                    saveButtonEnabled = false
                     textInput = ""
                     repository.sendTextToConversation(
                         screen.conversationId,

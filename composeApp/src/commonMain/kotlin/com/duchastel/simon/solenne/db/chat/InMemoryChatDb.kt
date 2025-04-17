@@ -20,7 +20,7 @@ class InMemoryChatDb: ChatMessageDb {
     override suspend fun writeMessage(message: DbMessage) {
         val currentMessages = messages[message.conversationId] ?: emptyList()
         val newMessages = currentMessages + message
-        messages + (message.conversationId to newMessages)
+        messages = messages + (message.conversationId to newMessages)
     }
 
     companion object {
