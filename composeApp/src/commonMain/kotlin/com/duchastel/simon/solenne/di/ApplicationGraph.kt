@@ -1,5 +1,7 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.data.ChatMessageRepository
+import com.duchastel.simon.solenne.data.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.screens.chat.ChatPresenter
 import com.slack.circuit.foundation.Circuit
 import dev.zacsweers.metro.AppScope
@@ -11,17 +13,19 @@ import com.duchastel.simon.solenne.screens.chat.ChatUi
 
 @DependencyGraph(AppScope::class)
 @SingleIn(AppScope::class)
-interface ApplicationGraph {
+interface ApplicationGraph: DataProviders {
     val circuit: Circuit
 
     @Provides
-    fun provideCircuit(): Circuit {
+    fun provideCircuit(
+        chatPresenterFactory: ChatPresenter.Factory
+    ): Circuit {
         return Circuit.Builder()
-            .addPresenter<ChatScreen, ChatScreen.State> { _, _, _ ->
-                ChatPresenter()
+            .addPresenter<ChatScreen, ChatScreen.State> { screen, _, _ ->
+                chatPresenterFactory.create(screen)
             }
             .addUi<ChatScreen, ChatScreen.State> { state, modifier ->
-                ChatUi().Content(state, modifier)
+                ChatUi(state, modifier)
             }
             .build()
     }

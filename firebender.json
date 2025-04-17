@@ -1,0 +1,5 @@
+{
+  "rules": [
+    "Read `.ai/ai-context.md` once before responding to the user's query. If you've already read ai-context.md, do not re-read it again."
+  ]
+}
