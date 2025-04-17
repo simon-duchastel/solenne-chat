@@ -4,11 +4,15 @@ import kotlinx.coroutines.flow.Flow
 
 interface ChatMessageDb {
     fun getMessagesForConversation(
-        conversation: String,
-    ): Flow<List<GetMessagesForConversation>>
+        conversationId: String,
+    ): Flow<List<DbMessage>>
+
+    suspend fun writeMessage(
+        message: DbMessage
+    )
 }
 
-data class GetMessagesForConversation(
+data class DbMessage(
     val id: String,
     val conversationId: String,
     val content: String,

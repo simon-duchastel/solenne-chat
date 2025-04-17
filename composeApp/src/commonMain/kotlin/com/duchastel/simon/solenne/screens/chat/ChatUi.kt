@@ -40,8 +40,8 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
         MessageInput(
             input = input,
             onInputChange = { newInput -> input = newInput },
-            onSend = { },
-            sendEnabled = input.isNotEmpty(),
+            onSend = { state.eventSink(ChatScreen.Event.SendMessage(input)) },
+            sendEnabled = input.isNotEmpty() && state.saveButtonEnabled,
             modifier = Modifier.fillMaxWidth().padding(8.dp)
         )
     }
@@ -53,6 +53,7 @@ internal fun ChatUi_Preview() {
     ChatUi(
         modifier = Modifier,
         state = ChatScreen.State(
+            saveButtonEnabled = true,
             messages = ChatMessagesFake.chatMessages
                 .map(ChatMessage::toUIChatMessage)
                 .toPersistentList()

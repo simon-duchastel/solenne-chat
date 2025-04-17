@@ -12,16 +12,22 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Inject
 class InMemoryChatDb: ChatMessageDb {
-    override fun getMessagesForConversation(conversation: String): Flow<List<GetMessagesForConversation>> {
-        val messagesForConversation = messages[conversation] ?: emptyList()
+    override fun getMessagesForConversation(conversationId: String): Flow<List<DbMessage>> {
+        val messagesForConversation = messages[conversationId] ?: emptyList()
         return snapshotFlow { messagesForConversation }.distinctUntilChanged()
     }
 
+    override suspend fun writeMessage(message: DbMessage) {
+        val currentMessages = messages[message.conversationId] ?: emptyList()
+        val newMessages = currentMessages + message
+        messages + (message.conversationId to newMessages)
+    }
+
     companion object {
-        private var messages by mutableStateOf<Map<String, List<GetMessagesForConversation>>>(
+        private var messages by mutableStateOf<Map<String, List<DbMessage>>>(
             mapOf(
                 "123" to ChatMessagesFake.chatMessages.map {
-                    GetMessagesForConversation(
+                    DbMessage(
                         id = it.id,
                         conversationId = "123",
                         content = it.text,
