@@ -1,7 +1,6 @@
 package com.duchastel.simon.solenne.screens.chat
 
 import androidx.compose.runtime.Immutable
-import com.duchastel.simon.solenne.data.ChatMessage
 import com.duchastel.simon.solenne.parcel.Parcelize
 import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.slack.circuit.runtime.CircuitUiEvent
