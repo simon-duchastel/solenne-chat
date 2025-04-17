@@ -95,12 +95,27 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotlin.test.junit)
+            implementation(libs.circuit.test)
+        }
     }
 }
 
 android {
     namespace = "com.duchastel.simon.solenne"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    buildFeatures {
+        compose = true
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 
     defaultConfig {
         applicationId = "com.duchastel.simon.solenne"
