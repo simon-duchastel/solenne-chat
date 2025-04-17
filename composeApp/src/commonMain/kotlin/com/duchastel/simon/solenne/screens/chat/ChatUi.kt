@@ -24,8 +24,9 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
+    val eventSink = state.eventSink
     val messages = state.messages
-    var input by remember { mutableStateOf("") }
+    val input = state.textInput
 
     Column(modifier = modifier.fillMaxSize()) {
         LazyColumn(
@@ -39,8 +40,8 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
         }
         MessageInput(
             input = input,
-            onInputChange = { newInput -> input = newInput },
-            onSend = { state.eventSink(ChatScreen.Event.SendMessage(input)) },
+            onInputChange = { newInput -> eventSink(ChatScreen.Event.TextInputChanged(newInput)) },
+            onSend = { eventSink(ChatScreen.Event.SendMessage(input)) },
             sendEnabled = input.isNotEmpty() && state.saveButtonEnabled,
             modifier = Modifier.fillMaxWidth().padding(8.dp)
         )
