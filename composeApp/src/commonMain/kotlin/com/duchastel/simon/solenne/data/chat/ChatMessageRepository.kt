@@ -2,14 +2,15 @@ package com.duchastel.simon.solenne.data.chat
 
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.DbMessage
-import com.duchastel.simon.solenne.network.ai.gemini.GeminiApi
+import com.duchastel.simon.solenne.network.ai.AiChatApi
+import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
@@ -22,7 +23,7 @@ interface ChatMessageRepository {
 
 class ChatMessageRepositoryImpl @Inject constructor(
     private val chatMessageDb: ChatMessageDb,
-    private val geminiApi: GeminiApi,
+    @Named(GEMINI) private val geminiApi: AiChatApi,
 ): ChatMessageRepository {
     override fun getMessagesForConversation(conversationId: String): Flow<List<ChatMessage>> {
         return chatMessageDb.getMessagesForConversation(conversationId)

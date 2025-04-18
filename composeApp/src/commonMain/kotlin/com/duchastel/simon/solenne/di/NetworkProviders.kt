@@ -1,5 +1,10 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.network.ai.AiChatApi
+import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
+import com.duchastel.simon.solenne.network.ai.gemini.GeminiApi
+import dev.zacsweers.metro.Binds
+import dev.zacsweers.metro.Named
 import dev.zacsweers.metro.Provides
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -26,4 +31,8 @@ interface NetworkProviders {
             level = LogLevel.ALL
         }
     }
+
+    @Named(GEMINI)
+    @Binds
+    fun GeminiApi.bind(): AiChatApi
 }

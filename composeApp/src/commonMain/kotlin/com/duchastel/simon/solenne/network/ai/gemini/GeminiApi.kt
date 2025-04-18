@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.network.ai.gemini
 
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Named
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
@@ -21,6 +22,7 @@ private const val MODEL_NAME = "gemini-2.0-flash"
  * This target lives in the `networks` layer to keep network‑related abstractions
  * separated from repositories and database code.
  */
+@Named(GEMINI)
 class GeminiApi @Inject constructor(
     private val httpClient: HttpClient,
     private val apiKey: String = "<api-key-here>",
