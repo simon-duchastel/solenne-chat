@@ -10,6 +10,12 @@ interface ChatMessageDb {
     suspend fun writeMessage(
         message: DbMessage
     )
+
+    suspend fun updateMessageContent(
+        conversationId: String,
+        id: String,
+        newContent: String,
+    )
 }
 
 data class DbMessage(

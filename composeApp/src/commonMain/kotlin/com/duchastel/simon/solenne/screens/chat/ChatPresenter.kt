@@ -41,6 +41,7 @@ class ChatPresenter @Inject constructor(
                         screen.conversationId,
                         it.text
                     )
+                    textInput = "Done"
                 }
                 is ChatScreen.Event.TextInputChanged -> {
                     textInput = it.text

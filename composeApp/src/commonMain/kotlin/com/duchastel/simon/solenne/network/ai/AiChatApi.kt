@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.network.ai
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -12,7 +13,9 @@ interface AiChatApi {
      * messages in the conversation and a new message from the user for the AI to respond to.
      * @return The AI's response as plain text
      */
-    suspend fun generateResponseForConversation(request: GenerateContentRequest): GenerateContentResponse
+    fun generateResponseForConversation(
+        request: GenerateContentRequest,
+    ): Flow<GenerateContentResponse>
 }
 
 @Serializable

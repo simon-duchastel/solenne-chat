@@ -10,6 +10,8 @@ import com.duchastel.simon.solenne.network.ai.Part
 import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Named
+import io.ktor.utils.io.locks.reentrantLock
+import io.ktor.utils.io.locks.synchronized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -46,17 +48,29 @@ class AiChatRepositoryImpl @Inject constructor(
                     )
                 }
 
-            val aiResponse = aiChatApi.generateResponseForConversation(
+            var messageId: String? = null
+            var responseSoFar = ""
+            aiChatApi.generateResponseForConversation(
                 GenerateContentRequest(contents = conversationContents)
-            ).candidates
-                .firstOrNull()?.content?.parts?.firstOrNull()?.text
-                ?: "Error: No response from AI"
-
-            chatMessageRepositoryImpl.addMessageToConversation(
-                conversationId = conversationId,
-                author = MessageAuthor.AI,
-                text = aiResponse,
-            )
+            ).collect {
+                responseSoFar += it.candidates
+                    .firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    ?: "Error: No response from AI"
+                val currentMessageId = messageId
+                if (currentMessageId == null) {
+                    messageId = chatMessageRepositoryImpl.addMessageToConversation(
+                        conversationId = conversationId,
+                        author = MessageAuthor.AI,
+                        text = responseSoFar,
+                    )
+                } else {
+                    chatMessageRepositoryImpl.modifyMessageFromConversation(
+                        messageId = currentMessageId,
+                        conversationId = conversationId,
+                        newText = responseSoFar,
+                    )
+                }
+            }
         }
     }
 }

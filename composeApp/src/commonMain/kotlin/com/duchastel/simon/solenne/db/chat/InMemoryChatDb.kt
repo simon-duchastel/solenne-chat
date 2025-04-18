@@ -4,8 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import com.duchastel.simon.solenne.data.chat.MessageAuthor
-import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -20,7 +18,20 @@ class InMemoryChatDb: ChatMessageDb {
     override suspend fun writeMessage(message: DbMessage) {
         val currentMessages = messages[message.conversationId] ?: emptyList()
         val newMessages = currentMessages + message
-        messages = messages + (message.conversationId to newMessages)
+        messages += (message.conversationId to newMessages)
+    }
+
+    override suspend fun updateMessageContent(
+        conversationId: String,
+        id: String,
+        newContent: String,
+    ) {
+        val currentMessages = messages[conversationId]
+            ?: error("Could not find conversation $conversationId")
+        val updatedMessages = currentMessages.map {
+            if (id == it.id) it.copy(content = newContent) else it
+        }
+        messages += (conversationId to updatedMessages)
     }
 
     companion object {

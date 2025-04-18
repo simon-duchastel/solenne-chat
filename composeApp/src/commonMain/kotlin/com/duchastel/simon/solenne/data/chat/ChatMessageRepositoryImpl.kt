@@ -24,16 +24,31 @@ class ChatMessageRepositoryImpl @Inject constructor(
             }
     }
 
+    override suspend fun modifyMessageFromConversation(
+        conversationId: String,
+        messageId: String,
+        newText: String,
+    ) {
+        withContext(Dispatchers.Default) {
+            chatMessageDb.updateMessageContent(
+                id = messageId,
+                conversationId = conversationId,
+                newContent = newText,
+            )
+        }
+    }
+
     @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
     override suspend fun addMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,
-    ) {
-        withContext(Dispatchers.Default) {
+    ): String {
+        return withContext(Dispatchers.Default) {
+            val messageId = Uuid.random().toHexString()
             chatMessageDb.writeMessage(
                 DbMessage(
-                    id = Uuid.random().toHexString(),
+                    id = messageId,
                     conversationId = conversationId,
                     author = when (author) {
                         MessageAuthor.User -> 0L
@@ -43,6 +58,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
                     timestamp = Clock.System.now().toEpochMilliseconds(),
                 )
             )
+            return@withContext messageId
         }
     }
 }
