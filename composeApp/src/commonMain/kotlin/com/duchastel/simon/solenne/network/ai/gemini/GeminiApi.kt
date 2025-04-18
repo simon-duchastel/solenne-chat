@@ -7,6 +7,7 @@ import com.duchastel.simon.solenne.network.ai.GenerateContentResponse
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Named
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsChannel
@@ -22,10 +23,8 @@ private const val MODEL_NAME = "gemini-2.0-flash"
 
 /**
  * Simple wrapper around the Google Gemini generative language REST API.
- * Currently this only supports the `generateContent` endpoint for the `gemini-2.0-flash` model.
- *
- * This target lives in the `networks` layer to keep network‑related abstractions
- * separated from repositories and database code.
+ * Currently this only supports the `generateContent` and `streamGenerateContent`
+ * endpoints for the `gemini-2.0-flash` model.
  */
 @Named(GEMINI)
 class GeminiApi @Inject constructor(
@@ -33,7 +32,19 @@ class GeminiApi @Inject constructor(
     private val apiKey: String = "<<YOUR_API_KEY>>",
 ) : AiChatApi {
 
-    override fun generateResponseForConversation(
+    override suspend fun generateResponseForConversation(
+        request: GenerateContentRequest,
+    ): GenerateContentResponse {
+        val url = "$BASE_URL$MODEL_NAME:generateContent?key=$apiKey"
+        val response: GenerateContentResponse = httpClient.post(url) {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+
+        return response
+    }
+
+    override fun generateStreamingResponseForConversation(
         request: GenerateContentRequest,
     ): Flow<GenerateContentResponse> = channelFlow {
         val url = "$BASE_URL$MODEL_NAME:streamGenerateContent?alt=sse&key=$apiKey"

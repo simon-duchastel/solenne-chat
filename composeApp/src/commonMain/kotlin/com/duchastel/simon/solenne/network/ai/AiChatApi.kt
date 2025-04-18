@@ -6,6 +6,19 @@ import kotlinx.serialization.Serializable
 
 interface AiChatApi {
     /**
+     * Sends a list of conversation messages to the AI and returns the plain text response,
+     * streamed in a list of [GenerateContentResponse] objects as they are generated.
+     * This supports multi-turn conversations with the AI.
+     *
+     * @param request The content of the conversation so far, which includes all
+     * messages in the conversation and a new message from the user for the AI to respond to.
+     * @return The AI's response as plain text
+     */
+    fun generateStreamingResponseForConversation(
+        request: GenerateContentRequest,
+    ): Flow<GenerateContentResponse>
+
+    /**
      * Sends a list of conversation messages to the AI and returns the plain text response.
      * This supports multi-turn conversations with the AI.
      *
@@ -13,9 +26,9 @@ interface AiChatApi {
      * messages in the conversation and a new message from the user for the AI to respond to.
      * @return The AI's response as plain text
      */
-    fun generateResponseForConversation(
+    suspend fun generateResponseForConversation(
         request: GenerateContentRequest,
-    ): Flow<GenerateContentResponse>
+    ): GenerateContentResponse
 }
 
 @Serializable

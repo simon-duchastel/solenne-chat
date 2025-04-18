@@ -19,6 +19,7 @@ class AiChatRepositoryImpl @Inject constructor(
     private val chatMessageRepositoryImpl: ChatMessageRepositoryImpl,
     @Named(GEMINI) private val aiChatApi: AiChatApi,
 ) : AiChatRepository {
+
     override fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
         return chatMessageRepositoryImpl.getMessageFlowForConversation(conversationId)
     }
@@ -48,7 +49,7 @@ class AiChatRepositoryImpl @Inject constructor(
 
             var messageId: String? = null
             var responseSoFar = ""
-            aiChatApi.generateResponseForConversation(
+            aiChatApi.generateStreamingResponseForConversation(
                 GenerateContentRequest(contents = conversationContents)
             ).collect {
                 responseSoFar += it.candidates
