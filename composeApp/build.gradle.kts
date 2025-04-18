@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     id("dev.zacsweers.metro")
     id("kotlin-parcelize")
+    kotlin("plugin.serialization") version "2.1.20"
 }
 
 kotlin {
@@ -62,6 +63,8 @@ kotlin {
     
     sourceSets {
         val desktopMain by getting
+        val androidMain by getting
+        val iosArm64Main by getting
 
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -76,30 +79,35 @@ kotlin {
             implementation(libs.circuit.foundation)
             implementation(libs.circuit.runtime)
             api(libs.circuit.codegen.annotations)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.ktor.client.logging)
         }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-        }
-        commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodel)
-            implementation(libs.androidx.lifecycle.runtime.compose)
+
+            implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.ktor.client.okhttp)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.ktor.client.apache5)
+        }
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
+        }
+        nativeMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.kotlin.test.junit)
             implementation(libs.circuit.test)
         }
     }

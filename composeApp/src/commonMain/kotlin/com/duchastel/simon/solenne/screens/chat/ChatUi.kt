@@ -14,7 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.duchastel.simon.solenne.data.ChatMessage
+import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.ui.components.ChatMessage
 import com.duchastel.simon.solenne.ui.components.MessageInput
@@ -24,8 +24,9 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
+    val eventSink = state.eventSink
     val messages = state.messages
-    var input by remember { mutableStateOf("") }
+    val input = state.textInput
 
     Column(modifier = modifier.fillMaxSize()) {
         LazyColumn(
@@ -39,9 +40,9 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
         }
         MessageInput(
             input = input,
-            onInputChange = { newInput -> input = newInput },
-            onSend = { },
-            sendEnabled = input.isNotEmpty(),
+            onInputChange = { newInput -> eventSink(ChatScreen.Event.TextInputChanged(newInput)) },
+            onSend = { eventSink(ChatScreen.Event.SendMessage(input)) },
+            sendEnabled = state.saveButtonEnabled,
             modifier = Modifier.fillMaxWidth().padding(8.dp)
         )
     }
@@ -53,6 +54,8 @@ internal fun ChatUi_Preview() {
     ChatUi(
         modifier = Modifier,
         state = ChatScreen.State(
+            saveButtonEnabled = true,
+            textInput = "My input",
             messages = ChatMessagesFake.chatMessages
                 .map(ChatMessage::toUIChatMessage)
                 .toPersistentList()

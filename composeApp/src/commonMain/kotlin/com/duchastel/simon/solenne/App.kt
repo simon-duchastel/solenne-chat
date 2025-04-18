@@ -13,7 +13,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun App(circuit: Circuit) {
     MaterialTheme {
         CircuitCompositionLocals(circuit) {
-            CircuitContent(ChatScreen(conversationId = "sample-convo-1"))
+            CircuitContent(ChatScreen(conversationId = "123"))
         }
     }
 }

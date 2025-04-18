@@ -15,8 +15,13 @@ data class ChatScreen(
     @Immutable
     data class State(
         val messages: PersistentList<UIChatMessage>,
+        val saveButtonEnabled: Boolean,
+        val textInput: String,
         val eventSink: (Event) -> Unit = {},
     ): CircuitUiState
 
-    sealed interface Event : CircuitUiEvent
+    sealed interface Event : CircuitUiEvent {
+        data class SendMessage(val text: String): Event
+        data class TextInputChanged(val text: String): Event
+    }
 }

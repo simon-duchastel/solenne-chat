@@ -1,7 +1,7 @@
 package com.duchastel.simon.solenne.di
 
-import com.duchastel.simon.solenne.data.ChatMessageRepository
-import com.duchastel.simon.solenne.data.ChatMessageRepositoryImpl
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import dev.zacsweers.metro.Binds
 
 interface DataProviders {

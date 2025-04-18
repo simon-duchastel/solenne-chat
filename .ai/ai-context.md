@@ -26,9 +26,9 @@ The app uses dependency injection via `Metro`.
 - `composeApp/src/wasmJsMain`: web-specific code
 
 # General Philosophy, Principles, and Best Practices
-- **Code Sharing**: Maximize code reuse across platforms through Kotlin Multiplatform. Prefer generic code over platform-specific code.
-- **Compose First**: UI is built only using Jetpack Compose. **Do not** use other UI frameworks
-- **Kotlin DSL**: Use Kotlin DSL in Gradle and version catalogs in a .toml file for build configuration
-- **Modularity**: 
-- **Testing**: UI should have `@Preview` functions covering all major use-cases. Circuit presenters, repositories, and other business logic should have unit tests.
-- **Dependency injection**: annotate objects with `@Inject` to dependency inject them into the hierarchy. 
+- Maximize code reuse across platforms through Kotlin Multiplatform. Prefer generic code over platform-specific code.
+- UI is built only using Jetpack Compose. **Do not** use other UI frameworks
+- Use Kotlin DSL in Gradle and version catalogs in a .toml file for build configuration
+- UI should have `@Preview` functions covering all major use-cases. Circuit presenters, repositories, and other business logic should have unit tests.
+- annotate objects with `@Inject` to dependency inject them into the hierarchy. 
+- anytime you change the `libs.toml` or `build.gradle.kts` file, run `./gradlew sync` after you're done.
