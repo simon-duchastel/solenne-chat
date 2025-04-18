@@ -8,10 +8,11 @@ androidx-lifecycle = "2.8.4"
 compose-multiplatform = "1.7.3"
 circuit = "0.27.1"
 kotlin = "2.1.20"
-coroutines = "1.9.0"
+coroutines = "1.10.2"
 kotlinx-coroutines = "1.10.2"
 metro = "0.1.2"
 ktor = "3.1.2"
+turbine = "1.2.0"
 
 [libraries]
 circuit-test = { module = "com.slack.circuit:circuit-test", version.ref = "circuit" }
@@ -34,6 +35,7 @@ ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-conte
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

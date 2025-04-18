@@ -109,6 +109,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.circuit.test)
+            implementation(libs.turbine)
         }
     }
 }

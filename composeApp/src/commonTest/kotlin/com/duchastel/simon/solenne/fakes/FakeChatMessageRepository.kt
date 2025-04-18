@@ -15,11 +15,15 @@ internal class FakeChatMessageRepository(
         conversationId: String,
     ): Flow<List<ChatMessage>> = messageFlow
 
-    override suspend fun sendTextToConversation(conversationId: String, text: String) {
+    override suspend fun addMessageToConversation(
+        conversationId: String,
+        author: MessageAuthor,
+        text: String,
+    ) {
         messageFlow.value += ChatMessage(
             id = "do-not-rely-on-this-id",
             text = text,
-            author = MessageAuthor.User,
+            author = author,
         )
     }
 }
