@@ -24,18 +24,6 @@ class InMemoryChatDb: ChatMessageDb {
     }
 
     companion object {
-        private var messages by mutableStateOf<Map<String, List<DbMessage>>>(
-            mapOf(
-                "123" to ChatMessagesFake.chatMessages.map {
-                    DbMessage(
-                        id = it.id,
-                        conversationId = "123",
-                        content = it.text,
-                        author = if (it.author is MessageAuthor.User) 0L else 1L,
-                       timestamp = 0L,
-                    )
-                },
-            )
-        )
+        private var messages by mutableStateOf<Map<String, List<DbMessage>>>(emptyMap())
     }
 }

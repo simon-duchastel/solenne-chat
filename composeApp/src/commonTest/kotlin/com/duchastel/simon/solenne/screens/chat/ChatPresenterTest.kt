@@ -1,7 +1,7 @@
 package com.duchastel.simon.solenne.screens.chat
 
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
-import com.duchastel.simon.solenne.fakes.FakeChatMessageRepository
+import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -12,8 +12,13 @@ class ChatPresenterTest {
     @Test
     fun `present - emits initial empty state then list of messages`() = runTest {
         val conversationId = "presenter-test-convo"
-        val repository = FakeChatMessageRepository()
-        val presenter = ChatPresenter(repository, ChatScreen(conversationId))
+        val repository = FakeAiChatRepository(
+            initialMessages = mapOf(conversationId to ChatMessagesFake.chatMessages),
+        )
+        val presenter = ChatPresenter(
+            aiChatRepository = repository,
+            screen = ChatScreen(conversationId),
+        )
 
         presenter.test {
             val first = awaitItem()

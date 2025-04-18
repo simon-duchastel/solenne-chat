@@ -11,15 +11,19 @@ internal class FakeChatMessageRepository(
 ): ChatMessageRepository {
     private val messageFlow = MutableStateFlow(initialMessages)
 
-    override fun getMessagesForConversation(
+    override fun getMessageFlowForConversation(
         conversationId: String,
     ): Flow<List<ChatMessage>> = messageFlow
 
-    override suspend fun sendTextToConversation(conversationId: String, text: String) {
+    override suspend fun addMessageToConversation(
+        conversationId: String,
+        author: MessageAuthor,
+        text: String,
+    ) {
         messageFlow.value += ChatMessage(
             id = "do-not-rely-on-this-id",
             text = text,
-            author = MessageAuthor.User,
+            author = author,
         )
     }
 }
