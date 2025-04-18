@@ -11,7 +11,7 @@ internal class FakeChatMessageRepository(
 ): ChatMessageRepository {
     private val messageFlow = MutableStateFlow(initialMessages)
 
-    override fun getMessagesForConversation(
+    override fun getMessageFlowForConversation(
         conversationId: String,
     ): Flow<List<ChatMessage>> = messageFlow
 

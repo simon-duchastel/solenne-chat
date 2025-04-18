@@ -2,10 +2,7 @@ package com.duchastel.simon.solenne.data.chat
 
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.DbMessage
-import com.duchastel.simon.solenne.network.ai.AiChatApi
-import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.Named
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -16,16 +13,39 @@ import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+/**
+ * A repository for persisting and retrieving chat messages.
+ *
+ * Responsible for creating, storing, and retrieving all chat conversations.
+ */
 interface ChatMessageRepository {
-    fun getMessagesForConversation(conversationId: String): Flow<List<ChatMessage>>
-    suspend fun sendTextToConversation(conversationId: String, text: String)
+    /**
+     * Returns a cold [Flow] that emits the list of chat messages
+     * in the conversation identified by [conversationId].
+     *
+     * @param conversationId the unique identifier of the conversation
+     * @return a flow of the current list of [ChatMessage]s
+     */
+    fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>>
+
+    /**
+     * Persists a new text message in the conversation, then
+     * sends it to the AI backend and persists the AI’s reply.
+     *
+     * @param conversationId the unique identifier of the conversation
+     * @param text the plain‑text message from the user
+     */
+    suspend fun addMessageToConversation(
+        conversationId: String,
+        author: MessageAuthor,
+        text: String,
+    )
 }
 
 class ChatMessageRepositoryImpl @Inject constructor(
     private val chatMessageDb: ChatMessageDb,
-    @Named(GEMINI) private val geminiApi: AiChatApi,
 ): ChatMessageRepository {
-    override fun getMessagesForConversation(conversationId: String): Flow<List<ChatMessage>> {
+    override fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
         return chatMessageDb.getMessagesForConversation(conversationId)
             .distinctUntilChanged()
             .map { query ->
@@ -34,24 +54,21 @@ class ChatMessageRepositoryImpl @Inject constructor(
     }
 
     @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
-    override suspend fun sendTextToConversation(conversationId: String, text: String) {
+    override suspend fun addMessageToConversation(
+        conversationId: String,
+        author: MessageAuthor,
+        text: String,
+    ) {
         withContext(Dispatchers.Default) {
             chatMessageDb.writeMessage(
                 DbMessage(
                     id = Uuid.random().toHexString(),
                     conversationId = conversationId,
-                    author = 0L,
-                    content = text,
-                    timestamp = Clock.System.now().toEpochMilliseconds(),
-                )
-            )
-            val response = geminiApi.generateContent(text)
-            chatMessageDb.writeMessage(
-                DbMessage(
-                    id = Uuid.random().toHexString(),
-                    conversationId = conversationId,
-                    author = 1L,
-                    content = response,
+                    author = when (author) {
+                        MessageAuthor.User -> 0L
+                        MessageAuthor.AI -> 1L
+                    },
+                    content = text.trim(),
                     timestamp = Clock.System.now().toEpochMilliseconds(),
                 )
             )

@@ -25,7 +25,7 @@ private const val MODEL_NAME = "gemini-2.0-flash"
 @Named(GEMINI)
 class GeminiApi @Inject constructor(
     private val httpClient: HttpClient,
-    private val apiKey: String = "<api-key-here>",
+    private val apiKey: String = "AIzaSyAI1BtFudwbajY0jXUjAWoDSUHm_BJNYB0",
 ) : AiChatApi {
 
     override suspend fun generateContent(prompt: String): String {

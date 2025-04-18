@@ -59,7 +59,7 @@ internal class ChatMessageRepositoryImplTest {
             )
         )
 
-        val chats = repo.getMessagesForConversation(conversationId).first()
+        val chats = repo.getMessageFlowForConversation(conversationId).first()
         assertEquals(2, chats.size)
 
         val first = chats[0]

@@ -7,8 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessage
-import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
@@ -18,14 +18,14 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
-    private val repository: ChatMessageRepository,
+    private val aiChatRepository: AiChatRepository,
     @Assisted private val screen: ChatScreen
 ) : Presenter<ChatScreen.State> {
 
     @Composable
     override fun present(): ChatScreen.State {
-        val messages by repository.getMessagesForConversation(screen.conversationId)
-            .collectAsState(initial = listOf())
+        val messages by aiChatRepository.getMessageFlowForConversation(screen.conversationId)
+            .collectAsState(initial = emptyList())
         var textInput by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
@@ -37,7 +37,7 @@ class ChatPresenter @Inject constructor(
             when (it) {
                 is ChatScreen.Event.SendMessage -> coroutineScope.launch {
                     textInput = ""
-                    repository.sendTextToConversation(
+                    aiChatRepository.sendTextMessageFromUserToConversation(
                         screen.conversationId,
                         it.text
                     )
