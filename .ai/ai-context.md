@@ -19,7 +19,12 @@ The app uses dependency injection via `Metro`.
 ## Structure
 
 - `composeApp/src/commonMain`: common code targeting all platforms. This is the majority of code in the repo.
-  - `data`: the data layer of the app
+  - `data`: the data layer of the app. Responsible for 
+  - `db`: local storage data sources. Used for low-level access to on-device persistence.
+  - `network`: network data sources. Used for low-level access to remote data over the network (http).
+  - `di`: where dependency injection configuration for the app is located
+  - `screens`: the Circuit screens for the app
+  - `ui`: shared UI components are stored
 - `composeApp/src/androidMain`: android-specific code
 - `composeApp/src/iosMain`: iOS-specific code
 - `composeApp/src/desktopMain`: desktop-specific code
