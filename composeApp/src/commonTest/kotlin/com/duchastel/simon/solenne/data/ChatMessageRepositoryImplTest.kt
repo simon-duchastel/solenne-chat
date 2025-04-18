@@ -11,6 +11,8 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import com.duchastel.simon.solenne.data.chat.toChatMessage
 
 internal class ChatMessageRepositoryImplTest {
 
@@ -92,5 +94,52 @@ internal class ChatMessageRepositoryImplTest {
             assertEquals("hello there", userMsg.content)
         }
     }
-}
 
+    @Test
+    fun `DbMessage toChatMessage - User maps correctly`() {
+        val id = "1"
+        val content = "hello"
+        val dbMessage = DbMessage(
+            id = id,
+            conversationId = "conv",
+            author = 0L,
+            content = content,
+            timestamp = 0L
+        )
+        val chatMessage = dbMessage.toChatMessage()
+        assertEquals(id, chatMessage.id)
+        assertEquals(content, chatMessage.text)
+        assertEquals(MessageAuthor.User, chatMessage.author)
+    }
+
+    @Test
+    fun `DbMessage toChatMessage - AI maps correctly`() {
+        val id = "2"
+        val content = "hi from AI"
+        val dbMessage = DbMessage(
+            id = id,
+            conversationId = "conv",
+            author = 1L,
+            content = content,
+            timestamp = 0L
+        )
+        val chatMessage = dbMessage.toChatMessage()
+        assertEquals(id, chatMessage.id)
+        assertEquals(content, chatMessage.text)
+        assertEquals(MessageAuthor.AI, chatMessage.author)
+    }
+
+    @Test
+    fun `DbMessage toChatMessage - unknown author throws`() {
+        val dbMessage = DbMessage(
+            id = "3",
+            conversationId = "conv",
+            author = 2L,
+            content = "unknown",
+            timestamp = 0L
+        )
+        assertFailsWith<IllegalStateException> {
+            dbMessage.toChatMessage()
+        }
+    }
+}

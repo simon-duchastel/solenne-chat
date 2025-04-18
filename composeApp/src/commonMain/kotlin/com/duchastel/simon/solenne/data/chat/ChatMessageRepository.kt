@@ -33,10 +33,18 @@ interface ChatMessageRepository {
 
     /**
      * Modifies an existing message in the conversation.
+     *
+     * Useful for streaming conversations, where messages are
+     * updated as they are received.
+     *
+     * @param conversationId the id of the conversation
+     * @param messageId the id of the message to modify
+     * @param newText the new text of the message
+     * @return the id of the modified message
      */
     suspend fun modifyMessageFromConversation(
         conversationId: String,
         messageId: String,
         newText: String,
-    )
+    ): String
 }

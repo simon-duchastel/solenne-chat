@@ -16,6 +16,7 @@ import kotlin.uuid.Uuid
 class ChatMessageRepositoryImpl @Inject constructor(
     private val chatMessageDb: ChatMessageDb,
 ) : ChatMessageRepository {
+
     override fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
         return chatMessageDb.getMessagesForConversation(conversationId)
             .distinctUntilChanged()
@@ -28,13 +29,14 @@ class ChatMessageRepositoryImpl @Inject constructor(
         conversationId: String,
         messageId: String,
         newText: String,
-    ) {
-        withContext(Dispatchers.Default) {
+    ): String {
+        return withContext(Dispatchers.Default) {
             chatMessageDb.updateMessageContent(
                 id = messageId,
                 conversationId = conversationId,
                 newContent = newText,
             )
+            return@withContext messageId
         }
     }
 

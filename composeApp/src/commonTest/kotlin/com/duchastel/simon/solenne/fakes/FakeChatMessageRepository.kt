@@ -4,26 +4,29 @@ import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.MessageAuthor
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 
 internal class FakeChatMessageRepository(
-    initialMessages: List<ChatMessage> = ChatMessagesFake.chatMessages,
+    private val initialMessages: List<ChatMessage> = ChatMessagesFake.chatMessages,
 ): ChatMessageRepository {
-    private val messageFlow = MutableStateFlow(initialMessages)
 
     override fun getMessageFlowForConversation(
         conversationId: String,
-    ): Flow<List<ChatMessage>> = messageFlow
+    ): Flow<List<ChatMessage>> = flowOf(initialMessages)
 
     override suspend fun addMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,
-    ) {
-        messageFlow.value += ChatMessage(
-            id = "do-not-rely-on-this-id",
-            text = text,
-            author = author,
-        )
+    ): String {
+        return "do-not-rely-on-this-id"
+    }
+
+    override suspend fun modifyMessageFromConversation(
+        conversationId: String,
+        messageId: String,
+        newText: String
+    ): String {
+        return messageId
     }
 }

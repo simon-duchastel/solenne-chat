@@ -15,7 +15,23 @@ import kotlinx.coroutines.flow.flowOf
 internal class FakeAiChatApi(
     private val fakeResponse: String = "fake-ai-response"
 ) : AiChatApi {
-    override fun generateResponseForConversation(
+    
+    override suspend fun generateResponseForConversation(
+        request: GenerateContentRequest
+    ): GenerateContentResponse {
+        return GenerateContentResponse(
+            candidates = listOf(
+                Candidate(
+                    content = Content(
+                        parts = listOf(Part(fakeResponse)),
+                        role = "model"
+                    )
+                )
+            )
+        )
+    }
+    
+    override fun generateStreamingResponseForConversation(
         request: GenerateContentRequest
     ): Flow<GenerateContentResponse> {
         return flowOf(
