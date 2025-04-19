@@ -25,7 +25,7 @@ interface ChatMessageDb {
      * Updates the content of a message for a given conversation.
      */
     suspend fun updateMessageContent(
-        id: String,
+        messageId: String,
         conversationId: String,
         newContent: String,
     )

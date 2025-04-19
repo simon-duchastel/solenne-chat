@@ -22,14 +22,14 @@ class InMemoryChatDb: ChatMessageDb {
     }
 
     override suspend fun updateMessageContent(
+        messageId: String,
         conversationId: String,
-        id: String,
         newContent: String,
     ) {
         val currentMessages = messages[conversationId]
             ?: error("Could not find conversation $conversationId")
         val updatedMessages = currentMessages.map {
-            if (id == it.id) it.copy(content = newContent) else it
+            if (messageId == it.id) it.copy(content = newContent) else it
         }
         messages += (conversationId to updatedMessages)
     }
