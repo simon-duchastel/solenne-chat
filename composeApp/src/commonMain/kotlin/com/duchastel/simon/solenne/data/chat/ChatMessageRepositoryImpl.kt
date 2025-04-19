@@ -33,7 +33,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
     ): String {
         return withContext(IODispatcher) {
             chatMessageDb.updateMessageContent(
-                id = messageId,
+                messageId = messageId,
                 conversationId = conversationId,
                 newContent = newText,
             )
