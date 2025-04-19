@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.data.ai
 
+import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.data.chat.MessageAuthor
@@ -11,23 +12,25 @@ import com.duchastel.simon.solenne.network.ai.Part
 import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Named
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class AiChatRepositoryImpl @Inject constructor(
     private val chatMessageRepositoryImpl: ChatMessageRepositoryImpl,
-    @Named(GEMINI) private val aiChatApi: AiChatApi,
+    @Named(GEMINI) private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
-    override fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
+    override fun getMessageFlowForConversation(
+        conversationId: String
+    ): Flow<List<ChatMessage>> {
         return chatMessageRepositoryImpl.getMessageFlowForConversation(conversationId)
     }
 
     override suspend fun sendTextMessageFromUserToConversation(
+        aiModelScope: AIModelScope,
         conversationId: String,
-        text: String
+        text: String,
     ) {
         withContext(IODispatcher) {
             chatMessageRepositoryImpl.addMessageToConversation(
@@ -50,9 +53,14 @@ class AiChatRepositoryImpl @Inject constructor(
 
             var messageId: String? = null
             var responseSoFar = ""
-            aiChatApi.generateStreamingResponseForConversation(
-                GenerateContentRequest(contents = conversationContents)
-            ).collect {
+            when (aiModelScope) {
+                is GeminiModelScope -> {
+                    geminiApi.generateStreamingResponseForConversation(
+                        scope = aiModelScope,
+                        GenerateContentRequest(contents = conversationContents)
+                    )
+                }
+            }.collect {
                 responseSoFar += it.candidates
                     .firstOrNull()?.content?.parts?.firstOrNull()?.text
                     ?: "Error: No response from AI"

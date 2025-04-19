@@ -1,10 +1,11 @@
 package com.duchastel.simon.solenne.network.ai
 
+import com.duchastel.simon.solenne.data.ai.AIModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-interface AiChatApi {
+interface AiChatApi<S> where S : AIModelScope {
     /**
      * Sends a list of conversation messages to the AI and returns the plain text response,
      * streamed in a list of [GenerateContentResponse] objects as they are generated.
@@ -15,7 +16,8 @@ interface AiChatApi {
      * @return The AI's response as plain text
      */
     fun generateStreamingResponseForConversation(
-        request: GenerateContentRequest,
+        scope: S,
+        request: GenerateContentRequest
     ): Flow<GenerateContentResponse>
 
     /**
@@ -27,6 +29,7 @@ interface AiChatApi {
      * @return The AI's response as plain text
      */
     suspend fun generateResponseForConversation(
+        scope: S,
         request: GenerateContentRequest,
     ): GenerateContentResponse
 }

@@ -6,6 +6,7 @@ import com.duchastel.simon.solenne.data.chat.MessageAuthor
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.fakes.FakeAiChatApi
 import com.duchastel.simon.solenne.fakes.FakeChatMessageDb
+import com.duchastel.simon.solenne.fakes.FAKE_AI_MODEL_SCOPE
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -33,7 +34,7 @@ internal class AiChatRepositoryImplTest {
 
         aiChatRepo = AiChatRepositoryImpl(
             chatMessageRepositoryImpl = fakeChatRepo,
-            aiChatApi = fakeAiApi
+            geminiApi = fakeAiApi
         )
     }
 
@@ -69,8 +70,6 @@ internal class AiChatRepositoryImplTest {
             assertEquals("Hello human", messages[1].text)
             assertEquals(MessageAuthor.AI, messages[1].author)
         }
-
-
     }
 
     @Test
@@ -81,7 +80,11 @@ internal class AiChatRepositoryImplTest {
 
         initRepo(aiResponse = aiResponseText)
 
-        aiChatRepo.sendTextMessageFromUserToConversation(conversationId, userMessage)
+        aiChatRepo.sendTextMessageFromUserToConversation(
+            aiModelScope = FAKE_AI_MODEL_SCOPE,
+            conversationId = conversationId,
+            text = userMessage,
+        )
 
         fakeDb.getMessagesForConversation(conversationId).test {
             val dbMessages = awaitItem()
@@ -117,7 +120,11 @@ internal class AiChatRepositoryImplTest {
             )
         )
 
-        aiChatRepo.sendTextMessageFromUserToConversation(conversationId, "Second question")
+        aiChatRepo.sendTextMessageFromUserToConversation(
+            FAKE_AI_MODEL_SCOPE,
+            conversationId,
+            "Second question",
+        )
 
         fakeDb.getMessagesForConversation(conversationId).test {
             val messages = awaitItem()

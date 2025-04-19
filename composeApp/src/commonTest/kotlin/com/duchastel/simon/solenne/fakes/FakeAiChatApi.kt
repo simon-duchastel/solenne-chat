@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.fakes
 
+import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Candidate
 import com.duchastel.simon.solenne.network.ai.Content
@@ -14,9 +15,10 @@ import kotlinx.coroutines.flow.flowOf
  */
 internal class FakeAiChatApi(
     private val fakeResponse: String = "fake-ai-response"
-) : AiChatApi {
+) : AiChatApi<GeminiModelScope> {
     
     override suspend fun generateResponseForConversation(
+        scope: GeminiModelScope,
         request: GenerateContentRequest
     ): GenerateContentResponse {
         return GenerateContentResponse(
@@ -30,8 +32,9 @@ internal class FakeAiChatApi(
             )
         )
     }
-    
+
     override fun generateStreamingResponseForConversation(
+        scope: GeminiModelScope,
         request: GenerateContentRequest
     ): Flow<GenerateContentResponse> {
         return flowOf(

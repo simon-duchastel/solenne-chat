@@ -19,15 +19,15 @@ internal class FakeChatMessageDb(
         val currentMessages = messages.value[message.conversationId].orEmpty()
         messages.value += (message.conversationId to (currentMessages + message))
     }
-    
+
     override suspend fun updateMessageContent(
-        id: String,
+        messageId: String,
         conversationId: String,
         newContent: String
     ) {
         val currentMessages = messages.value[conversationId].orEmpty()
         val updatedMessages = currentMessages.map { msg ->
-            if (msg.id == id) {
+            if (msg.id == messageId) {
                 msg.copy(content = newContent)
             } else {
                 msg

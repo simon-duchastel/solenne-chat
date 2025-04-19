@@ -1,7 +1,9 @@
 package com.duchastel.simon.solenne.fakes
 
+import com.duchastel.simon.solenne.data.ai.AIModelScope
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.MessageAuthor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -16,7 +18,14 @@ class FakeAiChatRepository(
     }
 
     override suspend fun sendTextMessageFromUserToConversation(
+        aiModelScope: AIModelScope,
         conversationId: String,
         text: String,
-    ) = Unit
+    ) {
+        conversations.value = conversations.value.toMutableMap().apply {
+            this[conversationId] = this[conversationId].orEmpty().toMutableList().apply {
+                add(ChatMessage(id = "do-not-rely-on-this-id", text = text, author = MessageAuthor.User))
+            }
+        }
+    }
 }

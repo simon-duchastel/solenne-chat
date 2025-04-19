@@ -13,10 +13,16 @@ interface AiChatRepository {
     /**
      * Gets all messages for a given conversation.
      */
-    fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>>
+    fun getMessageFlowForConversation(
+        conversationId: String,
+    ): Flow<List<ChatMessage>>
 
     /**
      * Sends a text message as the user to a conversation.
      */
-    suspend fun sendTextMessageFromUserToConversation(conversationId: String, text: String)
+    suspend fun sendTextMessageFromUserToConversation(
+        aiModelScope: AIModelScope,
+        conversationId: String,
+        text: String,
+    )
 }
