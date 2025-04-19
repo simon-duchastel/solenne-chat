@@ -3,6 +3,7 @@ package com.duchastel.simon.solenne.data.ai
 import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.data.chat.MessageAuthor
+import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Content
 import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
@@ -28,7 +29,7 @@ class AiChatRepositoryImpl @Inject constructor(
         conversationId: String,
         text: String
     ) {
-        withContext(Dispatchers.Default) {
+        withContext(IODispatcher) {
             chatMessageRepositoryImpl.addMessageToConversation(
                 conversationId = conversationId,
                 author = MessageAuthor.User,

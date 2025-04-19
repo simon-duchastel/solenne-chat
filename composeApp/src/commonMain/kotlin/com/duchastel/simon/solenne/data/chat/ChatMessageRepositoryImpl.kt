@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.data.chat
 
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.DbMessage
+import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +31,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
         messageId: String,
         newText: String,
     ): String {
-        return withContext(Dispatchers.Default) {
+        return withContext(IODispatcher) {
             chatMessageDb.updateMessageContent(
                 id = messageId,
                 conversationId = conversationId,
@@ -46,7 +47,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
         author: MessageAuthor,
         text: String,
     ): String {
-        return withContext(Dispatchers.Default) {
+        return withContext(IODispatcher) {
             val messageId = Uuid.random().toHexString()
             chatMessageDb.writeMessage(
                 DbMessage(
