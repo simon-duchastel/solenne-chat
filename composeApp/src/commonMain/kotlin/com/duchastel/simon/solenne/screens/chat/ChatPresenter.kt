@@ -35,13 +35,8 @@ class ChatPresenter @Inject constructor(
         val coroutineScope = rememberCoroutineScope()
 
         val scope = aiModelScope
-        val messages by if (scope != null){
-            aiChatRepository.getMessageFlowForConversation(
-                screen.conversationId
-            )
-        } else {
-            flowOf(emptyList())
-        }.collectAsState(initial = emptyList())
+        val messages by aiChatRepository.getMessageFlowForConversation(screen.conversationId)
+            .collectAsState(initial = emptyList())
 
         return ChatScreen.State(
             sendButtonEnabled = aiModelScope != null && textInput.isNotBlank(),
