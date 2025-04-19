@@ -18,7 +18,6 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
