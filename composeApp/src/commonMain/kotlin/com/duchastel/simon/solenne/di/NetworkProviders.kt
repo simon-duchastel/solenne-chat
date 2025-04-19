@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
 import com.duchastel.simon.solenne.network.ai.gemini.GeminiApi
@@ -38,5 +39,5 @@ interface NetworkProviders {
 
     @Named(GEMINI)
     @Binds
-    fun GeminiApi.bind(): AiChatApi
+    fun GeminiApi.bind(): AiChatApi<GeminiModelScope>
 }

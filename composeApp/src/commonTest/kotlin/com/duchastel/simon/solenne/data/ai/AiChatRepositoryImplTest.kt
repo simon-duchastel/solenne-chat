@@ -33,7 +33,7 @@ internal class AiChatRepositoryImplTest {
 
         aiChatRepo = AiChatRepositoryImpl(
             chatMessageRepositoryImpl = fakeChatRepo,
-            aiChatApi = fakeAiApi
+            geminiApi = fakeAiApi
         )
     }
 

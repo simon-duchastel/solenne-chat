@@ -1,5 +1,7 @@
 package com.duchastel.simon.solenne.network.ai.gemini
 
+import com.duchastel.simon.solenne.data.ai.AIModel.Gemini
+import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
@@ -29,13 +31,13 @@ private const val MODEL_NAME = "gemini-2.0-flash"
 @Named(GEMINI)
 class GeminiApi @Inject constructor(
     private val httpClient: HttpClient,
-    private val apiKey: String = "<<YOUR_API_KEY>>",
-) : AiChatApi {
+) : AiChatApi<GeminiModelScope> {
 
     override suspend fun generateResponseForConversation(
+        scope: GeminiModelScope,
         request: GenerateContentRequest,
     ): GenerateContentResponse {
-        val url = "$BASE_URL$MODEL_NAME:generateContent?key=$apiKey"
+        val url = "$BASE_URL$MODEL_NAME:generateContent?key=${scope.apiKey}"
         val response: GenerateContentResponse = httpClient.post(url) {
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -45,9 +47,10 @@ class GeminiApi @Inject constructor(
     }
 
     override fun generateStreamingResponseForConversation(
+        scope: GeminiModelScope,
         request: GenerateContentRequest,
     ): Flow<GenerateContentResponse> = channelFlow {
-        val url = "$BASE_URL$MODEL_NAME:streamGenerateContent?alt=sse&key=$apiKey"
+        val url = "$BASE_URL$MODEL_NAME:streamGenerateContent?alt=sse&key=${scope.apiKey}"
 
         httpClient.post(url){
             method = HttpMethod.Post
