@@ -37,7 +37,6 @@ interface NetworkProviders {
         }
     }
 
-    @Named(GEMINI)
     @Binds
     fun GeminiApi.bind(): AiChatApi<GeminiModelScope>
 }

@@ -9,16 +9,14 @@ import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Content
 import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
 import com.duchastel.simon.solenne.network.ai.Part
-import com.duchastel.simon.solenne.network.ai.gemini.GEMINI
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.Named
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class AiChatRepositoryImpl @Inject constructor(
     private val chatMessageRepositoryImpl: ChatMessageRepositoryImpl,
-    @Named(GEMINI) private val geminiApi: AiChatApi<GeminiModelScope>,
+    private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
     override fun getMessageFlowForConversation(

@@ -28,7 +28,6 @@ private const val MODEL_NAME = "gemini-2.0-flash"
  * Currently this only supports the `generateContent` and `streamGenerateContent`
  * endpoints for the `gemini-2.0-flash` model.
  */
-@Named(GEMINI)
 class GeminiApi @Inject constructor(
     private val httpClient: HttpClient,
 ) : AiChatApi<GeminiModelScope> {
