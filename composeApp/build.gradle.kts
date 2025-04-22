@@ -85,6 +85,8 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.logging)
+
+            implementation(libs.mcp.kotlin)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -92,8 +94,6 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
-
-            implementation(libs.mcp.kotlin)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

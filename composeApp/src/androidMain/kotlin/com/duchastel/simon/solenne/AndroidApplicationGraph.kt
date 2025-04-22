@@ -7,8 +7,6 @@ import dev.zacsweers.metro.createGraph
 
 @DependencyGraph(AppScope::class)
 interface AndroidApplicationGraph : ApplicationGraph {
-    val mcpRepository: McpRepository
-
     companion object {
         fun create(): AndroidApplicationGraph = createGraph()
     }
