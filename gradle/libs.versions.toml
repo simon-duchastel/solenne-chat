@@ -9,6 +9,7 @@ compose-multiplatform = "1.7.3"
 circuit = "0.27.1"
 kotlin = "2.1.20"
 coroutines = "1.10.2"
+mcpKotlin = "0.4.0"
 kotlinx-coroutines = "1.10.2"
 metro = "0.1.2"
 ktor = "3.1.2"
@@ -16,6 +17,7 @@ turbine = "1.2.0"
 
 [libraries]
 circuit-test = { module = "com.slack.circuit:circuit-test", version.ref = "circuit" }
+mcp-kotlin = { module = "io.modelcontextprotocol:kotlin-sdk", version.ref = "mcpKotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
