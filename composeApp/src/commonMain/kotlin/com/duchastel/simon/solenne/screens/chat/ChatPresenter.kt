@@ -15,16 +15,12 @@ import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServer
-import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.presenter.Presenter
-import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
@@ -44,45 +40,24 @@ class ChatPresenter @Inject constructor(
         val scope = aiModelScope
         val messages by aiChatRepository.getMessageFlowForConversation(screen.conversationId)
             .collectAsState(initial = emptyList())
-        val mcpServers by mcpRepository.serverStatusFlow()
-            .collectAsState(initial = emptyList())
 
-        LaunchedEffect(Unit) {
-            val server = mcpRepository.addServer(
+             LaunchedEffect(Unit) {
+            mcpRepository.addServer(
                 name = "Lifx",
                 connection = McpServer.Connection.Sse(
-                    url = "http://10.0.2.2:3000"
+//                    url = "http://10.0.2.2:3000"
+                    url = "http://localhost:3000"
                 )
-            )
-            delay(2000)
-            mcpRepository.connect(server)
+            ).apply {
+                mcpRepository.connect(this)
+            }
         }
 
         return ChatScreen.State(
             sendButtonEnabled = aiModelScope != null && textInput.isNotBlank(),
             textInput = textInput,
             apiKey = userApiKey,
-            messages = messages.map(ChatMessage::toUIChatMessage)
-                .plus(
-                    mcpServers.map {
-                        UIChatMessage(
-                            id = "fake-id",
-                            text = it.toString(),
-                            isUser = false,
-                        )
-                    }.let { 
-                        it.ifEmpty { 
-                            listOf(
-                                UIChatMessage(
-                                    id = "fake-id",
-                                    text = "No servers connected",
-                                    isUser = false,
-                                )
-                            )
-                        }
-                    }
-                )
-                .toPersistentList(),
+            messages = messages.map(ChatMessage::toUIChatMessage).toPersistentList(),
         ) { event ->
             when (event) {
                 is ChatScreen.Event.SendMessage -> coroutineScope.launch {

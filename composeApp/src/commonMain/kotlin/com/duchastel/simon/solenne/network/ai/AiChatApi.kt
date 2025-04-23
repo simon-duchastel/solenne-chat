@@ -2,9 +2,11 @@ package com.duchastel.simon.solenne.network.ai
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 
 interface AiChatApi<S> where S : AIModelScope {
     /**
@@ -74,19 +76,41 @@ data class Tools(
 data class FunctionDeclaration(
     val name: String,
     val description: String,
-    val parameters: JsonElement,
+    val parameters: Parameters,
 )
+
+@Serializable
+data class Parameters(
+    val properties: JsonObject,
+    val required: List<String> = emptyList(),
+) {
+    @Required val type: String = "object"
+}
 
 @Serializable
 data class FunctionCall(
     val id: String? = null,
     val name: String,
-    val arguments: Map<String, JsonElement?>?,
+    val args: Map<String, JsonElement?>? = null,
 )
 
 @Serializable
 data class FunctionResponse(
     val id: String? = null,
     val name: String,
-    val response: JsonElement,
+    val response: Response,
 )
+
+@Serializable
+data class Response(
+    val content: List<TextResponse>? = null,
+    val isError: Boolean,
+)
+
+@Serializable
+data class TextResponse(
+    val text: String,
+) {
+    @Required val type: String = "text"
+}
+

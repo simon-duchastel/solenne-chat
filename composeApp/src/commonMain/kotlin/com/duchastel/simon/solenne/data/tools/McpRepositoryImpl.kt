@@ -21,7 +21,9 @@ import io.modelcontextprotocol.kotlin.sdk.client.SseClientTransport
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlin.uuid.ExperimentalUuidApi
@@ -33,20 +35,34 @@ class McpRepositoryImpl(
     private val ioCoroutineScope: CoroutineScope = CoroutineScope(IODispatcher),
     private val httpClient: HttpClient,
 ): McpRepository {
-    override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
-        val mcpServersStatus = mcpServers.map {
-            val status = when {
-                clients.contains(it) -> McpServerStatus.Status.Connected
-                else -> McpServerStatus.Status.Offline
+
+    init {
+        ioCoroutineScope.launch {
+            while (true) {
+                delay(1000)
+                clients.forEach { (_, client) ->
+                    client.ping()
+                }
             }
-            val tools = tools[it] ?: emptyList()
-            McpServerStatus(
-                mcpServer = it,
-                status = status,
-                tools = tools,
-            )
         }
-        return snapshotFlow { mcpServersStatus }
+    }
+
+    override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
+        return snapshotFlow {
+            val mcpServersStatus = mcpServers.map {
+                val status = when {
+                    clients.contains(it) -> McpServerStatus.Status.Connected
+                    else -> McpServerStatus.Status.Offline
+                }
+                val tools = tools[it] ?: emptyList()
+                McpServerStatus(
+                    mcpServer = it,
+                    status = status,
+                    tools = tools,
+                )
+            }
+            mcpServersStatus
+        }.distinctUntilChanged()
     }
 
     @OptIn(ExperimentalUuidApi::class)
@@ -100,12 +116,12 @@ class McpRepositoryImpl(
     override suspend fun loadToolsForServer(server: McpServer): List<Tool> {
         val client = clients[server] ?: return emptyList()
         val toolsResponse = client.listTools()
-        val toolsParsed = toolsResponse?.tools?.map {
+        val toolsParsed = toolsResponse?.tools?.map { toolRaw ->
             Tool(
-                name = it.name,
-                description = it.description,
-                parameters = it.inputSchema.properties,
-                requiredParameters = it.inputSchema.required ?: emptyList(),
+                name = toolRaw.name,
+                description = toolRaw.description,
+                parameters = toolRaw.inputSchema.properties,
+                requiredParameters = toolRaw.inputSchema.required ?: emptyList(),
             )
         } ?: emptyList()
 
