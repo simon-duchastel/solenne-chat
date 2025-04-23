@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.screens.chat
 
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
+import com.duchastel.simon.solenne.fakes.FakeMcpRepository
 import com.slack.circuit.test.test
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
@@ -20,19 +21,21 @@ class ChatPresenterTest {
         )
         val presenter = ChatPresenter(
             aiChatRepository = repository,
+            mcpRepository = FakeMcpRepository(),
             screen = ChatScreen(conversationId),
         )
 
         presenter.test {
             val first = awaitItem()
             assertEquals(
-                expected = 0,
+                expected = 1, // add 1 for mcp server test message
                 actual = first.messages.size,
             )
 
+            skipItems(1)
             val second = awaitItem()
             assertEquals(
-                expected = ChatMessagesFake.chatMessages.size,
+                expected = ChatMessagesFake.chatMessages.size + 1, // add 1 for mcp server test message
                 actual = second.messages.size,
             )
         }
@@ -46,6 +49,7 @@ class ChatPresenterTest {
         )
         val presenter = ChatPresenter(
             aiChatRepository = repository,
+            mcpRepository = FakeMcpRepository(),
             screen = ChatScreen(conversationId)
         )
 
@@ -73,6 +77,7 @@ class ChatPresenterTest {
         )
         val presenter = ChatPresenter(
             aiChatRepository = repository,
+            mcpRepository = FakeMcpRepository(),
             screen = ChatScreen(conversationId)
         )
 

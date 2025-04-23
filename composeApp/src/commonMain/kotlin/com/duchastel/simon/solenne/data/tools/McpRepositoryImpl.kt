@@ -32,6 +32,20 @@ class McpRepositoryImpl(
     private val ioCoroutineScope: CoroutineScope = CoroutineScope(IODispatcher),
     private val httpClient: HttpClient,
 ): McpRepository {
+    /**
+     * Map of MCP Server to MCP Client
+     */
+    private var clients by mutableStateOf<Map<McpServer, Client>>(emptyMap())
+
+    /**
+     * Map of MCP Server to MCP Client
+     */
+    private var mcpServers by mutableStateOf<List<McpServer>>(emptyList())
+
+    /**
+     * Map of MCP Server to MCP Tools
+     */
+    private var tools by mutableStateOf<Map<McpServer, List<Tool>>>(emptyMap())
 
     override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
         val mcpServersStatus = mcpServers.map {
@@ -144,21 +158,6 @@ class McpRepositoryImpl(
     }
 
     companion object {
-        /**
-         * Map of MCP Server to MCP Client
-         */
-        private var clients by mutableStateOf<Map<McpServer, Client>>(emptyMap())
-
-        /**
-         * Map of MCP Server to MCP Client
-         */
-        private var mcpServers by mutableStateOf<List<McpServer>>(emptyList())
-
-        /**
-         * Map of MCP Server to MCP Tools
-         */
-        private var tools by mutableStateOf<Map<McpServer, List<Tool>>>(emptyMap())
-
         /**
          * Client information to communicate to the MCP servers.
          */
