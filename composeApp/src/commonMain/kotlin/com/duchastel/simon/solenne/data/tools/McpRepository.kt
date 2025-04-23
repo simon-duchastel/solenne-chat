@@ -15,14 +15,17 @@ interface McpRepository {
      * those which are currently disconnected, not just those with
      * active connections.
      */
-    suspend fun serverStatusFlow(): Flow<List<McpServerStatus>>
+    fun serverStatusFlow(): Flow<List<McpServerStatus>>
 
     /**
-     * Add a new MCP server configuration for [server].
+     * Add a new MCP server configuration for a server.
      * This will not connect to the server - that must be
      * done separately through [connect].
      */
-    suspend fun addServer(server: McpServer)
+    suspend fun addServer(
+        name: String,
+        connection: McpServer.Connection,
+    ): McpServer
 
     /**
      * Connect to the MCP server [server].
@@ -37,7 +40,7 @@ interface McpRepository {
     /**
      * List tools available from the MCP server [server].
      */
-    suspend fun listTools(server: McpServer): List<Tool>
+    suspend fun loadToolsForServer(server: McpServer): List<Tool>
 
     /**
      * Call a specific tool on the MCP server [server].

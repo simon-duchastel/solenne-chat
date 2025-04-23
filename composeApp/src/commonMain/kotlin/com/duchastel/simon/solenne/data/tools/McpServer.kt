@@ -1,7 +1,8 @@
 package com.duchastel.simon.solenne.data.tools
 
-data class McpServer(
+data class McpServer internal constructor(
     val id: String,
+    val name: String,
     val connection: Connection,
 ) {
     sealed interface  Connection {

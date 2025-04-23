@@ -23,6 +23,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @SingleIn(AppScope::class)
 @Inject
@@ -31,7 +33,7 @@ class McpRepositoryImpl(
     private val httpClient: HttpClient,
 ): McpRepository {
 
-    override suspend fun serverStatusFlow(): Flow<List<McpServerStatus>> {
+    override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
         val mcpServersStatus = mcpServers.map {
             val status = when {
                 clients.contains(it) -> McpServerStatus.Status.Connected
@@ -47,8 +49,19 @@ class McpRepositoryImpl(
         return snapshotFlow { mcpServersStatus }
     }
 
-    override suspend fun addServer(server: McpServer) {
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun addServer(
+        name: String,
+        connection: Connection,
+    ): McpServer {
+        val server = McpServer(
+            id = Uuid.random().toString(),
+            name = name,
+            connection = connection,
+        )
         mcpServers += server
+
+        return server
     }
 
     override suspend fun connect(server: McpServer) {
@@ -67,13 +80,15 @@ class McpRepositoryImpl(
         }
 
         val client = Client(clientInfo = clientInfo).apply {
-            connect(sseTransport)
             setNotificationHandler<ToolListChangedNotification>(
                 method = Method.Defined.NotificationsToolsListChanged,
                 handler = { handleToolChangedForServer(server) },
             )
         }
         clients += (server to client)
+
+        client.connect(sseTransport)
+        loadToolsForServer(server)
     }
 
     override suspend fun disconnect(server: McpServer) {
@@ -82,10 +97,10 @@ class McpRepositoryImpl(
         clients -= server
     }
 
-    override suspend fun listTools(server: McpServer): List<Tool> {
+    override suspend fun loadToolsForServer(server: McpServer): List<Tool> {
         val client = clients[server] ?: return emptyList()
-        val tools = client.listTools()
-        val toolsParsed = tools?.tools?.map {
+        val toolsResponse = client.listTools()
+        val toolsParsed = toolsResponse?.tools?.map {
             Tool(
                 name = it.name,
                 description = it.description,
@@ -93,6 +108,8 @@ class McpRepositoryImpl(
                 requiredParameters = it.inputSchema.required ?: emptyList(),
             )
         } ?: emptyList()
+
+        tools += (server to toolsParsed)
         return toolsParsed
     }
 
@@ -119,7 +136,7 @@ class McpRepositoryImpl(
     ): Deferred<Unit> {
         val deferred = CompletableDeferred<Unit>()
         ioCoroutineScope.launch {
-            val newTools = listTools(server)
+            val newTools = loadToolsForServer(server)
             tools += (server to newTools)
             deferred.complete(Unit)
         }
