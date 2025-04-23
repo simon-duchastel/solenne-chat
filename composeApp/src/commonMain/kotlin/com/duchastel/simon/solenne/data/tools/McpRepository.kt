@@ -1,6 +1,7 @@
 package com.duchastel.simon.solenne.data.tools
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Repository for interacting with MCP servers.
@@ -48,6 +49,6 @@ interface McpRepository {
     suspend fun callTool(
         server: McpServer,
         toolId: String,
-        arguments: Map<String, Any?> = emptyMap()
+        arguments: Map<String, JsonElement?> = emptyMap()
     ): CallToolResult
 }

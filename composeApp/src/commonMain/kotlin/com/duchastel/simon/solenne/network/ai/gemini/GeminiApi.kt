@@ -1,13 +1,13 @@
 package com.duchastel.simon.solenne.network.ai.gemini
 
-import com.duchastel.simon.solenne.data.ai.AIModel.Gemini
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
 import com.duchastel.simon.solenne.network.ai.GenerateContentResponse
+import com.duchastel.simon.solenne.network.ai.Tool
+import com.duchastel.simon.solenne.network.ai.FunctionDeclaration
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.Named
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post

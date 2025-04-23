@@ -4,6 +4,7 @@ import com.duchastel.simon.solenne.data.ai.AIModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 interface AiChatApi<S> where S : AIModelScope {
     /**
@@ -36,7 +37,8 @@ interface AiChatApi<S> where S : AIModelScope {
 
 @Serializable
 data class GenerateContentRequest(
-    val contents: List<Content>
+    val contents: List<Content>,
+    val tools: List<Tool>? = null
 )
 
 @Serializable
@@ -47,7 +49,9 @@ data class Content(
 
 @Serializable
 data class Part(
-    val text: String
+    val text: String? = null,
+    @SerialName("functionCall") val functionCall: FunctionCall? = null,
+    @SerialName("functionResponse") val functionResponse: FunctionResponse? = null,
 )
 
 @Serializable
@@ -59,4 +63,30 @@ data class GenerateContentResponse(
 data class Candidate(
     val content: Content,
     @SerialName("finishReason") val finishReason: String? = null,
+)
+
+@Serializable
+data class Tool(
+    val functionDeclarations: List<FunctionDeclaration>? = null
+)
+
+@Serializable
+data class FunctionDeclaration(
+    val name: String,
+    val description: String,
+    val parameters: JsonElement,
+)
+
+@Serializable
+data class FunctionCall(
+    val id: String? = null,
+    val name: String,
+    val arguments: JsonElement,
+)
+
+@Serializable
+data class FunctionResponse(
+    val id: String? = null,
+    val name: String,
+    val response: JsonElement,
 )

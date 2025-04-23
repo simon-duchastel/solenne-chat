@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonElement
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -130,7 +131,7 @@ class McpRepositoryImpl(
     override suspend fun callTool(
         server: McpServer,
         toolId: String,
-        arguments: Map<String, Any?>,
+        arguments: Map<String, JsonElement?>,
     ): CallToolResult {
         val client = clients[server] ?: error("Not connected to server")
         val callToolResultRaw = client.callTool(toolId, arguments)
