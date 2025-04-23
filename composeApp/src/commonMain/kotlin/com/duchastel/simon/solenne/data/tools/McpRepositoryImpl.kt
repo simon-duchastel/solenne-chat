@@ -1,6 +1,11 @@
 package com.duchastel.simon.solenne.data.tools
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.tools.McpServer.Connection
+import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -8,69 +13,134 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
 import io.ktor.http.ContentType
 import io.modelcontextprotocol.kotlin.sdk.Implementation
+import io.modelcontextprotocol.kotlin.sdk.Method
+import io.modelcontextprotocol.kotlin.sdk.TextContent
+import io.modelcontextprotocol.kotlin.sdk.ToolListChangedNotification
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.SseClientTransport
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 
 @SingleIn(AppScope::class)
 @Inject
 class McpRepositoryImpl(
+    private val ioCoroutineScope: CoroutineScope = CoroutineScope(IODispatcher),
     private val httpClient: HttpClient,
 ): McpRepository {
 
-    // TODO - implement
-    override suspend fun availableServers(): Flow<List<McpServer>> {
-        return flowOf()
+    override suspend fun serverStatusFlow(): Flow<List<McpServerStatus>> {
+        val mcpServersStatus = mcpServers.map {
+            val status = when {
+                clients.contains(it) -> McpServerStatus.Status.Connected
+                else -> McpServerStatus.Status.Offline
+            }
+            val tools = tools[it] ?: emptyList()
+            McpServerStatus(
+                mcpServer = it,
+                status = status,
+                tools = tools,
+            )
+        }
+        return snapshotFlow { mcpServersStatus }
     }
 
-    // TODO - implement
-    override suspend fun addServer(server: McpServer) = Unit
+    override suspend fun addServer(server: McpServer) {
+        mcpServers += server
+    }
 
     override suspend fun connect(server: McpServer) {
         if (server.connection !is Connection.Sse) return // only SSE supported for now
 
         val url = server.connection.url
+        val sseTransport = SseClientTransport(
+            client = httpClient,
+            urlString = url,
+            requestBuilder = {
+                accept(ContentType.Application.Json)
+                accept(ContentType.Text.EventStream)
+            }
+        ).apply {
+            onClose { clients -= server }
+        }
+
         val client = Client(clientInfo = clientInfo).apply {
-            connect(
-                SseClientTransport(
-                    client = httpClient,
-                    urlString = url,
-                    requestBuilder = {
-                        accept(ContentType.Application.Json)
-                        accept(ContentType.Text.EventStream)
-                    }
-                )
+            connect(sseTransport)
+            setNotificationHandler<ToolListChangedNotification>(
+                method = Method.Defined.NotificationsToolsListChanged,
+                handler = { handleToolChangedForServer(server) },
             )
         }
-        clients[server.id] = client
+        clients += (server to client)
     }
 
     override suspend fun disconnect(server: McpServer) {
-        val client = clients[server.id] ?: return // no-op if already disconnected
+        val client = clients[server] ?: return // no-op if already disconnected
         client.close()
-        clients.remove(server.id)
+        clients -= server
     }
 
-    override suspend fun listTools(server: McpServer): Any? {
-        val client = clients[server.id] ?: return null
-        return client.listTools()
+    override suspend fun listTools(server: McpServer): List<Tool> {
+        val client = clients[server] ?: return emptyList()
+        val tools = client.listTools()
+        val toolsParsed = tools?.tools?.map {
+            Tool(
+                name = it.name,
+                description = it.description,
+                parameters = it.inputSchema.properties,
+                requiredParameters = it.inputSchema.required ?: emptyList(),
+            )
+        } ?: emptyList()
+        return toolsParsed
     }
 
     override suspend fun callTool(
         server: McpServer,
         toolId: String,
         arguments: Map<String, Any?>,
-    ): Any? {
-        val client = clients[server.id] ?: return null
-        return client.callTool(toolId, arguments)
+    ): CallToolResult {
+        val client = clients[server] ?: error("Not connected to server")
+        val callToolResultRaw = client.callTool(toolId, arguments)
+        val text = (callToolResultRaw?.content?.get(0) as TextContent).text ?: error("No text returned")
+        return CallToolResult(
+            text = text,
+            isError = callToolResultRaw.isError ?: false,
+        )
+    }
+
+    /**
+     * Helper function for setting a notification handler when the tool list
+     * changes for a given server.
+     */
+    private fun handleToolChangedForServer(
+        server: McpServer,
+    ): Deferred<Unit> {
+        val deferred = CompletableDeferred<Unit>()
+        ioCoroutineScope.launch {
+            val newTools = listTools(server)
+            tools += (server to newTools)
+            deferred.complete(Unit)
+        }
+        return deferred
     }
 
     companion object {
         /**
-         * Map of MCP Server ID to MCP Client
+         * Map of MCP Server to MCP Client
          */
-        private val clients: MutableMap<String, Client> = mutableMapOf()
+        private var clients by mutableStateOf<Map<McpServer, Client>>(emptyMap())
+
+        /**
+         * Map of MCP Server to MCP Client
+         */
+        private var mcpServers by mutableStateOf<List<McpServer>>(emptyList())
+
+        /**
+         * Map of MCP Server to MCP Tools
+         */
+        private var tools by mutableStateOf<Map<McpServer, List<Tool>>>(emptyMap())
 
         /**
          * Client information to communicate to the MCP servers.
