@@ -85,6 +85,8 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.logging)
+
+            implementation(libs.mcp.kotlin)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -110,6 +112,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.circuit.test)
             implementation(libs.turbine)
+            implementation(libs.ktor.client.test)
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.duchastel.simon.solenne.screens.chat
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,16 +13,21 @@ import com.duchastel.simon.solenne.data.ai.AIModelScope
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.tools.McpRepository
+import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
     private val aiChatRepository: AiChatRepository,
+    private val mcpRepository: McpRepository,
     @Assisted private val screen: ChatScreen
 ) : Presenter<ChatScreen.State> {
 
@@ -36,12 +42,45 @@ class ChatPresenter @Inject constructor(
         val scope = aiModelScope
         val messages by aiChatRepository.getMessageFlowForConversation(screen.conversationId)
             .collectAsState(initial = emptyList())
+        val mcpServers by mcpRepository.serverStatusFlow()
+            .collectAsState(initial = emptyList())
+
+        LaunchedEffect(Unit) {
+            val server = mcpRepository.addServer(
+                name = "Lifx",
+                connection = McpServer.Connection.Sse(
+                    url = "http://10.0.2.2:3000"
+                )
+            )
+            delay(2000)
+            mcpRepository.connect(server)
+        }
 
         return ChatScreen.State(
             sendButtonEnabled = aiModelScope != null && textInput.isNotBlank(),
             textInput = textInput,
             apiKey = userApiKey,
-            messages = messages.map(ChatMessage::toUIChatMessage).toPersistentList(),
+            messages = messages.map(ChatMessage::toUIChatMessage)
+                .plus(
+                    mcpServers.map {
+                        UIChatMessage(
+                            id = "fake-id",
+                            text = it.toString(),
+                            isUser = false,
+                        )
+                    }.let { 
+                        it.ifEmpty { 
+                            listOf(
+                                UIChatMessage(
+                                    id = "fake-id",
+                                    text = "No servers connected",
+                                    isUser = false,
+                                )
+                            )
+                        }
+                    }
+                )
+                .toPersistentList(),
         ) { event ->
             when (event) {
                 is ChatScreen.Event.SendMessage -> coroutineScope.launch {

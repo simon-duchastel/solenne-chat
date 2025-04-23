@@ -6,7 +6,6 @@ import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.createGraph
 
 @DependencyGraph(AppScope::class)
-@SingleIn(AppScope::class)
 interface IosApplicationGraph : ApplicationGraph {
     companion object {
         fun create(): IosApplicationGraph = createGraph()

@@ -10,10 +10,10 @@ import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import com.duchastel.simon.solenne.screens.chat.ChatUi
 
 @DependencyGraph(AppScope::class)
-@SingleIn(AppScope::class)
 interface ApplicationGraph: DataProviders, DbProviders, NetworkProviders {
     val circuit: Circuit
 
+    @SingleIn(AppScope::class)
     @Provides
     fun provideCircuit(
         chatPresenterFactory: ChatPresenter.Factory
