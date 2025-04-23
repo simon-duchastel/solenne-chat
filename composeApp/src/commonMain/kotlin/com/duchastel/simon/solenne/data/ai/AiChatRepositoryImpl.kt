@@ -11,6 +11,7 @@ import com.duchastel.simon.solenne.data.tools.Tool
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Content
+import com.duchastel.simon.solenne.network.ai.FunctionCall
 import com.duchastel.simon.solenne.network.ai.FunctionDeclaration
 import com.duchastel.simon.solenne.network.ai.FunctionResponse
 import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
@@ -81,44 +82,64 @@ class AiChatRepositoryImpl @Inject constructor(
                 text = text,
             )
 
-            var conversationContents = chatMessageRepository.getMessageFlowForConversation(conversationId)
-                .first()
-                .map { message ->
-                    Content(
-                        parts = listOf(Part(message.text)),
-                        role = when (message.author) {
-                            is MessageAuthor.User -> "user"
-                            is MessageAuthor.AI -> "model"
-                        },
-                    )
-                }
-            do {
-                println("TODO - $conversationContents")
-                conversationContents = generateStreamingResponse(
-                    aiModelScope = aiModelScope,
-                    conversationId = conversationId,
-                    contents = conversationContents,
-                )
-            } while (conversationContents.last().parts.find { it.functionResponse != null } != null)
+            generateStreamingResponse(
+                aiModelScope = aiModelScope,
+                conversationId = conversationId,
+            )
         }
     }
 
     private suspend fun generateStreamingResponse(
         aiModelScope: AIModelScope,
         conversationId: String,
-        contents: List<Content>,
-    ): List<Content> {
+        functionResponse: FunctionResponse? = null,
+        functionCall: FunctionCall? = null,
+    ) {
+        val conversationContents = chatMessageRepository.getMessageFlowForConversation(conversationId)
+            .first()
+            .mapNotNull { message ->
+                when (message.author) {
+                    is MessageAuthor.System -> return@mapNotNull null
+                    is MessageAuthor.User -> {
+                        Content(
+                            parts = listOf(Part(message.text)),
+                            role = "user"
+                        )
+                    }
+                    is MessageAuthor.AI -> {
+                        Content(
+                            parts = listOf(Part(message.text)),
+                            role = "model"
+                        )
+                    }
+                }
+            } + if (functionResponse != null && functionCall != null) {
+                listOf(
+                    Content(
+                        role = "model",
+                        parts = listOf(Part(functionCall = functionCall))
+                    ),
+                    Content(
+                        role = "user",
+                        parts = listOf(Part(functionResponse = functionResponse))
+                    ),
+                )
+            } else {
+                emptyList()
+            }
+
         var messageId: String? = null
         var responseSoFar = ""
 
         var toolCallResult: CallToolResult? = null
         var toolCallName: String? = null
+        var requestedFunctionCall: FunctionCall? = null
         when (aiModelScope) {
             is GeminiModelScope -> {
                 geminiApi.generateStreamingResponseForConversation(
                     scope = aiModelScope,
                     request = GenerateContentRequest(
-                        contents = contents,
+                        contents = conversationContents,
                         tools = toolsFlow.first().toFunctionDeclarations()
                             ?.let { listOf(it) }
                             ?: emptyList(),
@@ -147,21 +168,21 @@ class AiChatRepositoryImpl @Inject constructor(
                 }
             } else  {
                 // if it's not a text response, assume it's a function call
-                val functionCall = response.functionCall
+                requestedFunctionCall = response.functionCall
                     ?: error("Error: function call expected, $response found")
                 val serverTools = toolsFlow.first()
-                val (serverToCall, toolToCall) = serverTools[functionCall.name] ?: error("Server no longer available")
+                val (serverToCall, toolToCall) = serverTools[requestedFunctionCall!!.name] ?: error("Server no longer available")
 
                 val toolResultMessageId = chatMessageRepository.addMessageToConversation(
                     conversationId = conversationId,
-                    author = MessageAuthor.AI,
-                    text = "Call to ${toolToCall.name} with arguments: ${functionCall.args}",
+                    author = MessageAuthor.System,
+                    text = "Call to ${toolToCall.name} with arguments: ${requestedFunctionCall!!.args}",
                 )
 
                 toolCallResult = mcpRepository.callTool(
                     server = serverToCall.mcpServer,
                     tool = toolToCall,
-                    arguments = functionCall.args ?: emptyMap(),
+                    arguments = requestedFunctionCall!!.args ?: emptyMap(),
                 )
                 toolCallName = toolToCall.name
                 messageId = null
@@ -169,28 +190,26 @@ class AiChatRepositoryImpl @Inject constructor(
                 chatMessageRepository.modifyMessageFromConversation(
                     conversationId = conversationId,
                     messageId = toolResultMessageId,
-                    newText = "Call to ${toolToCall.name} with arguments: ${functionCall.args}" +
+                    newText = "Call to ${toolToCall.name} with arguments: ${requestedFunctionCall!!.args}" +
                             "\n" + if (toolCallResult!!.isError) "Failed" else "Succeeded" +
                             "\nResult: ${toolCallResult!!.text}",
                 )
-
             }
         }
-        return contents + if (toolCallResult != null) {
-            listOf(Content(
-                role = "user",
-                parts = listOf(Part(
-                    functionResponse = FunctionResponse(
-                        name = toolCallName!!,
-                        response = Response(
-                            isError = toolCallResult!!.isError,
-                            content = listOf(TextResponse(toolCallResult!!.text)),
-                        )
+
+        if (toolCallResult != null) {
+            generateStreamingResponse(
+                aiModelScope = aiModelScope,
+                conversationId = conversationId,
+                functionResponse = FunctionResponse(
+                    name = toolCallName!!,
+                    response = Response(
+                        isError = toolCallResult!!.isError,
+                        content = listOf(TextResponse(toolCallResult!!.text)),
                     )
-                ))
-            ))
-        } else {
-            emptyList()
+                ),
+                functionCall = requestedFunctionCall!!,
+            )
         }
     }
 }

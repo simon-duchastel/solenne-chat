@@ -45,8 +45,7 @@ class ChatPresenter @Inject constructor(
             mcpRepository.addServer(
                 name = "Lifx",
                 connection = McpServer.Connection.Sse(
-//                    url = "http://10.0.2.2:3000"
-                    url = "http://localhost:3000"
+                    url = "http://10.0.2.2:3000"
                 )
             ).apply {
                 mcpRepository.connect(this)
