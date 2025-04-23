@@ -1,6 +1,7 @@
 package com.duchastel.simon.solenne.di
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
+import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.gemini.GeminiApi
 import dev.zacsweers.metro.AppScope
@@ -22,12 +23,7 @@ interface NetworkProviders {
     @Provides
     fun provideHttpClient(): HttpClient = HttpClient {
         install(ContentNegotiation) {
-            json(
-                Json {
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                }
-            )
+            json(JsonParser)
         }
         install(SSE) {
             this.maxReconnectionAttempts = 3

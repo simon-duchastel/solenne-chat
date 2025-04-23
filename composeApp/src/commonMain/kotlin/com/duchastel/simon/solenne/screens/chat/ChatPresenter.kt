@@ -18,9 +18,11 @@ import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

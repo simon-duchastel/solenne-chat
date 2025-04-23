@@ -33,21 +33,6 @@ class McpRepositoryImpl(
     private val ioCoroutineScope: CoroutineScope = CoroutineScope(IODispatcher),
     private val httpClient: HttpClient,
 ): McpRepository {
-    /**
-     * Map of MCP Server to MCP Client
-     */
-    private var clients by mutableStateOf<Map<McpServer, Client>>(emptyMap())
-
-    /**
-     * Map of MCP Server to MCP Client
-     */
-    private var mcpServers by mutableStateOf<List<McpServer>>(emptyList())
-
-    /**
-     * Map of MCP Server to MCP Tools
-     */
-    private var tools by mutableStateOf<Map<McpServer, List<Tool>>>(emptyMap())
-
     override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
         val mcpServersStatus = mcpServers.map {
             val status = when {
@@ -130,11 +115,11 @@ class McpRepositoryImpl(
 
     override suspend fun callTool(
         server: McpServer,
-        toolId: String,
+        tool: Tool,
         arguments: Map<String, JsonElement?>,
     ): CallToolResult {
         val client = clients[server] ?: error("Not connected to server")
-        val callToolResultRaw = client.callTool(toolId, arguments)
+        val callToolResultRaw = client.callTool(tool.name, arguments)
         val text = (callToolResultRaw?.content?.get(0) as TextContent).text ?: error("No text returned")
         return CallToolResult(
             text = text,
@@ -166,5 +151,20 @@ class McpRepositoryImpl(
             name = "Solenne",
             version = "0.1.0",
         )
+
+        /**
+         * Map of MCP Server to MCP Client
+         */
+        private var clients by mutableStateOf<Map<McpServer, Client>>(emptyMap())
+
+        /**
+         * Map of MCP Server to MCP Client
+         */
+        private var mcpServers by mutableStateOf<List<McpServer>>(emptyList())
+
+        /**
+         * Map of MCP Server to MCP Tools
+         */
+        var tools by mutableStateOf<Map<McpServer, List<Tool>>>(emptyMap())
     }
 }

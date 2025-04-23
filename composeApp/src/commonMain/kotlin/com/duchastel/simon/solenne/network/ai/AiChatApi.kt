@@ -38,7 +38,7 @@ interface AiChatApi<S> where S : AIModelScope {
 @Serializable
 data class GenerateContentRequest(
     val contents: List<Content>,
-    val tools: List<Tool>? = null
+    val tools: List<Tools>? = null
 )
 
 @Serializable
@@ -66,7 +66,7 @@ data class Candidate(
 )
 
 @Serializable
-data class Tool(
+data class Tools(
     val functionDeclarations: List<FunctionDeclaration>? = null
 )
 
@@ -81,7 +81,7 @@ data class FunctionDeclaration(
 data class FunctionCall(
     val id: String? = null,
     val name: String,
-    val arguments: JsonElement,
+    val arguments: Map<String, JsonElement?>?,
 )
 
 @Serializable

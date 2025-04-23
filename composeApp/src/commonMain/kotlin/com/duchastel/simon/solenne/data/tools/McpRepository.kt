@@ -48,7 +48,7 @@ interface McpRepository {
      */
     suspend fun callTool(
         server: McpServer,
-        toolId: String,
-        arguments: Map<String, JsonElement?> = emptyMap()
+        tool: Tool,
+        arguments: Map<String, JsonElement?>,
     ): CallToolResult
 }
