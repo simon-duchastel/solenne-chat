@@ -7,6 +7,8 @@ import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.fakes.FakeAiChatApi
 import com.duchastel.simon.solenne.fakes.FakeChatMessageDb
 import com.duchastel.simon.solenne.fakes.FAKE_AI_MODEL_SCOPE
+import com.duchastel.simon.solenne.data.tools.McpRepository
+import com.duchastel.simon.solenne.fakes.FakeMcpRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -17,6 +19,7 @@ internal class AiChatRepositoryImplTest {
     private lateinit var fakeChatRepo: ChatMessageRepositoryImpl
     private lateinit var fakeDb: FakeChatMessageDb
     private lateinit var fakeAiApi: FakeAiChatApi
+    private lateinit var fakeMcpRepo: McpRepository
     private lateinit var aiChatRepo: AiChatRepositoryImpl
 
     @BeforeTest
@@ -31,9 +34,11 @@ internal class AiChatRepositoryImplTest {
         fakeDb = FakeChatMessageDb(initialDbMessages)
         fakeChatRepo = ChatMessageRepositoryImpl(fakeDb)
         fakeAiApi = FakeAiChatApi(fakeResponse = aiResponse)
+        fakeMcpRepo = FakeMcpRepository()
 
         aiChatRepo = AiChatRepositoryImpl(
-            chatMessageRepositoryImpl = fakeChatRepo,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
             geminiApi = fakeAiApi
         )
     }
@@ -62,7 +67,7 @@ internal class AiChatRepositoryImplTest {
             )
         )
 
-        aiChatRepo.getMessageFlowForConversation(conversationId).test {
+        aiChatRepo.messageFlowForConversation(conversationId).test {
             val messages = awaitItem()
             assertEquals(2, messages.size)
             assertEquals("Hello AI", messages[0].text)

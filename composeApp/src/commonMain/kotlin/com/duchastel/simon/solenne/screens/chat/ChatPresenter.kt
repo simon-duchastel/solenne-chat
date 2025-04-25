@@ -22,7 +22,8 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
@@ -39,21 +40,32 @@ class ChatPresenter @Inject constructor(
         var userApiKey by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
+        var server: McpServer? by remember { mutableStateOf(null) }
+
         val scope = aiModelScope
-        val messages by aiChatRepository.getMessageFlowForConversation(screen.conversationId)
-            .collectAsState(initial = emptyList())
-        val mcpServers by mcpRepository.serverStatusFlow()
-            .collectAsState(initial = emptyList())
+        val messages by remember(aiChatRepository, screen.conversationId) {
+            aiChatRepository.messageFlowForConversation(screen.conversationId)
+        }.collectAsState(initial = emptyList())
+
+        val serverStatus: String by remember(server) {
+            if (server != null) {
+                mcpRepository.serverStatusFlow().map { serverStatus ->
+                    serverStatus.firstOrNull { it.mcpServer == server }?.status?.toString() ?: "Disconnected"
+                }
+            } else {
+                flowOf("Disconnected")
+            }
+        }.collectAsState("Disconnected")
 
         LaunchedEffect(Unit) {
-            val server = mcpRepository.addServer(
+            server = mcpRepository.addServer(
                 name = "Lifx",
                 connection = McpServer.Connection.Sse(
                     url = "http://10.0.2.2:3000"
                 )
-            )
-            delay(2000)
-            mcpRepository.connect(server)
+            )?.mcpServer?.apply {
+                mcpRepository.connect(this)
+            }
         }
 
         return ChatScreen.State(
@@ -61,25 +73,11 @@ class ChatPresenter @Inject constructor(
             textInput = textInput,
             apiKey = userApiKey,
             messages = messages.map(ChatMessage::toUIChatMessage)
-                .plus(
-                    mcpServers.map {
-                        UIChatMessage(
-                            id = "fake-id",
-                            text = it.toString(),
-                            isUser = false,
-                        )
-                    }.let { 
-                        it.ifEmpty { 
-                            listOf(
-                                UIChatMessage(
-                                    id = "fake-id",
-                                    text = "No servers connected",
-                                    isUser = false,
-                                )
-                            )
-                        }
-                    }
-                )
+                .plus(UIChatMessage(
+                    text = serverStatus,
+                    isUser = false,
+                    id = "123",
+                ))
                 .toPersistentList(),
         ) { event ->
             when (event) {

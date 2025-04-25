@@ -15,4 +15,5 @@ data class ChatMessage(
 sealed class MessageAuthor {
     data object User: MessageAuthor()
     data object AI: MessageAuthor()
+    data object System: MessageAuthor()
 }

@@ -56,6 +56,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
                     author = when (author) {
                         MessageAuthor.User -> 0L
                         MessageAuthor.AI -> 1L
+                        MessageAuthor.System -> 2L
                     },
                     content = text.trim(),
                     timestamp = Clock.System.now().toEpochMilliseconds(),
@@ -73,6 +74,7 @@ fun DbMessage.toChatMessage(): ChatMessage {
         author = when (author) {
             0L -> MessageAuthor.User
             1L -> MessageAuthor.AI
+            2L -> MessageAuthor.System
             else -> error("Unknown author received for GetMessagesForConversation[$this] - $author")
         }
     )
