@@ -15,6 +15,8 @@ import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerStatus
+import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
@@ -37,18 +39,21 @@ class ChatPresenter @Inject constructor(
         var userApiKey by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
-        val scope = aiModelScope
-        val messages by aiChatRepository.getMessageFlowForConversation(screen.conversationId)
-            .collectAsState(initial = emptyList())
+        var serverStatus: McpServerStatus? by remember { mutableStateOf(null) }
 
-             LaunchedEffect(Unit) {
-            mcpRepository.addServer(
+        val scope = aiModelScope
+        val messages by remember(aiChatRepository, screen.conversationId) {
+            aiChatRepository.getMessageFlowForConversation(screen.conversationId)
+        }.collectAsState(initial = emptyList())
+
+        LaunchedEffect(Unit) {
+            serverStatus = mcpRepository.addServer(
                 name = "Lifx",
                 connection = McpServer.Connection.Sse(
                     url = "http://10.0.2.2:3000"
                 )
-            ).apply {
-                mcpRepository.connect(this)
+            )?.apply {
+                serverStatus = mcpRepository.connect(this.mcpServer)
             }
         }
 
@@ -56,7 +61,13 @@ class ChatPresenter @Inject constructor(
             sendButtonEnabled = aiModelScope != null && textInput.isNotBlank(),
             textInput = textInput,
             apiKey = userApiKey,
-            messages = messages.map(ChatMessage::toUIChatMessage).toPersistentList(),
+            messages = messages.map(ChatMessage::toUIChatMessage)
+                .plus(UIChatMessage(
+                    text = serverStatus?.toString() ?: "Server not available",
+                    isUser = false,
+                    id = "123",
+                ))
+                .toPersistentList(),
         ) { event ->
             when (event) {
                 is ChatScreen.Event.SendMessage -> coroutineScope.launch {

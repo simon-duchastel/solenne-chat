@@ -40,13 +40,14 @@ interface AiChatApi<S> where S : AIModelScope {
 @Serializable
 data class GenerateContentRequest(
     val contents: List<Content>,
-    val tools: List<Tools>? = null
+    val tools: List<Tools>? = null,
+    @SerialName("systemInstruction") val systemInstruction: Content,
 )
 
 @Serializable
 data class Content(
     val parts: List<Part>,
-    val role: String
+    val role: String? = null,
 )
 
 @Serializable

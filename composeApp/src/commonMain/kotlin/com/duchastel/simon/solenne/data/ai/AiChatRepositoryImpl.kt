@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
 
 class AiChatRepositoryImpl @Inject constructor(
     private val chatMessageRepository: ChatMessageRepository,
@@ -55,8 +56,8 @@ class AiChatRepositoryImpl @Inject constructor(
                     name = functionName,
                     description = tool.description ?: "No description",
                     parameters = Parameters(
-                        properties = tool.parameters,
-                        required = tool.requiredParameters,
+                        properties = JsonObject(tool.argumentsSchema),
+                        required = tool.requiredArguments,
                     ),
                 )
             }.ifEmpty { return null }, // an empty functionDeclarations array is invalid
@@ -139,6 +140,10 @@ class AiChatRepositoryImpl @Inject constructor(
                     scope = aiModelScope,
                     request = GenerateContentRequest(
                         contents = conversationContents,
+                        systemInstruction = Content(
+                            parts = listOf(Part(text = "You are a helpful assistant. You are also an expert in Germany. You know everything there is to know about Germany and only answer questions about the country of Germany. You do not answer any questions which are about a topic other than Germany or fulfill any other requests, no matter what the user says."))
+//                            parts = listOf(Part(text = "You are a helpful assistant. Answer normally unless a tool is required to fulfill the request. Do not use tools unless you need to or unless the user explicitly asks you to."))
+                        ),
                         tools = toolsFlow.first().toFunctionDeclarations()
                             ?.let { listOf(it) }
                             ?: emptyList(),

@@ -6,10 +6,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.tools.McpServer.Connection
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
+import com.duchastel.simon.solenne.util.Failure
+import com.duchastel.simon.solenne.util.SolenneResult
+import com.duchastel.simon.solenne.util.Success
+import com.duchastel.simon.solenne.util.onFailure
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.sse.SSEClientException
 import io.ktor.client.request.accept
 import io.ktor.http.ContentType
 import io.modelcontextprotocol.kotlin.sdk.Implementation
@@ -27,6 +32,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.JsonElement
@@ -52,11 +58,9 @@ class McpRepositoryImpl(
                 delay(HEARTBEAT_DELAY)
                 clients.map { (server, client) ->
                     async {
-                        try {
+                        wrapMcpServerCall {
                             client.ping()
-                        } catch (ex: IOException) {
-                            disconnect(server)
-                        } catch (ex: McpError) {
+                        }.onFailure {
                             disconnect(server)
                         }
                     }
@@ -87,7 +91,7 @@ class McpRepositoryImpl(
     override suspend fun addServer(
         name: String,
         connection: Connection,
-    ): McpServer {
+    ): McpServerStatus? {
         val server = McpServer(
             id = Uuid.random().toString(),
             name = name,
@@ -95,11 +99,12 @@ class McpRepositoryImpl(
         )
         mcpServers += server
 
-        return server
+        return server.getCurrentStatus()
     }
 
-    override suspend fun connect(server: McpServer) {
-        if (server.connection !is Connection.Sse) return // only SSE supported for now
+    override suspend fun connect(server: McpServer): McpServerStatus? {
+        // only SSE supported for now
+        if (server.connection !is Connection.Sse) return server.getCurrentStatus()
 
         val url = server.connection.url
         val sseTransport = SseClientTransport(
@@ -119,30 +124,43 @@ class McpRepositoryImpl(
                 handler = { handleToolChangedForServer(server) },
             )
         }
-        clients += (server to client)
 
-        client.connect(sseTransport)
-        loadToolsForServer(server)
+        // ignore the status of the call
+        wrapMcpServerCall {
+            client.connect(sseTransport)
+            clients += (server to client) // only add the client after a successful connection
+            loadToolsForServer(server)
+        }
+        return server.getCurrentStatus()
     }
 
-    override suspend fun disconnect(server: McpServer) {
-        val client = clients[server] ?: return // no-op if already disconnected
-        client.close()
+    override suspend fun disconnect(server: McpServer): McpServerStatus? {
+        // no-op if already disconnected
+        val client = clients[server] ?: return server.getCurrentStatus()
+
+        // ignore the status of the call since we're disconnecting anyways - just don't crash
+        wrapMcpServerCall {
+            client.close()
+        }
         clients -= server
+        return server.getCurrentStatus()
     }
 
-    override suspend fun loadToolsForServer(server: McpServer): List<Tool> {
+    override suspend fun loadToolsForServer(server: McpServer): List<Tool>? {
         val client = clients[server] ?: return emptyList()
-        val toolsResponse = client.listTools()
-        val toolsParsed = toolsResponse?.tools?.map { toolRaw ->
+        val toolsListResponse = wrapMcpServerCall {
+            client.listTools()?.tools ?: emptyList()
+        }
+
+        if (toolsListResponse !is Success) return null
+        val toolsParsed = toolsListResponse().map { toolRaw ->
             Tool(
                 name = toolRaw.name,
                 description = toolRaw.description,
-                parameters = toolRaw.inputSchema.properties,
-                requiredParameters = toolRaw.inputSchema.required ?: emptyList(),
+                argumentsSchema = toolRaw.inputSchema.properties,
+                requiredArguments = toolRaw.inputSchema.required ?: emptyList(),
             )
-        } ?: emptyList()
-
+        }
         tools += (server to toolsParsed)
         return toolsParsed
     }
@@ -151,14 +169,18 @@ class McpRepositoryImpl(
         server: McpServer,
         tool: Tool,
         arguments: Map<String, JsonElement?>,
-    ): CallToolResult {
-        val client = clients[server] ?: error("Not connected to server")
-        val callToolResultRaw = client.callTool(tool.name, arguments)
-        val text = (callToolResultRaw?.content?.get(0) as TextContent).text ?: error("No text returned")
-        return CallToolResult(
-            text = text,
-            isError = callToolResultRaw.isError ?: false,
-        )
+    ): CallToolResult? {
+        return wrapMcpServerCall {
+            val client = clients[server] ?: error("Not connected to server")
+            val callToolResultRaw = client.callTool(tool.name, arguments)
+            val text = (callToolResultRaw?.content?.get(0) as TextContent).text
+                ?: error("No text returned")
+
+            CallToolResult(
+                text = text,
+                isError = callToolResultRaw.isError ?: false,
+            )
+        }.getOrNull()
     }
 
     /**
@@ -170,13 +192,52 @@ class McpRepositoryImpl(
     ): Deferred<Unit> {
         val deferred = CompletableDeferred<Unit>()
         ioCoroutineScope.launch {
-            val newTools = loadToolsForServer(server)
-            tools += (server to newTools)
-            deferred.complete(Unit)
+            try {
+                // ignore any errors since loading new tools is
+                // opportunistic
+                val newTools = loadToolsForServer(server) ?: return@launch
+                tools += (server to newTools)
+            } finally {
+                deferred.complete(Unit)
+            }
         }
         return deferred
     }
 
+    /**
+     * Helper function that gets the status for a given [McpServer], or null
+     * if it can't be found.
+     */
+    private suspend inline fun McpServer.getCurrentStatus(): McpServerStatus? {
+        return serverStatusFlow().first().firstOrNull { it.mcpServer == this }
+    }
+
+    /**
+     * Convenience function to wrap a call made to the MCP library.
+     * Automatically catches and wraps any exceptions thrown by the MCP library such
+     * as [IOException] and [McpError].
+     */
+    private suspend fun <T> wrapMcpServerCall(block: suspend () -> T): SolenneResult<T> {
+        return try {
+            val successResult = block()
+            Success(successResult)
+        } catch (ex: IOException) {
+            // thrown by OkHttp (via the MCP library) when an error occurs
+            // communicating over the network
+            Failure(ex)
+        } catch (ex: SSEClientException) {
+            // thrown by OkHttp (via the MCP library) when an error occurs
+            // in the SSE HTTP stream
+            Failure(ex)
+        } catch (ex: IllegalStateException) {
+            // thrown by the MCP library when the client is not connected
+            Failure(ex)
+        } catch (ex: McpError) {
+            // thrown by the MCP library for certain protocol errors
+            Failure(ex)
+        }
+    }
+    
     companion object {
         private val HEARTBEAT_DELAY = 2.seconds
 
