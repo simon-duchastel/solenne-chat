@@ -14,7 +14,7 @@ sealed interface Message {
         data class AiTextMessage(val text: String) : AiMessage
         data class AiToolUse(
             val toolId: String,
-            val argumentsSupplied: Map<String, JsonElement?>,
+            val argumentsSupplied: Map<String, JsonElement>,
         ) : AiMessage
     }
 }

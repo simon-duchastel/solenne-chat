@@ -122,7 +122,7 @@ private fun Message.toContent(): Content {
                 Part(
                     functionCall = FunctionCall(
                         name = toolId,
-                        args = argumentsSupplied
+                        args = JsonObject(argumentsSupplied)
                     )
                 )
             ),
@@ -153,7 +153,7 @@ private fun GenerateContentResponse.toConversationResponse(): ConversationRespon
                 part.text != null -> Message.AiMessage.AiTextMessage(part.text)
                 part.functionCall != null -> Message.AiMessage.AiToolUse(
                     toolId = part.functionCall.name,
-                    argumentsSupplied = part.functionCall.args ?: emptyMap()
+                    argumentsSupplied = part.functionCall.args
                 )
                 else -> null
             }

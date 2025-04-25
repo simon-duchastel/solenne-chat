@@ -62,7 +62,7 @@ data class Parameters(
 data class FunctionCall(
     @SerialName("id") val id: String? = null,
     @SerialName("name") val name: String,
-    @SerialName("args") val args: Map<String, JsonElement?>? = null,
+    @SerialName("args") val args: JsonObject = JsonObject(emptyMap()),
 )
 
 @Serializable

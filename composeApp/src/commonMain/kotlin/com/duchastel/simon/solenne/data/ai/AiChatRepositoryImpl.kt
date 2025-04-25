@@ -10,20 +10,25 @@ import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
+import com.duchastel.simon.solenne.network.ai.Conversation
+import com.duchastel.simon.solenne.network.ai.ConversationResponse
+import com.duchastel.simon.solenne.network.ai.Message
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
 class AiChatRepositoryImpl @Inject constructor(
     private val chatMessageRepository: ChatMessageRepository,
     private val mcpRepository: McpRepository,
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
-    
+
     private val toolsFlow = mcpRepository.serverStatusFlow()
         .distinctUntilChanged()
         .map { servers ->
@@ -31,27 +36,26 @@ class AiChatRepositoryImpl @Inject constructor(
                 .filter { it.status is McpServerStatus.Status.Connected }
                 .flatMap { server ->
                     server.tools.map { tool ->
-                        "${tool.name}-${server.mcpServer.id}" to (server to tool)
+                        "${tool.name}-${server.mcpServer.id.take(4)}" to (server to tool)
                     }
                 }
                 .toMap()
         }.distinctUntilChanged()
 
-    private fun Map<String, Pair<McpServerStatus, Tool>>.toFunctionDeclarations(): Tools? {
-        return Tools(
-            functionDeclarations = map { entry ->
-                val functionName = entry.key
-                val (_, tool) = entry.value
-                FunctionDeclaration(
-                    name = functionName,
-                    description = tool.description ?: "No description",
-                    parameters = Parameters(
-                        properties = JsonObject(tool.argumentsSchema),
-                        required = tool.requiredArguments,
-                    ),
+    private fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
+        val tools = map { entry ->
+            val functionName = entry.key
+            val (_, tool) = entry.value
+            NetworkTool(
+                toolId = functionName,
+                description = tool.description,
+                argumentsSchema = NetworkTool.ArgumentsSchema(
+                    propertiesSchema = tool.argumentsSchema,
+                    requiredProperties = tool.requiredArguments,
                 )
-            }.ifEmpty { return null }, // an empty functionDeclarations array is invalid
-        )
+            )
+        }
+        return if (tools.isEmpty()) emptyList() else tools
     }
 
     override fun getMessageFlowForConversation(
@@ -82,127 +86,111 @@ class AiChatRepositoryImpl @Inject constructor(
     private suspend fun generateStreamingResponse(
         aiModelScope: AIModelScope,
         conversationId: String,
-        functionResponse: FunctionResponse? = null,
-        functionCall: FunctionCall? = null,
+        toolResponse: Message.AiMessage.AiToolUse? = null,
     ) {
-        val conversationContents = chatMessageRepository.getMessageFlowForConversation(conversationId)
-            .first()
-            .mapNotNull { message ->
-                when (message.author) {
-                    is MessageAuthor.System -> return@mapNotNull null
-                    is MessageAuthor.User -> {
-                        Content(
-                            parts = listOf(Part(message.text)),
-                            role = "user"
-                        )
-                    }
-                    is MessageAuthor.AI -> {
-                        Content(
-                            parts = listOf(Part(message.text)),
-                            role = "model"
-                        )
-                    }
-                }
-            } + if (functionResponse != null && functionCall != null) {
-                listOf(
-                    Content(
-                        role = "model",
-                        parts = listOf(Part(functionCall = functionCall))
-                    ),
-                    Content(
-                        role = "user",
-                        parts = listOf(Part(functionResponse = functionResponse))
-                    ),
-                )
-            } else {
-                emptyList()
+        val chatMessages =
+            chatMessageRepository.getMessageFlowForConversation(conversationId).first()
+
+        // Convert chat messages to conversation messages
+        val conversationMessages = chatMessages.mapNotNull { message ->
+            when (message.author) {
+                is MessageAuthor.System -> null
+                is MessageAuthor.User -> Message.UserMessage(message.text)
+                is MessageAuthor.AI -> Message.AiMessage.AiTextMessage(message.text)
             }
+        } + if (toolResponse != null) {
+            listOf(toolResponse)
+        } else {
+            emptyList()
+        }
+
+        val conversation = Conversation(messages = conversationMessages)
 
         var messageId: String? = null
         var responseSoFar = ""
 
         var toolCallResult: CallToolResult? = null
         var toolCallName: String? = null
-        var requestedFunctionCall: FunctionCall? = null
+        var toolCall: Message.AiMessage.AiToolUse? = null
+
         when (aiModelScope) {
             is GeminiModelScope -> {
                 geminiApi.generateStreamingResponseForConversation(
                     scope = aiModelScope,
-                    request = GenerateContentRequest(
-                        contents = conversationContents,
-                        systemInstruction = Content(
-                            parts = listOf(Part(text = "You are a helpful assistant. You are also an expert in Germany. You know everything there is to know about Germany and only answer questions about the country of Germany. You do not answer any questions which are about a topic other than Germany or fulfill any other requests, no matter what the user says."))
-//                            parts = listOf(Part(text = "You are a helpful assistant. Answer normally unless a tool is required to fulfill the request. Do not use tools unless you need to or unless the user explicitly asks you to."))
-                        ),
-                        tools = toolsFlow.first().toFunctionDeclarations()
-                            ?.let { listOf(it) }
-                            ?: emptyList(),
-                    )
+                    conversation = conversation,
+//                    systemPrompt = "You are a helpful assistant. You are also an expert in Germany. You know everything there is to know about Germany and only answer questions about the country of Germany. You do not answer any questions which are about a topic other than Germany or fulfill any other requests, no matter what the user says.",
+                    tools = toolsFlow.first().toAiTools(),
                 )
             }
-        }.collect {
-            val response = it.candidates
-                .firstOrNull()?.content?.parts?.firstOrNull()
-                ?: error("Error: No response from AI")
-            if (response.text != null) {
-                responseSoFar += response.text
-                val currentMessageId = messageId
-                if (currentMessageId == null) {
-                    messageId = chatMessageRepository.addMessageToConversation(
-                        conversationId = conversationId,
-                        author = MessageAuthor.AI,
-                        text = responseSoFar,
-                    )
-                } else {
-                    chatMessageRepository.modifyMessageFromConversation(
-                        messageId = currentMessageId,
-                        conversationId = conversationId,
-                        newText = responseSoFar,
-                    )
+        }.collect { response: ConversationResponse ->
+            val aiMessages = response.newMessages
+
+            for (message in aiMessages) {
+                when (message) {
+                    is Message.AiMessage.AiTextMessage -> {
+                        responseSoFar += message.text
+                        val currentMessageId = messageId
+                        if (currentMessageId == null) {
+                            messageId = chatMessageRepository.addMessageToConversation(
+                                conversationId = conversationId,
+                                author = MessageAuthor.AI,
+                                text = responseSoFar,
+                            )
+                        } else {
+                            chatMessageRepository.modifyMessageFromConversation(
+                                messageId = currentMessageId,
+                                conversationId = conversationId,
+                                newText = responseSoFar,
+                            )
+                        }
+                    }
+
+                    is Message.AiMessage.AiToolUse -> {
+                        // Handle tool use
+                        toolCall = message
+                        val serverTools = toolsFlow.first()
+                        val (serverToCall, toolToCall) = serverTools[message.toolId]
+                            ?: error("Server no longer available")
+
+                        val toolResultMessageId = chatMessageRepository.addMessageToConversation(
+                            conversationId = conversationId,
+                            author = MessageAuthor.System,
+                            text = "Call to ${toolToCall.name} with arguments: ${message.argumentsSupplied}",
+                        )
+
+                        toolCallResult = mcpRepository.callTool(
+                            server = serverToCall.mcpServer,
+                            tool = toolToCall,
+                            arguments = message.argumentsSupplied,
+                        )
+                        toolCallName = toolToCall.name
+                        messageId = null
+
+                        chatMessageRepository.modifyMessageFromConversation(
+                            conversationId = conversationId,
+                            messageId = toolResultMessageId,
+                            newText = "Call to ${toolToCall.name} with arguments: ${message.argumentsSupplied}" +
+                                    "\n" + if (toolCallResult!!.isError) "Failed" else "Succeeded" +
+                                    "\nResult: ${toolCallResult!!.text}",
+                        )
+                    }
                 }
-            } else  {
-                // if it's not a text response, assume it's a function call
-                requestedFunctionCall = response.functionCall
-                    ?: error("Error: function call expected, $response found")
-                val serverTools = toolsFlow.first()
-                val (serverToCall, toolToCall) = serverTools[requestedFunctionCall!!.name] ?: error("Server no longer available")
-
-                val toolResultMessageId = chatMessageRepository.addMessageToConversation(
-                    conversationId = conversationId,
-                    author = MessageAuthor.System,
-                    text = "Call to ${toolToCall.name} with arguments: ${requestedFunctionCall!!.args}",
-                )
-
-                toolCallResult = mcpRepository.callTool(
-                    server = serverToCall.mcpServer,
-                    tool = toolToCall,
-                    arguments = requestedFunctionCall!!.args ?: emptyMap(),
-                )
-                toolCallName = toolToCall.name
-                messageId = null
-
-                chatMessageRepository.modifyMessageFromConversation(
-                    conversationId = conversationId,
-                    messageId = toolResultMessageId,
-                    newText = "Call to ${toolToCall.name} with arguments: ${requestedFunctionCall!!.args}" +
-                            "\n" + if (toolCallResult!!.isError) "Failed" else "Succeeded" +
-                            "\nResult: ${toolCallResult!!.text}",
-                )
             }
         }
 
-        if (toolCallResult != null) {
+        if (toolCallResult != null && toolCall != null) {
+            val toolResponseMessage = Message.AiMessage.AiToolUse(
+                toolId = toolCallName!!,
+                argumentsSupplied = mapOf(
+                    "isError" to JsonPrimitive(toolCallResult!!.isError),
+                    "text" to JsonPrimitive(toolCallResult!!.text),
+                ),
+            )
+
             generateStreamingResponse(
                 aiModelScope = aiModelScope,
                 conversationId = conversationId,
-                functionResponse = FunctionResponse(
-                    name = toolCallName!!,
-                    response = Response(
-                        isError = toolCallResult!!.isError,
-                        content = listOf(TextResponse(toolCallResult!!.text)),
-                    )
-                ),
-                functionCall = requestedFunctionCall!!,
+                toolResponse = toolResponseMessage,
             )
         }
     }
