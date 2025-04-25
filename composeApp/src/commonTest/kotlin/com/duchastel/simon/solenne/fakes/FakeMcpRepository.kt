@@ -27,7 +27,7 @@ internal class FakeMcpRepository(
     override suspend fun addServer(
         name: String,
         connection: McpServer.Connection
-    ): McpServerStatus? {
+    ): McpServerStatus {
         val server = McpServer(id = nextId.toString(), name = name, connection = connection)
         nextId++
         val serverStatus = McpServerStatus(

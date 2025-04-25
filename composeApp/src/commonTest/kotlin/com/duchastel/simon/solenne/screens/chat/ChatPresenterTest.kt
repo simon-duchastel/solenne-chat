@@ -26,14 +26,13 @@ class ChatPresenterTest {
         )
 
         presenter.test {
-            val first = awaitItem()
+            val first = expectMostRecentItem()
             assertEquals(
                 expected = 1, // add 1 for mcp server test message
                 actual = first.messages.size,
             )
 
-            skipItems(1)
-            val second = awaitItem()
+            val second = expectMostRecentItem()
             assertEquals(
                 expected = ChatMessagesFake.chatMessages.size + 1, // add 1 for mcp server test message
                 actual = second.messages.size,
@@ -54,7 +53,7 @@ class ChatPresenterTest {
         )
 
         presenter.test {
-            val initial = awaitItem()
+            val initial = expectMostRecentItem()
             val eventSink = initial.eventSink
 
             eventSink(ChatScreen.Event.TextInputChanged("hello"))
@@ -62,8 +61,7 @@ class ChatPresenterTest {
             assertFalse(afterTextInputChanged.sendButtonEnabled)
 
             eventSink(ChatScreen.Event.ApiKeySubmitted("key"))
-            skipItems(1) // since two state value are changing, skip one of them
-            val state = awaitItem()
+            val state = expectMostRecentItem()
             assertTrue(state.sendButtonEnabled)
             assertEquals("hello", state.textInput)
         }
@@ -89,14 +87,7 @@ class ChatPresenterTest {
             eventSink(ChatScreen.Event.TextInputChanged("to send"))
             eventSink(ChatScreen.Event.SendMessage("to send"))
 
-            // consume the following changes:
-            // - apiKey populated
-            // - text input populated
-            // - button enabled
-            // - text depopulated
-            // - button disabled
-            skipItems(3)
-            val state = awaitItem()
+            val state = expectMostRecentItem()
 
             assertTrue(state.textInput.isEmpty())
             assertFalse(state.sendButtonEnabled)

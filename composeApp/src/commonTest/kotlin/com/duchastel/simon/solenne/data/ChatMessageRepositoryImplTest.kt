@@ -130,11 +130,28 @@ internal class ChatMessageRepositoryImplTest {
     }
 
     @Test
-    fun `DbMessage toChatMessage - unknown author throws`() {
+    fun `DbMessage toChatMessage - System maps correctly`() {
+        val id = "3"
+        val content = "hi from System"
         val dbMessage = DbMessage(
-            id = "3",
+            id = id,
             conversationId = "conv",
             author = 2L,
+            content = content,
+            timestamp = 0L
+        )
+        val chatMessage = dbMessage.toChatMessage()
+        assertEquals(id, chatMessage.id)
+        assertEquals(content, chatMessage.text)
+        assertEquals(MessageAuthor.System, chatMessage.author)
+    }
+
+    @Test
+    fun `DbMessage toChatMessage - unknown author throws`() {
+        val dbMessage = DbMessage(
+            id = "4",
+            conversationId = "conv",
+            author = 3L,
             content = "unknown",
             timestamp = 0L
         )

@@ -2,13 +2,12 @@ package com.duchastel.simon.solenne.fakes
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.network.ai.AiChatApi
-import com.duchastel.simon.solenne.network.ai.Candidate
-import com.duchastel.simon.solenne.network.ai.Content
-import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
-import com.duchastel.simon.solenne.network.ai.GenerateContentResponse
-import com.duchastel.simon.solenne.network.ai.Part
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import com.duchastel.simon.solenne.network.ai.Conversation
+import com.duchastel.simon.solenne.network.ai.ConversationResponse
+import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.network.ai.Tool
 
 /**
  * A fake AiChatApi that always returns [fakeResponse], ignoring the request content.
@@ -16,37 +15,31 @@ import kotlinx.coroutines.flow.flowOf
 internal class FakeAiChatApi(
     private val fakeResponse: String = "fake-ai-response"
 ) : AiChatApi<GeminiModelScope> {
-    
-    override suspend fun generateResponseForConversation(
+
+    override fun generateStreamingResponseForConversation(
         scope: GeminiModelScope,
-        request: GenerateContentRequest
-    ): GenerateContentResponse {
-        return GenerateContentResponse(
-            candidates = listOf(
-                Candidate(
-                    content = Content(
-                        parts = listOf(Part(fakeResponse)),
-                        role = "model"
-                    )
+        conversation: Conversation,
+        systemPrompt: String?,
+        tools: List<Tool>
+    ): Flow<ConversationResponse> {
+        return flowOf(
+            ConversationResponse(
+                newMessages = listOf(
+                    Message.AiMessage.AiTextMessage(fakeResponse)
                 )
             )
         )
     }
 
-    override fun generateStreamingResponseForConversation(
+    override suspend fun generateResponseForConversation(
         scope: GeminiModelScope,
-        request: GenerateContentRequest
-    ): Flow<GenerateContentResponse> {
-        return flowOf(
-            GenerateContentResponse(
-                candidates = listOf(
-                    Candidate(
-                        content = Content(
-                            parts = listOf(Part(fakeResponse)),
-                            role = "model"
-                        )
-                    )
-                )
+        conversation: Conversation,
+        systemPrompt: String?,
+        tools: List<Tool>
+    ): ConversationResponse {
+        return ConversationResponse(
+            newMessages = listOf(
+                Message.AiMessage.AiTextMessage(fakeResponse)
             )
         )
     }
