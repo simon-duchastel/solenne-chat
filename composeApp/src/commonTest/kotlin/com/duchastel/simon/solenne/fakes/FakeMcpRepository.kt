@@ -7,6 +7,7 @@ import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.json.JsonElement
 
 /**
  * A fake McpRepository for testing that tracks servers, their connection state,
@@ -23,45 +24,71 @@ internal class FakeMcpRepository(
 
     private var nextId = 1
 
-    override suspend fun addServer(name: String, connection: McpServer.Connection): McpServer {
+    override suspend fun addServer(
+        name: String,
+        connection: McpServer.Connection
+    ): McpServerStatus? {
         val server = McpServer(id = nextId.toString(), name = name, connection = connection)
         nextId++
-        _statuses.value += McpServerStatus(
+        val serverStatus = McpServerStatus(
             mcpServer = server,
             status = McpServerStatus.Status.Offline,
             tools = emptyList()
         )
-        return server
+        _statuses.value += serverStatus
+        return serverStatus
     }
 
-    override suspend fun connect(server: McpServer) {
+    override suspend fun connect(server: McpServer): McpServerStatus? {
+        var updatedStatus: McpServerStatus? = null
+
         _statuses.value = _statuses.value.map { status ->
-            if (status.mcpServer == server) status.copy(status = McpServerStatus.Status.Connected) else status
+            if (status.mcpServer == server) {
+                val newStatus = status.copy(status = McpServerStatus.Status.Connected)
+                updatedStatus = newStatus
+                newStatus
+            } else {
+                status
+            }
         }
+
+        return updatedStatus
     }
 
-    override suspend fun disconnect(server: McpServer) {
+    override suspend fun disconnect(server: McpServer): McpServerStatus? {
+        var updatedStatus: McpServerStatus? = null
+
         _statuses.value = _statuses.value.map { status ->
-            if (status.mcpServer == server) status.copy(status = McpServerStatus.Status.Offline) else status
+            if (status.mcpServer == server) {
+                val newStatus = status.copy(status = McpServerStatus.Status.Offline)
+                updatedStatus = newStatus
+                newStatus
+            } else {
+                status
+            }
         }
+
+        return updatedStatus
     }
 
     private val toolsMap = mutableMapOf<McpServer, List<Tool>>()
 
-    override suspend fun loadToolsForServer(server: McpServer): List<Tool> {
-        return toolsMap[server] ?: emptyList()
+    override suspend fun loadToolsForServer(server: McpServer): List<Tool>? {
+        return toolsMap[server]
     }
 
     override suspend fun callTool(
         server: McpServer,
-        toolId: String,
-        arguments: Map<String, Any?>
-    ): CallToolResult {
+        tool: Tool,
+        arguments: Map<String, JsonElement?>
+    ): CallToolResult? {
         val status = _statuses.value.find { it.mcpServer == server }
-            ?: throw IllegalStateException("Server not found: \\$server")
+            ?: return null
+
         if (status.status != McpServerStatus.Status.Connected) {
-            throw IllegalStateException("Server not connected: \\$server")
+            return null
         }
+
         return fakeCallToolResult
     }
 }
