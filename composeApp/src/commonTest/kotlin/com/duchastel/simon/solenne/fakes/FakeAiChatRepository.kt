@@ -13,7 +13,7 @@ class FakeAiChatRepository(
 ) : AiChatRepository {
     private val conversations = MutableStateFlow(initialMessages)
 
-    override fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
+    override fun messageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
         return conversations.map { it[conversationId] ?: emptyList() }
     }
 

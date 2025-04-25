@@ -13,7 +13,7 @@ interface AiChatRepository {
     /**
      * Gets all messages for a given conversation.
      */
-    fun getMessageFlowForConversation(
+    fun messageFlowForConversation(
         conversationId: String,
     ): Flow<List<ChatMessage>>
 

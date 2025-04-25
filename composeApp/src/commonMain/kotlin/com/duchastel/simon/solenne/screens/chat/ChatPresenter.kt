@@ -15,7 +15,6 @@ import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServer
-import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.presenter.Presenter
@@ -23,6 +22,8 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
@@ -39,21 +40,31 @@ class ChatPresenter @Inject constructor(
         var userApiKey by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
-        var serverStatus: McpServerStatus? by remember { mutableStateOf(null) }
+        var server: McpServer? by remember { mutableStateOf(null) }
 
         val scope = aiModelScope
         val messages by remember(aiChatRepository, screen.conversationId) {
-            aiChatRepository.getMessageFlowForConversation(screen.conversationId)
+            aiChatRepository.messageFlowForConversation(screen.conversationId)
         }.collectAsState(initial = emptyList())
 
+        val serverStatus: String by remember(server) {
+            if (server != null) {
+                mcpRepository.serverStatusFlow().map { serverStatus ->
+                    serverStatus.firstOrNull { it.mcpServer == server }?.status?.toString() ?: "Disconnected"
+                }
+            } else {
+                flowOf("Disconnected")
+            }
+        }.collectAsState("Disconnected")
+
         LaunchedEffect(Unit) {
-            serverStatus = mcpRepository.addServer(
+            server = mcpRepository.addServer(
                 name = "Lifx",
                 connection = McpServer.Connection.Sse(
                     url = "http://10.0.2.2:3000"
                 )
-            )?.apply {
-                serverStatus = mcpRepository.connect(this.mcpServer)
+            )?.mcpServer?.apply {
+                mcpRepository.connect(this)
             }
         }
 
@@ -63,7 +74,7 @@ class ChatPresenter @Inject constructor(
             apiKey = userApiKey,
             messages = messages.map(ChatMessage::toUIChatMessage)
                 .plus(UIChatMessage(
-                    text = serverStatus?.toString() ?: "Server not available",
+                    text = serverStatus,
                     isUser = false,
                     id = "123",
                 ))

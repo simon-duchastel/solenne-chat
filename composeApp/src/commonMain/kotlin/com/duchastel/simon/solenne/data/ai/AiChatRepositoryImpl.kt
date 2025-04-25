@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
@@ -29,6 +28,10 @@ class AiChatRepositoryImpl @Inject constructor(
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
+    /**
+     * Helper flow to get all of the tools which are currently available as
+     * a map of tool name -> (server, tool) pair
+     */
     private val toolsFlow = mcpRepository.serverStatusFlow()
         .distinctUntilChanged()
         .map { servers ->
@@ -36,14 +39,21 @@ class AiChatRepositoryImpl @Inject constructor(
                 .filter { it.status is McpServerStatus.Status.Connected }
                 .flatMap { server ->
                     server.tools.map { tool ->
+                        // avoid collisions among tool name by appending the tool-name with
+                        // the first 4 characters of the server id, which is guaranteed
+                        // to be unique across servers.
                         "${tool.name}-${server.mcpServer.id.take(4)}" to (server to tool)
                     }
                 }
                 .toMap()
         }.distinctUntilChanged()
 
-    private fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
-        val tools = map { entry ->
+    /**
+     * Helper function to transform the map of tools into a list of [NetworkTool]s that
+     * can be passed to the AI model.
+     */
+    private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
+        return map { entry ->
             val functionName = entry.key
             val (_, tool) = entry.value
             NetworkTool(
@@ -55,10 +65,9 @@ class AiChatRepositoryImpl @Inject constructor(
                 )
             )
         }
-        return if (tools.isEmpty()) emptyList() else tools
     }
 
-    override fun getMessageFlowForConversation(
+    override fun messageFlowForConversation(
         conversationId: String
     ): Flow<List<ChatMessage>> {
         return chatMessageRepository.getMessageFlowForConversation(conversationId)
