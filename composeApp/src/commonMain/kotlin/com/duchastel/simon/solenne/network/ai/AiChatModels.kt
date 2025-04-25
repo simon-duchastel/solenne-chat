@@ -11,11 +11,11 @@ sealed interface Message {
     data class UserMessage(val text: String) : Message
 
     sealed interface AiMessage : Message {
-        data class AiTextMessage(val text: String) : Message
+        data class AiTextMessage(val text: String) : AiMessage
         data class AiToolUse(
             val toolId: String,
             val argumentsSupplied: Map<String, JsonElement?>,
-        ) : Message
+        ) : AiMessage
     }
 }
 

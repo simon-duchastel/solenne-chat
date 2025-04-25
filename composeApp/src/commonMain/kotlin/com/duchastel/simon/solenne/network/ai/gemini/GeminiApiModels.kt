@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonObject
 data class GenerateContentRequest(
     @SerialName("contents") val contents: List<Content>,
     @SerialName("tools") val tools: List<Tools>? = null,
-    @SerialName("systemInstruction") val systemInstruction: Content,
+    @SerialName("systemInstruction") val systemInstruction: Content? = null,
 )
 
 @Serializable

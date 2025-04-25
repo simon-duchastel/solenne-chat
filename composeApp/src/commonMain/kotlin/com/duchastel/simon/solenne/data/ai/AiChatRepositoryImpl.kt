@@ -10,16 +10,6 @@ import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
-import com.duchastel.simon.solenne.network.ai.Content
-import com.duchastel.simon.solenne.network.ai.FunctionCall
-import com.duchastel.simon.solenne.network.ai.FunctionDeclaration
-import com.duchastel.simon.solenne.network.ai.FunctionResponse
-import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
-import com.duchastel.simon.solenne.network.ai.Parameters
-import com.duchastel.simon.solenne.network.ai.Part
-import com.duchastel.simon.solenne.network.ai.Response
-import com.duchastel.simon.solenne.network.ai.TextResponse
-import com.duchastel.simon.solenne.network.ai.Tools
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged

@@ -5,8 +5,7 @@ import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
-import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
-import com.duchastel.simon.solenne.network.ai.GenerateContentResponse
+import com.duchastel.simon.solenne.network.ai.Message
 import com.duchastel.simon.solenne.network.ai.Tool
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
@@ -20,6 +19,7 @@ import io.ktor.http.contentType
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.serialization.json.JsonObject
 
 private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
 private const val MODEL_NAME = "gemini-2.0-flash"
@@ -40,12 +40,14 @@ class GeminiApi @Inject constructor(
         tools: List<Tool>,
     ): ConversationResponse {
         val url = "$BASE_URL$MODEL_NAME:generateContent?key=${scope.apiKey}"
+        val request = createGenerateContentRequest(conversation, systemPrompt, tools)
+
         val response: GenerateContentResponse = httpClient.post(url) {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()
 
-        return response
+        return response.toConversationResponse()
     }
 
     override fun generateStreamingResponseForConversation(
@@ -55,6 +57,7 @@ class GeminiApi @Inject constructor(
         tools: List<Tool>,
     ): Flow<ConversationResponse> = channelFlow {
         val url = "$BASE_URL$MODEL_NAME:streamGenerateContent?alt=sse&key=${scope.apiKey}"
+        val request = createGenerateContentRequest(conversation, systemPrompt, tools)
 
         httpClient.post(url){
             method = HttpMethod.Post
@@ -70,7 +73,7 @@ class GeminiApi @Inject constructor(
                         val sanitizedBuffer = buffer.toString().removePrefix("data:").trim()
                         val parsedData: GenerateContentResponse = JsonParser.decodeFromString(sanitizedBuffer)
 
-                        send(parsedData)
+                        send(parsedData.toConversationResponse())
                         buffer.clear()
                     } else {
                         buffer.appendLine(line)
@@ -78,4 +81,84 @@ class GeminiApi @Inject constructor(
                 }
             }
     }
+}
+
+// Extension functions to convert between AiChatModel and GeminiApiModel types
+
+private fun createGenerateContentRequest(
+    conversation: Conversation,
+    systemPrompt: String?,
+    tools: List<Tool>
+): GenerateContentRequest {
+    val contents = conversation.messages.map { it.toContent() }
+
+    val systemInstruction = systemPrompt?.let {
+        Content(
+            parts = listOf(Part(text = systemPrompt)),
+        )
+    }
+
+    return GenerateContentRequest(
+        contents = contents,
+        tools = if (tools.isEmpty()) null else listOf(tools.toGeminiTools()),
+        systemInstruction = systemInstruction
+    )
+}
+
+private fun Message.toContent(): Content {
+    return when (this) {
+        is Message.UserMessage -> Content(
+            parts = listOf(Part(text = text)),
+            role = "user"
+        )
+
+        is Message.AiMessage.AiTextMessage -> Content(
+            parts = listOf(Part(text = text)),
+            role = "model"
+        )
+
+        is Message.AiMessage.AiToolUse -> Content(
+            parts = listOf(
+                Part(
+                    functionCall = FunctionCall(
+                        name = toolId,
+                        args = argumentsSupplied
+                    )
+                )
+            ),
+            role = "model"
+        )
+    }
+}
+
+private fun List<Tool>.toGeminiTools(): Tools {
+    return Tools(
+        functionDeclarations = this.map { tool ->
+            FunctionDeclaration(
+                name = tool.toolId,
+                description = tool.description ?: "",
+                parameters = Parameters(
+                    properties = tool.argumentsSchema.propertiesSchema as JsonObject,
+                    required = tool.argumentsSchema.requiredProperties
+                )
+            )
+        }
+    )
+}
+
+private fun GenerateContentResponse.toConversationResponse(): ConversationResponse {
+    val aiMessages = candidates.flatMap { candidate ->
+        candidate.content.parts.mapNotNull { part ->
+            when {
+                part.text != null -> Message.AiMessage.AiTextMessage(part.text)
+                part.functionCall != null -> Message.AiMessage.AiToolUse(
+                    toolId = part.functionCall.name,
+                    argumentsSupplied = part.functionCall.args ?: emptyMap()
+                )
+                else -> null
+            }
+        }
+    }
+
+    return ConversationResponse(newMessages = aiMessages)
 }
