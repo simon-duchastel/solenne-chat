@@ -13,6 +13,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
 import io.ktor.http.ContentType
 import io.modelcontextprotocol.kotlin.sdk.Implementation
+import io.modelcontextprotocol.kotlin.sdk.McpError
 import io.modelcontextprotocol.kotlin.sdk.Method
 import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.ToolListChangedNotification
@@ -21,11 +22,15 @@ import io.modelcontextprotocol.kotlin.sdk.client.SseClientTransport
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
 import kotlinx.serialization.json.JsonElement
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -37,12 +42,25 @@ class McpRepositoryImpl(
 ): McpRepository {
 
     init {
+        /**
+         * Spawns an infinite loop that pings all clients to keep the
+         * connection open. Whenever a client doesn't respond to a ping,
+         * it's disconnected.
+         */
         ioCoroutineScope.launch {
             while (true) {
-                delay(1000)
-                clients.forEach { (_, client) ->
-                    client.ping()
-                }
+                delay(HEARTBEAT_DELAY)
+                clients.map { (server, client) ->
+                    async {
+                        try {
+                            client.ping()
+                        } catch (ex: IOException) {
+                            disconnect(server)
+                        } catch (ex: McpError) {
+                            disconnect(server)
+                        }
+                    }
+                }.awaitAll()
             }
         }
     }
@@ -160,6 +178,8 @@ class McpRepositoryImpl(
     }
 
     companion object {
+        private val HEARTBEAT_DELAY = 2.seconds
+
         /**
          * Client information to communicate to the MCP servers.
          */

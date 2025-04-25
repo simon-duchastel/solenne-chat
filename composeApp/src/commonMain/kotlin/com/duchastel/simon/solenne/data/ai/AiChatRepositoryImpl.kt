@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonObject
 
 class AiChatRepositoryImpl @Inject constructor(
     private val chatMessageRepository: ChatMessageRepository,
