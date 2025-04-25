@@ -7,6 +7,12 @@ import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.Message
 import com.duchastel.simon.solenne.network.ai.Tool
+import com.duchastel.simon.solenne.network.wrapHttpCall
+import com.duchastel.simon.solenne.util.SolenneResult
+import com.duchastel.simon.solenne.util.asFailure
+import com.duchastel.simon.solenne.util.asSuccess
+import com.duchastel.simon.solenne.util.map
+import com.duchastel.simon.solenne.util.onFailure
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -38,16 +44,18 @@ class GeminiApi @Inject constructor(
         conversation: Conversation,
         systemPrompt: String?,
         tools: List<Tool>,
-    ): ConversationResponse {
+    ): SolenneResult<ConversationResponse> {
         val url = "$BASE_URL$MODEL_NAME:generateContent?key=${scope.apiKey}"
         val request = createGenerateContentRequest(conversation, systemPrompt, tools)
 
-        val response: GenerateContentResponse = httpClient.post(url) {
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body()
-
-        return response.toConversationResponse()
+         return wrapHttpCall<GenerateContentResponse> {
+           httpClient.post(url) {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body()
+        }.map {
+            it.toConversationResponse()
+         }
     }
 
     override fun generateStreamingResponseForConversation(
@@ -55,37 +63,42 @@ class GeminiApi @Inject constructor(
         conversation: Conversation,
         systemPrompt: String?,
         tools: List<Tool>,
-    ): Flow<ConversationResponse> = channelFlow {
+    ): Flow<SolenneResult<ConversationResponse>> = channelFlow {
         val url = "$BASE_URL$MODEL_NAME:streamGenerateContent?alt=sse&key=${scope.apiKey}"
         val request = createGenerateContentRequest(conversation, systemPrompt, tools)
 
-        httpClient.post(url){
-            method = HttpMethod.Post
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.bodyAsChannel()
-            .let { channel ->
+        // wraps the call and stops emitting values in the flow if there's an error
+        wrapHttpCall {
+            httpClient.post(url) {
+                method = HttpMethod.Post
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.bodyAsChannel().let { channel ->
                 val buffer = StringBuilder()
 
                 while (!channel.isClosedForRead) {
                     val line = channel.readUTF8Line() ?: break
                     if (line.isBlank()) {
                         val sanitizedBuffer = buffer.toString().removePrefix("data:").trim()
-                        val parsedData: GenerateContentResponse = JsonParser.decodeFromString(sanitizedBuffer)
+                        val parsedData: GenerateContentResponse =
+                            JsonParser.decodeFromString(sanitizedBuffer)
 
-                        send(parsedData.toConversationResponse())
+                        send(parsedData.toConversationResponse().asSuccess())
                         buffer.clear()
                     } else {
                         buffer.appendLine(line)
                     }
                 }
             }
+        }.onFailure {
+            send(it.asFailure())
+        }
     }
 }
 
 // Extension functions to convert between AiChatModel and GeminiApiModel types
 
-private fun createGenerateContentRequest(
+internal fun createGenerateContentRequest(
     conversation: Conversation,
     systemPrompt: String?,
     tools: List<Tool>
@@ -105,7 +118,7 @@ private fun createGenerateContentRequest(
     )
 }
 
-private fun Message.toContent(): Content {
+internal fun Message.toContent(): Content {
     return when (this) {
         is Message.UserMessage -> Content(
             parts = listOf(Part(text = text)),
@@ -131,7 +144,7 @@ private fun Message.toContent(): Content {
     }
 }
 
-private fun List<Tool>.toGeminiTools(): Tools {
+internal fun List<Tool>.toGeminiTools(): Tools {
     return Tools(
         functionDeclarations = this.map { tool ->
             FunctionDeclaration(
@@ -146,7 +159,7 @@ private fun List<Tool>.toGeminiTools(): Tools {
     )
 }
 
-private fun GenerateContentResponse.toConversationResponse(): ConversationResponse {
+internal fun GenerateContentResponse.toConversationResponse(): ConversationResponse {
     val aiMessages = candidates.flatMap { candidate ->
         candidate.content.parts.mapNotNull { part ->
             when {
