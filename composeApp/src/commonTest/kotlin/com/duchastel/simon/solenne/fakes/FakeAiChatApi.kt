@@ -8,6 +8,8 @@ import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.Message
 import com.duchastel.simon.solenne.network.ai.Tool
+import com.duchastel.simon.solenne.util.SolenneResult
+import com.duchastel.simon.solenne.util.asSuccess
 
 /**
  * A fake AiChatApi that always returns [fakeResponse], ignoring the request content.
@@ -21,13 +23,13 @@ internal class FakeAiChatApi(
         conversation: Conversation,
         systemPrompt: String?,
         tools: List<Tool>
-    ): Flow<ConversationResponse> {
+    ): Flow<SolenneResult<ConversationResponse>> {
         return flowOf(
             ConversationResponse(
                 newMessages = listOf(
                     Message.AiMessage.AiTextMessage(fakeResponse)
                 )
-            )
+            ).asSuccess()
         )
     }
 
@@ -36,11 +38,11 @@ internal class FakeAiChatApi(
         conversation: Conversation,
         systemPrompt: String?,
         tools: List<Tool>
-    ): ConversationResponse {
+    ): SolenneResult<ConversationResponse> {
         return ConversationResponse(
             newMessages = listOf(
                 Message.AiMessage.AiTextMessage(fakeResponse)
             )
-        )
+        ).asSuccess()
     }
 }

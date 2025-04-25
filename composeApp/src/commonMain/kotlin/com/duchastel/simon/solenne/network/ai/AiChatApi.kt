@@ -1,6 +1,8 @@
 package com.duchastel.simon.solenne.network.ai
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope
+import com.duchastel.simon.solenne.util.Failure
+import com.duchastel.simon.solenne.util.SolenneResult
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -20,14 +22,16 @@ interface AiChatApi<S> where S : AIModelScope {
      * @param systemPrompt Optional system prompt to guide the AI's behavior
      * @param tools Optional list of tools the AI can use in its response
      *
-     * @return A Flow of [ConversationResponse] objects as they are generated
+     * @return A Flow of [ConversationResponse] objects wrapped in a [SolenneResult]
+     * as they are generated. If an error occurs, a [Failure] will be emitted and then
+     * no more items will be emitted.
      */
     fun generateStreamingResponseForConversation(
         scope: S,
         conversation: Conversation,
         systemPrompt: String? = null,
         tools: List<Tool> = emptyList(),
-    ): Flow<ConversationResponse>
+    ): Flow<SolenneResult<ConversationResponse>>
 
     /**
      * Sends a conversation to the AI and returns the complete response.
@@ -38,12 +42,13 @@ interface AiChatApi<S> where S : AIModelScope {
      * @param systemPrompt Optional system prompt to guide the AI's behavior
      * @param tools Optional list of tools the AI can use in its response
      *
-     * @return The AI's complete response as a [ConversationResponse]
+     * @return The AI's complete response as a [ConversationResponse] wrapped
+     * in a [SolenneResult], with a [Failure] if there was an error.
      */
     suspend fun generateResponseForConversation(
         scope: S,
         conversation: Conversation,
         systemPrompt: String? = null,
         tools: List<Tool> = emptyList(),
-    ): ConversationResponse
+    ): SolenneResult<ConversationResponse>
 }

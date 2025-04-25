@@ -61,3 +61,23 @@ inline fun <T> SolenneResult<T>.onFailure(block: (Throwable?) -> Unit): SolenneR
         is Success -> this
     }
 }
+
+/**
+ * Maps the result of this to a new type if [Success], otherwise propagates the [Failure].
+ */
+inline fun <T, R> SolenneResult<T>.map(block: (T) -> R): SolenneResult<R> {
+    return when (this) {
+        is Success -> block(this()).asSuccess()
+        is Failure -> Failure(this.error)
+    }
+}
+
+/**
+ * Returns result wrapped in a [SolenneResult] as a [Success].
+ */
+inline fun <T> T.asSuccess(): SolenneResult<T> = Success(this)
+
+/**
+ * Returns result wrapped in a [SolenneResult] as a [Failure].
+ */
+inline fun <T> Throwable?.asFailure(): SolenneResult<T> = Failure(this)
