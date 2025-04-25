@@ -26,16 +26,16 @@ class ChatPresenterTest {
         )
 
         presenter.test {
-            val first = expectMostRecentItem()
+            val initial = awaitItem()
             assertEquals(
                 expected = 1, // add 1 for mcp server test message
-                actual = first.messages.size,
+                actual = initial.messages.size,
             )
 
-            val second = expectMostRecentItem()
+            val withMessages = expectMostRecentItem()
             assertEquals(
                 expected = ChatMessagesFake.chatMessages.size + 1, // add 1 for mcp server test message
-                actual = second.messages.size,
+                actual = withMessages.messages.size,
             )
         }
     }
