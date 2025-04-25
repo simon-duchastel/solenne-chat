@@ -30,6 +30,6 @@ data class Tool(
     )
 }
 
-data class ResponseForConversation(
+data class ConversationResponse(
     val newMessages: List<AiMessage>,
 )

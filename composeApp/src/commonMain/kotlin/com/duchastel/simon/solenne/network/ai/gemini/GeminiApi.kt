@@ -3,8 +3,11 @@ package com.duchastel.simon.solenne.network.ai.gemini
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
+import com.duchastel.simon.solenne.network.ai.Conversation
+import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.GenerateContentRequest
 import com.duchastel.simon.solenne.network.ai.GenerateContentResponse
+import com.duchastel.simon.solenne.network.ai.Tool
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -32,8 +35,10 @@ class GeminiApi @Inject constructor(
 
     override suspend fun generateResponseForConversation(
         scope: GeminiModelScope,
-        request: GenerateContentRequest,
-    ): GenerateContentResponse {
+        conversation: Conversation,
+        systemPrompt: String?,
+        tools: List<Tool>,
+    ): ConversationResponse {
         val url = "$BASE_URL$MODEL_NAME:generateContent?key=${scope.apiKey}"
         val response: GenerateContentResponse = httpClient.post(url) {
             contentType(ContentType.Application.Json)
@@ -45,8 +50,10 @@ class GeminiApi @Inject constructor(
 
     override fun generateStreamingResponseForConversation(
         scope: GeminiModelScope,
-        request: GenerateContentRequest,
-    ): Flow<GenerateContentResponse> = channelFlow {
+        conversation: Conversation,
+        systemPrompt: String?,
+        tools: List<Tool>,
+    ): Flow<ConversationResponse> = channelFlow {
         val url = "$BASE_URL$MODEL_NAME:streamGenerateContent?alt=sse&key=${scope.apiKey}"
 
         httpClient.post(url){

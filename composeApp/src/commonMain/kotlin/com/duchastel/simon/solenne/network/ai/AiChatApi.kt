@@ -19,7 +19,7 @@ interface AiChatApi<S> where S : AIModelScope {
         conversation: Conversation,
         systemPrompt: String? = null,
         tools: List<Tool> = emptyList(),
-    ): Flow<ResponseForConversation>
+    ): Flow<ConversationResponse>
 
     /**
      * Sends a list of conversation messages to the AI and returns the plain text response.
@@ -34,5 +34,5 @@ interface AiChatApi<S> where S : AIModelScope {
         conversation: Conversation,
         systemPrompt: String? = null,
         tools: List<Tool> = emptyList(),
-    ): ResponseForConversation
+    ): ConversationResponse
 }
