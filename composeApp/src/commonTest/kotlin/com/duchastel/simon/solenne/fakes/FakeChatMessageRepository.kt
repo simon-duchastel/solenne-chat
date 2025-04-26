@@ -25,7 +25,7 @@ internal class FakeChatMessageRepository(
     override suspend fun modifyMessageFromConversation(
         conversationId: String,
         messageId: String,
-        newText: String
+        updatedText: String
     ): String {
         return messageId
     }

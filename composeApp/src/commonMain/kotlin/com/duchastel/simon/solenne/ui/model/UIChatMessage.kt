@@ -26,7 +26,8 @@ fun ChatMessage.toUIChatMessage(): UIChatMessage = when (this) {
     is ChatMessage.ToolUse -> {
         UIChatMessage(
             id = this.id,
-            text = "Using tool",
+            text = "Using tool ${this.toolName}..."
+                    + if (this.result != null) "\nResult: ${this.result}" else "",
             isUser = this.author is MessageAuthor.User,
         )
     }

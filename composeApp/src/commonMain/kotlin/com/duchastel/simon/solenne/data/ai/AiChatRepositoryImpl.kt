@@ -2,9 +2,9 @@ package com.duchastel.simon.solenne.data.ai
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.ChatMessage.ToolUse
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.MessageAuthor
-import com.duchastel.simon.solenne.data.tools.CallToolResult
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
@@ -13,7 +13,6 @@ import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.NetworkMessage
-import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -58,32 +57,14 @@ class AiChatRepositoryImpl @Inject constructor(
     private suspend fun generateStreamingResponse(
         aiModelScope: AIModelScope,
         conversationId: String,
-        toolResponse: NetworkMessage.AiNetworkMessage.ToolUse? = null,
     ) {
+        // Fetch existing chat messages and convert them to be sent over the network
         val chatMessages =
             chatMessageRepository.getMessageFlowForConversation(conversationId).first()
+        val conversationNetworkMessages = chatMessages.map(ChatMessage::toAiNetworkMessage)
 
-        // Convert chat messages to conversation messages
-        val conversationNetworkMessages = chatMessages.mapNotNull { message ->
-            when (message.author) {
-                is MessageAuthor.User -> NetworkMessage.UserNetworkMessage(message.toUIChatMessage())
-                is MessageAuthor.AI -> NetworkMessage.AiNetworkMessage.Text(message.text)
-            }
-        } + if (toolResponse != null) {
-            listOf(toolResponse)
-        } else {
-            emptyList()
-        }
-
+        var currentChatMessage: ChatMessage? = null
         val conversation = Conversation(networkMessages = conversationNetworkMessages)
-
-        var messageId: String? = null
-        var responseSoFar = ""
-
-        var toolCallResult: CallToolResult? = null
-        var toolCallName: String? = null
-        var toolCall: NetworkMessage.AiNetworkMessage.ToolUse? = null
-
         when (aiModelScope) {
             is GeminiModelScope -> {
                 geminiApi.generateStreamingResponseForConversation(
@@ -99,72 +80,72 @@ class AiChatRepositoryImpl @Inject constructor(
                 for (message in aiMessages) {
                     when (message) {
                         is NetworkMessage.AiNetworkMessage.Text -> {
-                            responseSoFar += message.text
-                            val currentMessageId = messageId
-                            if (currentMessageId == null) {
-                                messageId = chatMessageRepository.addTextMessageToConversation(
-                                    conversationId = conversationId,
-                                    author = MessageAuthor.AI,
-                                    text = responseSoFar,
-                                )
-                            } else {
-                                chatMessageRepository.modifyMessageFromConversation(
-                                    messageId = currentMessageId,
-                                    conversationId = conversationId,
-                                    newText = responseSoFar,
-                                )
+                            val chatMessage = currentChatMessage
+                            currentChatMessage = when (chatMessage) {
+                                null -> {
+                                    chatMessageRepository.addTextMessageToConversation(
+                                        conversationId = conversationId,
+                                        author = MessageAuthor.AI,
+                                        text = message.text,
+                                    )
+                                }
+                                is ChatMessage.Text -> {
+                                    chatMessageRepository.modifyMessageFromConversation(
+                                        conversationId = conversationId,
+                                        messageId = chatMessage.id,
+                                        updatedText = chatMessage.text,
+                                    )
+                                }
+                                !is ChatMessage.Text -> {
+                                    // unexpected error - chat message unexpectedly changed types
+                                    // this should be impossible
+                                    return@collect
+                                }
                             }
                         }
 
                         is NetworkMessage.AiNetworkMessage.ToolUse -> {
-                            // Handle tool use
-                            toolCall = message
+                            // TODO: gracefully handle nulls
                             val serverTools = toolsFlow.first()
-                            val (serverToCall, toolToCall) = serverTools[message.toolId]
-                                ?: error("Server no longer available")
+                            val (serverToCall, toolToCall) = serverTools[message.toolName]
+                                ?: return@collect // if null, tool is no longer available on server
 
-                            val toolResultMessageId = chatMessageRepository.addTextMessageToConversation(
+                            val toolUseMessage = chatMessageRepository.addToolUseToConversation(
                                 conversationId = conversationId,
-                                author = MessageAuthor.System,
-                                text = "Call to ${toolToCall.name} with arguments: ${message.argumentsSupplied}",
-                            )
+                                mcpServer = serverToCall.mcpServer,
+                                toolName = toolToCall.name,
+                                argumentsSupplied = message.argumentsSupplied,
+                            ) ?: return@collect // if null, we had an error adding the tool message
 
-                            toolCallResult = mcpRepository.callTool(
+                            val callToolResult = mcpRepository.callTool(
                                 server = serverToCall.mcpServer,
                                 tool = toolToCall,
                                 arguments = message.argumentsSupplied,
-                            )
-                            toolCallName = toolToCall.name
-                            messageId = null
+                            ) ?: return@collect // if null, we had an error calling the tool
 
-                            chatMessageRepository.modifyMessageFromConversation(
+                            chatMessageRepository.addToolUseResultToConversation(
                                 conversationId = conversationId,
-                                messageId = toolResultMessageId,
-                                newText = "Call to ${toolToCall.name} with arguments: ${message.argumentsSupplied}" +
-                                        "\n" + if (toolCallResult!!.isError) "Failed" else "Succeeded" +
-                                        "\nResult: ${toolCallResult!!.text}",
+                                messageId = toolUseMessage.id,
+                                toolResult = ToolUse.ToolResult(
+                                    text = callToolResult.text,
+                                    isError = callToolResult.isError,
+                                )
                             )
                         }
                     }
                 }
             }
 
-            if (toolCallResult != null && toolCall != null) {
-                val toolResponseNetworkMessage = NetworkMessage.AiNetworkMessage.ToolUse(
-                    toolId = toolCallName!!,
-                    argumentsSupplied = mapOf(
-                        "isError" to JsonPrimitive(toolCallResult!!.isError),
-                        "text" to JsonPrimitive(toolCallResult!!.text),
-                    ),
-                )
-
-                generateStreamingResponse(
-                    aiModelScope = aiModelScope,
-                    conversationId = conversationId,
-                    toolResponse = toolResponseNetworkMessage,
-                )
-            }
+        // if the last message was the AI using a tool, generate another set of messages
+        // to give the AI a chance to respond to the tool's use
+        val wasLastMessageToolUse =
+            chatMessageRepository.getMessageFlowForConversation(conversationId)
+                .first()
+                .last() is ToolUse
+        if (wasLastMessageToolUse) {
+            generateStreamingResponse(aiModelScope = aiModelScope, conversationId = conversationId)
         }
+    }
 
     /**
      * Helper flow to get all of the tools which are currently available as
@@ -185,22 +166,45 @@ class AiChatRepositoryImpl @Inject constructor(
                 }
                 .toMap()
         }.distinctUntilChanged()
+}
 
-    /**
-     * Helper function to transform the map of tools into a list of [NetworkTool]s that
-     * can be passed to the AI model.
-     */
-    private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
-        return map { entry ->
-            val functionName = entry.key
-            val (_, tool) = entry.value
-            NetworkTool(
-                toolId = functionName,
-                description = tool.description,
-                argumentsSchema = NetworkTool.ArgumentsSchema(
-                    propertiesSchema = tool.argumentsSchema,
-                    requiredProperties = tool.requiredArguments,
-                )
+/**
+ * Helper function to transform the map of tools into a list of [NetworkTool]s that
+ * can be passed to the AI model.
+ */
+private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
+    return map { entry ->
+        val functionName = entry.key
+        val (_, tool) = entry.value
+        NetworkTool(
+            toolId = functionName,
+            description = tool.description,
+            argumentsSchema = NetworkTool.ArgumentsSchema(
+                propertiesSchema = tool.argumentsSchema,
+                requiredProperties = tool.requiredArguments,
+            )
+        )
+    }
+}
+
+private inline fun ChatMessage.toAiNetworkMessage(): NetworkMessage {
+    return when (this) {
+        is ChatMessage.Text -> {
+            when (author) {
+                is MessageAuthor.User -> NetworkMessage.UserNetworkMessage(text)
+                is MessageAuthor.AI -> NetworkMessage.AiNetworkMessage.Text(text)
+            }
+        }
+        is ToolUse -> {
+            NetworkMessage.AiNetworkMessage.ToolUse(
+                toolName = toolName,
+                argumentsSupplied = argumentsSupplied,
+                result = result?.let {
+                    NetworkMessage.AiNetworkMessage.ToolUse.ToolResult(
+                        text = it.text,
+                        isError = it.isError
+                    )
+                }
             )
         }
     }

@@ -1,6 +1,8 @@
 package com.duchastel.simon.solenne.data.chat
 
+import com.duchastel.simon.solenne.data.tools.McpServer
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonElement
 
 /**
  * A repository for persisting and retrieving chat messages.
@@ -40,7 +42,9 @@ interface ChatMessageRepository {
      */
     suspend fun addToolUseToConversation(
         conversationId: String,
-        toolUse: ChatMessage.ToolUse,
+        mcpServer: McpServer,
+        toolName: String,
+        argumentsSupplied: Map<String, JsonElement>,
     ): ChatMessage?
 
     /**
@@ -64,12 +68,12 @@ interface ChatMessageRepository {
      *
      * @param conversationId the id of the conversation
      * @param messageId the id of the message to modify
-     * @param newText the new text of the message
+     * @param updatedText the new text of the message
      * @return the modified message if successful, null otherwise
      */
     suspend fun modifyMessageFromConversation(
         conversationId: String,
         messageId: String,
-        newText: String,
+        updatedText: String,
     ): ChatMessage?
 }

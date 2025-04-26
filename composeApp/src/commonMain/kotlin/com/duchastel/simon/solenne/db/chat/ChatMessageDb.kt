@@ -56,7 +56,7 @@ sealed interface DbMessageContent {
         val toolName: String,
         val mcpServerId: String,
         val argumentsSupplied: Map<String, JsonElement>,
-        val result: ToolResult,
+        val result: ToolResult?,
     ) : DbMessageContent {
         data class ToolResult(
             val text: String,
