@@ -13,6 +13,7 @@ import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -30,45 +31,6 @@ class AiChatRepositoryImpl @Inject constructor(
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
-    /**
-     * Helper flow to get all of the tools which are currently available as
-     * a map of tool name -> (server, tool) pair
-     */
-    private val toolsFlow = mcpRepository.serverStatusFlow()
-        .distinctUntilChanged()
-        .map { servers ->
-            servers
-                .filter { it.status is McpServerStatus.Status.Connected }
-                .flatMap { server ->
-                    server.tools.map { tool ->
-                        // avoid collisions among tool name by appending the tool-name with
-                        // the first 4 characters of the server id, which is guaranteed
-                        // to be unique across servers.
-                        "${tool.name}-${server.mcpServer.id.take(4)}" to (server to tool)
-                    }
-                }
-                .toMap()
-        }.distinctUntilChanged()
-
-    /**
-     * Helper function to transform the map of tools into a list of [NetworkTool]s that
-     * can be passed to the AI model.
-     */
-    private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
-        return map { entry ->
-            val functionName = entry.key
-            val (_, tool) = entry.value
-            NetworkTool(
-                toolId = functionName,
-                description = tool.description,
-                argumentsSchema = NetworkTool.ArgumentsSchema(
-                    propertiesSchema = tool.argumentsSchema,
-                    requiredProperties = tool.requiredArguments,
-                )
-            )
-        }
-    }
-
     override fun messageFlowForConversation(
         conversationId: String
     ): Flow<List<ChatMessage>> {
@@ -81,7 +43,7 @@ class AiChatRepositoryImpl @Inject constructor(
         text: String,
     ) {
         withContext(IODispatcher) {
-            chatMessageRepository.addMessageToConversation(
+            chatMessageRepository.addTextMessageToConversation(
                 conversationId = conversationId,
                 author = MessageAuthor.User,
                 text = text,
@@ -105,8 +67,7 @@ class AiChatRepositoryImpl @Inject constructor(
         // Convert chat messages to conversation messages
         val conversationMessages = chatMessages.mapNotNull { message ->
             when (message.author) {
-                is MessageAuthor.System -> null
-                is MessageAuthor.User -> Message.UserMessage(message.text)
+                is MessageAuthor.User -> Message.UserMessage(message.toUIChatMessage())
                 is MessageAuthor.AI -> Message.AiMessage.AiTextMessage(message.text)
             }
         } + if (toolResponse != null) {
@@ -129,7 +90,6 @@ class AiChatRepositoryImpl @Inject constructor(
                 geminiApi.generateStreamingResponseForConversation(
                     scope = aiModelScope,
                     conversation = conversation,
-//                    systemPrompt = "You are a helpful assistant. You are also an expert in Germany. You know everything there is to know about Germany and only answer questions about the country of Germany. You do not answer any questions which are about a topic other than Germany or fulfill any other requests, no matter what the user says.",
                     tools = toolsFlow.first().toAiTools(),
                 )
             }
@@ -143,7 +103,7 @@ class AiChatRepositoryImpl @Inject constructor(
                             responseSoFar += message.text
                             val currentMessageId = messageId
                             if (currentMessageId == null) {
-                                messageId = chatMessageRepository.addMessageToConversation(
+                                messageId = chatMessageRepository.addTextMessageToConversation(
                                     conversationId = conversationId,
                                     author = MessageAuthor.AI,
                                     text = responseSoFar,
@@ -164,7 +124,7 @@ class AiChatRepositoryImpl @Inject constructor(
                             val (serverToCall, toolToCall) = serverTools[message.toolId]
                                 ?: error("Server no longer available")
 
-                            val toolResultMessageId = chatMessageRepository.addMessageToConversation(
+                            val toolResultMessageId = chatMessageRepository.addTextMessageToConversation(
                                 conversationId = conversationId,
                                 author = MessageAuthor.System,
                                 text = "Call to ${toolToCall.name} with arguments: ${message.argumentsSupplied}",
@@ -206,4 +166,43 @@ class AiChatRepositoryImpl @Inject constructor(
                 )
             }
         }
+
+    /**
+     * Helper flow to get all of the tools which are currently available as
+     * a map of tool name -> (server, tool) pair
+     */
+    private val toolsFlow = mcpRepository.serverStatusFlow()
+        .distinctUntilChanged()
+        .map { servers ->
+            servers
+                .filter { it.status is McpServerStatus.Status.Connected }
+                .flatMap { server ->
+                    server.tools.map { tool ->
+                        // avoid collisions among tool name by appending the tool-name with
+                        // the first 4 characters of the server id, which is guaranteed
+                        // to be unique across servers.
+                        "${tool.name}-${server.mcpServer.id.take(4)}" to (server to tool)
+                    }
+                }
+                .toMap()
+        }.distinctUntilChanged()
+
+    /**
+     * Helper function to transform the map of tools into a list of [NetworkTool]s that
+     * can be passed to the AI model.
+     */
+    private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
+        return map { entry ->
+            val functionName = entry.key
+            val (_, tool) = entry.value
+            NetworkTool(
+                toolId = functionName,
+                description = tool.description,
+                argumentsSchema = NetworkTool.ArgumentsSchema(
+                    propertiesSchema = tool.argumentsSchema,
+                    requiredProperties = tool.requiredArguments,
+                )
+            )
+        }
+    }
 }

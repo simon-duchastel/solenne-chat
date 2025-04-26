@@ -23,13 +23,13 @@ interface ChatMessageRepository {
      *
      * @param conversationId the id of the conversation
      * @param text the plain‑text message from the user
-     * @return the id of the new message
+     * @return the added message if successful, null otherwise
      */
-    suspend fun addMessageToConversation(
+    suspend fun addTextMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,
-    ): String
+    ): ChatMessage?
 
     /**
      * Modifies an existing message in the conversation.
@@ -40,11 +40,11 @@ interface ChatMessageRepository {
      * @param conversationId the id of the conversation
      * @param messageId the id of the message to modify
      * @param newText the new text of the message
-     * @return the id of the modified message
+     * @return the modified message if successful, null otherwise
      */
     suspend fun modifyMessageFromConversation(
         conversationId: String,
         messageId: String,
         newText: String,
-    ): String
+    ): ChatMessage?
 }

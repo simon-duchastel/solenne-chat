@@ -2,9 +2,9 @@ package com.duchastel.simon.solenne.data.chat
 
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.DbMessage
+import com.duchastel.simon.solenne.db.chat.DbMessageContent
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -22,7 +22,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
         return chatMessageDb.getMessagesForConversation(conversationId)
             .distinctUntilChanged()
             .map { query ->
-                query.map(DbMessage::toChatMessage)
+                query.mapNotNull(DbMessage::toChatMessage) // drop unparseable messages
             }
     }
 
@@ -30,52 +30,72 @@ class ChatMessageRepositoryImpl @Inject constructor(
         conversationId: String,
         messageId: String,
         newText: String,
-    ): String {
+    ): ChatMessage? {
         return withContext(IODispatcher) {
-            chatMessageDb.updateMessageContent(
+            val dbMessage = chatMessageDb.updateTextMessageContent(
                 messageId = messageId,
                 conversationId = conversationId,
-                newContent = newText,
+                newContent = DbMessageContent.Text(newText),
             )
-            return@withContext messageId
+            return@withContext dbMessage?.toChatMessage()
         }
     }
 
     @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
-    override suspend fun addMessageToConversation(
+    override suspend fun addTextMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,
-    ): String {
+    ): ChatMessage? {
         return withContext(IODispatcher) {
             val messageId = Uuid.random().toHexString()
-            chatMessageDb.writeMessage(
+            val newMessage = chatMessageDb.writeMessage(
                 DbMessage(
                     id = messageId,
                     conversationId = conversationId,
                     author = when (author) {
                         MessageAuthor.User -> 0L
                         MessageAuthor.AI -> 1L
-                        MessageAuthor.System -> 2L
                     },
-                    content = text.trim(),
+                    content = DbMessageContent.Text(text.trim()),
                     timestamp = Clock.System.now().toEpochMilliseconds(),
                 )
             )
-            return@withContext messageId
+            return@withContext newMessage.toChatMessage()
         }
     }
 }
 
-fun DbMessage.toChatMessage(): ChatMessage {
-    return ChatMessage(
-        id = id,
-        text = content,
-        author = when (author) {
-            0L -> MessageAuthor.User
-            1L -> MessageAuthor.AI
-            2L -> MessageAuthor.System
-            else -> error("Unknown author received for GetMessagesForConversation[$this] - $author")
+/**
+ * Helper function to parse a [DbMessage] into a [ChatMessage].
+ * Returns null if an error occurred during parsing.
+ */
+private fun DbMessage.toChatMessage(): ChatMessage? {
+    return when (this.content) {
+        is DbMessageContent.Text -> {
+            ChatMessage.Text(
+                id = id,
+                text = content.text,
+                author = author.asAuthor() ?: return null,
+            )
         }
-    )
+        is DbMessageContent.ToolUse -> {
+            ChatMessage.ToolUse(
+                id = id,
+                author = author.asAuthor() ?: return null,
+            )
+        }
+    }
+}
+
+/**
+ * Helper function to parse a [Long] into a [MessageAuthor].
+ * Returns null if an error occurred during parsing.
+ */
+private fun Long.asAuthor(): MessageAuthor? {
+    return when (this) {
+        0L -> MessageAuthor.User
+        1L -> MessageAuthor.AI
+        else -> null
+    }
 }

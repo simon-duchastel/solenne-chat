@@ -78,7 +78,7 @@ internal class ChatMessageRepositoryImplTest {
     @Test
     fun `addMessageToConversation - success`() = runTest {
         val conversationId = "conv-id"
-        repo.addMessageToConversation(
+        repo.addTextMessageToConversation(
             conversationId = conversationId,
             author = MessageAuthor.User,
             text = "hello there",

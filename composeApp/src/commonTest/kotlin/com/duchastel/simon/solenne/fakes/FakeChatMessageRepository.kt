@@ -14,7 +14,7 @@ internal class FakeChatMessageRepository(
         conversationId: String,
     ): Flow<List<ChatMessage>> = flowOf(initialMessages)
 
-    override suspend fun addMessageToConversation(
+    override suspend fun addTextMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,

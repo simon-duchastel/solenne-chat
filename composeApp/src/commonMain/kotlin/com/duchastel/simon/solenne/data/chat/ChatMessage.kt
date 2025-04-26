@@ -3,11 +3,26 @@ package com.duchastel.simon.solenne.data.chat
 /**
  * Represents a single message in the chat.
  */
-data class ChatMessage(
-    val text: String,
-    val author: MessageAuthor,
-    val id: String,
-)
+sealed interface ChatMessage {
+    val id: String
+    val author: MessageAuthor
+
+    data class Text(
+        override val id: String,
+        override val author: MessageAuthor,
+        val text: String,
+    ): ChatMessage
+
+    data class ToolRequest(
+        override val id: String,
+        override val author: MessageAuthor,
+    ): ChatMessage
+
+    data class ToolUse(
+        override val id: String,
+        override val author: MessageAuthor,
+    ): ChatMessage
+}
 
 /**
  * Represents the author of a message.
@@ -15,5 +30,4 @@ data class ChatMessage(
 sealed class MessageAuthor {
     data object User: MessageAuthor()
     data object AI: MessageAuthor()
-    data object System: MessageAuthor()
 }
