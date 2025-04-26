@@ -103,7 +103,7 @@ internal fun createGenerateContentRequest(
     systemPrompt: String?,
     tools: List<Tool>
 ): GenerateContentRequest {
-    val contents = conversation.networkMessages.map { it.toContent() }
+    val contents = conversation.networkMessages.flatMap(NetworkMessage::toContents)
 
     val systemInstruction = systemPrompt?.let {
         Content(
@@ -118,28 +118,50 @@ internal fun createGenerateContentRequest(
     )
 }
 
-internal fun NetworkMessage.toContent(): Content {
+internal fun NetworkMessage.toContents(): List<Content> {
     return when (this) {
-        is NetworkMessage.UserNetworkMessage -> Content(
-            parts = listOf(Part(text = text)),
-            role = "user"
+        is NetworkMessage.UserNetworkMessage -> listOf(
+            Content(
+                parts = listOf(Part(text = text)),
+                role = "user"
+            )
         )
 
-        is NetworkMessage.AiNetworkMessage.Text -> Content(
-            parts = listOf(Part(text = text)),
-            role = "model"
+        is NetworkMessage.AiNetworkMessage.Text -> listOf(
+            Content(
+                parts = listOf(Part(text = text)),
+                role = "model"
+            )
         )
 
-        is NetworkMessage.AiNetworkMessage.ToolUse -> Content(
-            parts = listOf(
-                Part(
-                    functionCall = FunctionCall(
-                        name = toolName,
-                        args = JsonObject(argumentsSupplied)
-                    )
-                )
+        is NetworkMessage.AiNetworkMessage.ToolUse -> listOfNotNull(
+            Content(
+                parts = listOf(
+                    Part(
+                        functionCall = FunctionCall(
+                            name = toolName,
+                            args = JsonObject(argumentsSupplied)
+                        )
+                    ),
+                ),
+                role = "model"
             ),
-            role = "model"
+            result?.let {
+                Content(
+                    parts = listOf(
+                        Part(
+                            functionResponse = FunctionResponse(
+                                name = toolName,
+                                response = Response(
+                                    content = listOf(TextResponse(it.text)),
+                                    isError = it.isError,
+                                )
+                            )
+                        )
+                    ),
+                    role = "model",
+                )
+            }
         )
     }
 }

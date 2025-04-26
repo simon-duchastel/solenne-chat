@@ -29,21 +29,6 @@ class ChatMessageRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun modifyMessageFromConversation(
-        conversationId: String,
-        messageId: String,
-        updatedText: String,
-    ): ChatMessage? {
-        return withContext(IODispatcher) {
-            val dbMessage = chatMessageDb.updateMessageContent(
-                messageId = messageId,
-                conversationId = conversationId,
-                newContent = DbMessageContent.Text(updatedText),
-            )
-            return@withContext dbMessage?.toChatMessage()
-        }
-    }
-
     @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
     override suspend fun addTextMessageToConversation(
         conversationId: String,
@@ -62,6 +47,21 @@ class ChatMessageRepositoryImpl @Inject constructor(
                 )
             )
             return@withContext newMessage.toChatMessage()
+        }
+    }
+
+    override suspend fun modifyMessageFromConversation(
+        conversationId: String,
+        messageId: String,
+        updatedText: String,
+    ): ChatMessage? {
+        return withContext(IODispatcher) {
+            val dbMessage = chatMessageDb.updateMessageContent(
+                messageId = messageId,
+                conversationId = conversationId,
+                newContent = DbMessageContent.Text(updatedText),
+            )
+            return@withContext dbMessage?.toChatMessage()
         }
     }
 

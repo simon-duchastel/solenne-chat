@@ -19,7 +19,7 @@ class GeminiApiTest {
         val userNetworkMessage = NetworkMessage.UserNetworkMessage("Hello, how are you?")
 
         // When
-        val content = userNetworkMessage.toContent()
+        val content = userNetworkMessage.toContents()
 
         // Then
         assertEquals("user", content.role)
@@ -34,7 +34,7 @@ class GeminiApiTest {
         val aiNetworkMessage = NetworkMessage.AiNetworkMessage.Text("I'm doing well, thanks for asking!")
 
         // When
-        val content = aiNetworkMessage.toContent()
+        val content = aiNetworkMessage.toContents()
 
         // Then
         assertEquals("model", content.role)
@@ -56,7 +56,7 @@ class GeminiApiTest {
         )
 
         // When
-        val content = toolUse.toContent()
+        val content = toolUse.toContents()
 
         // Then
         assertEquals("model", content.role)

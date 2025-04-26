@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.JsonPrimitive
 import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
 class AiChatRepositoryImpl @Inject constructor(
@@ -63,7 +62,7 @@ class AiChatRepositoryImpl @Inject constructor(
             chatMessageRepository.getMessageFlowForConversation(conversationId).first()
         val conversationNetworkMessages = chatMessages.map(ChatMessage::toAiNetworkMessage)
 
-        var currentChatMessage: ChatMessage? = null
+        var messageBeingProcessed: ChatMessage? = null
         val conversation = Conversation(networkMessages = conversationNetworkMessages)
         when (aiModelScope) {
             is GeminiModelScope -> {
@@ -80,8 +79,13 @@ class AiChatRepositoryImpl @Inject constructor(
                 for (message in aiMessages) {
                     when (message) {
                         is NetworkMessage.AiNetworkMessage.Text -> {
-                            val chatMessage = currentChatMessage
-                            currentChatMessage = when (chatMessage) {
+                            // reset the message if we're switching types
+                            if (messageBeingProcessed !is ChatMessage.Text) {
+                                messageBeingProcessed = null
+                            }
+
+                            val existingMessage = messageBeingProcessed
+                            messageBeingProcessed = when (existingMessage) {
                                 null -> {
                                     chatMessageRepository.addTextMessageToConversation(
                                         conversationId = conversationId,
@@ -92,8 +96,8 @@ class AiChatRepositoryImpl @Inject constructor(
                                 is ChatMessage.Text -> {
                                     chatMessageRepository.modifyMessageFromConversation(
                                         conversationId = conversationId,
-                                        messageId = chatMessage.id,
-                                        updatedText = chatMessage.text,
+                                        messageId = existingMessage.id,
+                                        updatedText = existingMessage.text + message.text,
                                     )
                                 }
                                 !is ChatMessage.Text -> {
@@ -103,12 +107,13 @@ class AiChatRepositoryImpl @Inject constructor(
                                 }
                             }
                         }
-
                         is NetworkMessage.AiNetworkMessage.ToolUse -> {
                             // TODO: gracefully handle nulls
                             val serverTools = toolsFlow.first()
                             val (serverToCall, toolToCall) = serverTools[message.toolName]
-                                ?: return@collect // if null, tool is no longer available on server
+                                ?: run {
+                                    return@collect // if null, tool is no longer available on server
+                                }
 
                             val toolUseMessage = chatMessageRepository.addToolUseToConversation(
                                 conversationId = conversationId,
@@ -123,7 +128,7 @@ class AiChatRepositoryImpl @Inject constructor(
                                 arguments = message.argumentsSupplied,
                             ) ?: return@collect // if null, we had an error calling the tool
 
-                            chatMessageRepository.addToolUseResultToConversation(
+                            messageBeingProcessed = chatMessageRepository.addToolUseResultToConversation(
                                 conversationId = conversationId,
                                 messageId = toolUseMessage.id,
                                 toolResult = ToolUse.ToolResult(
@@ -136,13 +141,9 @@ class AiChatRepositoryImpl @Inject constructor(
                 }
             }
 
-        // if the last message was the AI using a tool, generate another set of messages
+        // if the last message processed the AI using a tool, generate another set of messages
         // to give the AI a chance to respond to the tool's use
-        val wasLastMessageToolUse =
-            chatMessageRepository.getMessageFlowForConversation(conversationId)
-                .first()
-                .last() is ToolUse
-        if (wasLastMessageToolUse) {
+        if (messageBeingProcessed is ToolUse) {
             generateStreamingResponse(aiModelScope = aiModelScope, conversationId = conversationId)
         }
     }
@@ -158,10 +159,9 @@ class AiChatRepositoryImpl @Inject constructor(
                 .filter { it.status is McpServerStatus.Status.Connected }
                 .flatMap { server ->
                     server.tools.map { tool ->
-                        // avoid collisions among tool name by appending the tool-name with
-                        // the first 4 characters of the server id, which is guaranteed
-                        // to be unique across servers.
-                        "${tool.name}-${server.mcpServer.id.take(4)}" to (server to tool)
+                        // Warning: this has a risk of collisions since two MCP servers
+                        // can have the same tool name (in theory)
+                        tool.name to (server to tool)
                     }
                 }
                 .toMap()
