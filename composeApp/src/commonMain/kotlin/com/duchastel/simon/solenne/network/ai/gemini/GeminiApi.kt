@@ -5,7 +5,7 @@ import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
-import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.network.ai.Tool
 import com.duchastel.simon.solenne.network.wrapHttpCall
 import com.duchastel.simon.solenne.util.SolenneResult
@@ -103,7 +103,7 @@ internal fun createGenerateContentRequest(
     systemPrompt: String?,
     tools: List<Tool>
 ): GenerateContentRequest {
-    val contents = conversation.messages.map { it.toContent() }
+    val contents = conversation.networkMessages.map { it.toContent() }
 
     val systemInstruction = systemPrompt?.let {
         Content(
@@ -118,19 +118,19 @@ internal fun createGenerateContentRequest(
     )
 }
 
-internal fun Message.toContent(): Content {
+internal fun NetworkMessage.toContent(): Content {
     return when (this) {
-        is Message.UserMessage -> Content(
+        is NetworkMessage.UserNetworkMessage -> Content(
             parts = listOf(Part(text = text)),
             role = "user"
         )
 
-        is Message.AiMessage.AiTextMessage -> Content(
+        is NetworkMessage.AiNetworkMessage.Text -> Content(
             parts = listOf(Part(text = text)),
             role = "model"
         )
 
-        is Message.AiMessage.AiToolUse -> Content(
+        is NetworkMessage.AiNetworkMessage.ToolUse -> Content(
             parts = listOf(
                 Part(
                     functionCall = FunctionCall(
@@ -163,8 +163,8 @@ internal fun GenerateContentResponse.toConversationResponse(): ConversationRespo
     val aiMessages = candidates.flatMap { candidate ->
         candidate.content.parts.mapNotNull { part ->
             when {
-                part.text != null -> Message.AiMessage.AiTextMessage(part.text)
-                part.functionCall != null -> Message.AiMessage.AiToolUse(
+                part.text != null -> NetworkMessage.AiNetworkMessage.Text(part.text)
+                part.functionCall != null -> NetworkMessage.AiNetworkMessage.ToolUse(
                     toolId = part.functionCall.name,
                     argumentsSupplied = part.functionCall.args
                 )

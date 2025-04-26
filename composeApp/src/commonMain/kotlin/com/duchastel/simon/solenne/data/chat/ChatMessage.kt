@@ -1,5 +1,7 @@
 package com.duchastel.simon.solenne.data.chat
 
+import kotlinx.serialization.json.JsonElement
+
 /**
  * Represents a single message in the chat.
  */
@@ -13,15 +15,19 @@ sealed interface ChatMessage {
         val text: String,
     ): ChatMessage
 
-    data class ToolRequest(
-        override val id: String,
-        override val author: MessageAuthor,
-    ): ChatMessage
-
     data class ToolUse(
         override val id: String,
-        override val author: MessageAuthor,
-    ): ChatMessage
+        val toolName: String,
+        val argumentsSupplied: Map<String, JsonElement>,
+        val result: ToolResult? = null,
+    ): ChatMessage {
+        override val author: MessageAuthor = MessageAuthor.AI
+
+        data class ToolResult(
+            val text: String,
+            val isError: Boolean,
+        )
+    }
 }
 
 /**

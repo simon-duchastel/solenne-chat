@@ -12,12 +12,11 @@ import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
-import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -59,16 +58,16 @@ class AiChatRepositoryImpl @Inject constructor(
     private suspend fun generateStreamingResponse(
         aiModelScope: AIModelScope,
         conversationId: String,
-        toolResponse: Message.AiMessage.AiToolUse? = null,
+        toolResponse: NetworkMessage.AiNetworkMessage.ToolUse? = null,
     ) {
         val chatMessages =
             chatMessageRepository.getMessageFlowForConversation(conversationId).first()
 
         // Convert chat messages to conversation messages
-        val conversationMessages = chatMessages.mapNotNull { message ->
+        val conversationNetworkMessages = chatMessages.mapNotNull { message ->
             when (message.author) {
-                is MessageAuthor.User -> Message.UserMessage(message.toUIChatMessage())
-                is MessageAuthor.AI -> Message.AiMessage.AiTextMessage(message.text)
+                is MessageAuthor.User -> NetworkMessage.UserNetworkMessage(message.toUIChatMessage())
+                is MessageAuthor.AI -> NetworkMessage.AiNetworkMessage.Text(message.text)
             }
         } + if (toolResponse != null) {
             listOf(toolResponse)
@@ -76,14 +75,14 @@ class AiChatRepositoryImpl @Inject constructor(
             emptyList()
         }
 
-        val conversation = Conversation(messages = conversationMessages)
+        val conversation = Conversation(networkMessages = conversationNetworkMessages)
 
         var messageId: String? = null
         var responseSoFar = ""
 
         var toolCallResult: CallToolResult? = null
         var toolCallName: String? = null
-        var toolCall: Message.AiMessage.AiToolUse? = null
+        var toolCall: NetworkMessage.AiNetworkMessage.ToolUse? = null
 
         when (aiModelScope) {
             is GeminiModelScope -> {
@@ -99,7 +98,7 @@ class AiChatRepositoryImpl @Inject constructor(
 
                 for (message in aiMessages) {
                     when (message) {
-                        is Message.AiMessage.AiTextMessage -> {
+                        is NetworkMessage.AiNetworkMessage.Text -> {
                             responseSoFar += message.text
                             val currentMessageId = messageId
                             if (currentMessageId == null) {
@@ -117,7 +116,7 @@ class AiChatRepositoryImpl @Inject constructor(
                             }
                         }
 
-                        is Message.AiMessage.AiToolUse -> {
+                        is NetworkMessage.AiNetworkMessage.ToolUse -> {
                             // Handle tool use
                             toolCall = message
                             val serverTools = toolsFlow.first()
@@ -151,7 +150,7 @@ class AiChatRepositoryImpl @Inject constructor(
             }
 
             if (toolCallResult != null && toolCall != null) {
-                val toolResponseMessage = Message.AiMessage.AiToolUse(
+                val toolResponseNetworkMessage = NetworkMessage.AiNetworkMessage.ToolUse(
                     toolId = toolCallName!!,
                     argumentsSupplied = mapOf(
                         "isError" to JsonPrimitive(toolCallResult!!.isError),
@@ -162,7 +161,7 @@ class AiChatRepositoryImpl @Inject constructor(
                 generateStreamingResponse(
                     aiModelScope = aiModelScope,
                     conversationId = conversationId,
-                    toolResponse = toolResponseMessage,
+                    toolResponse = toolResponseNetworkMessage,
                 )
             }
         }

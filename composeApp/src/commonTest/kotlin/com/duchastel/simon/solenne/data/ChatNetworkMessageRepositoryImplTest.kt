@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import com.duchastel.simon.solenne.data.chat.toChatMessage
 
-internal class ChatMessageRepositoryImplTest {
+internal class ChatNetworkMessageRepositoryImplTest {
 
     private lateinit var fakeDb: FakeChatMessageDb
     private lateinit var fakeAi: FakeAiChatApi

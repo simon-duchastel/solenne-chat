@@ -18,17 +18,42 @@ interface ChatMessageRepository {
     fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>>
 
     /**
-     * Persists a new text message in the conversation, then
-     * sends it to the AI backend and persists the AI's reply.
+     * Adds a new text message to the conversation.
      *
      * @param conversationId the id of the conversation
-     * @param text the plain‑text message from the user
+     * @param author the author of the message
+     * @param text the plain‑text message
      * @return the added message if successful, null otherwise
      */
     suspend fun addTextMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,
+    ): ChatMessage?
+
+    /**
+     * Adds a tool use request message to the conversation.
+     *
+     * @param conversationId the id of the conversation
+     * @param toolUse the tool use requested by the AI
+     * @return the added message if successful, null otherwise
+     */
+    suspend fun addToolUseToConversation(
+        conversationId: String,
+        toolUse: ChatMessage.ToolUse,
+    ): ChatMessage?
+
+    /**
+     * Adds the result of a tool use to the conversation.
+     *
+     * @param conversationId the id of the conversation
+     * @param toolResult the result of using the tool
+     * @return the added message if successful, null otherwise
+     */
+    suspend fun addToolUseResultToConversation(
+        conversationId: String,
+        messageId: String,
+        toolResult: ChatMessage.ToolUse.ToolResult,
     ): ChatMessage?
 
     /**

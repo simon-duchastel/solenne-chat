@@ -25,18 +25,17 @@ interface ChatMessageDb {
     ): DbMessage
 
     /**
-     * Updates the [DbMessageContent.Text] content of a message for a given conversation.
+     * Updates the [DbMessageContent] content of a message for a given conversation.
      *
-     * The message corresponding to the given [messageId] must be of type [DbMessageContent.Text],
-     * otherwise this method will fail and return null.
+     * The message corresponding to the given [messageId] must be of the same [DbMessageContent],
+     * type, otherwise this method will fail and return null.
      *
-     * Returns the successfully updated message if it succeeded, false
-     * otherwise.
+     * Returns the successfully updated message if it succeeded, false otherwise.
      */
-    suspend fun updateTextMessageContent(
+    suspend fun updateMessageContent(
         messageId: String,
         conversationId: String,
-        newContent: DbMessageContent.Text,
+        newContent: DbMessageContent,
     ): DbMessage?
 }
 
@@ -55,6 +54,13 @@ sealed interface DbMessageContent {
 
     data class ToolUse(
         val toolName: String,
+        val mcpServerId: String,
         val argumentsSupplied: Map<String, JsonElement>,
-    ) : DbMessageContent
+        val result: ToolResult,
+    ) : DbMessageContent {
+        data class ToolResult(
+            val text: String,
+            val isError: Boolean,
+        )
+    }
 }

@@ -1,10 +1,8 @@
 package com.duchastel.simon.solenne.network.ai.gemini
 
 import com.duchastel.simon.solenne.network.ai.Conversation
-import com.duchastel.simon.solenne.network.ai.ConversationResponse
-import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.network.ai.Tool
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.Test
@@ -18,10 +16,10 @@ class GeminiApiTest {
     @Test
     fun `test Message UserMessage toContent`() {
         // Given
-        val userMessage = Message.UserMessage("Hello, how are you?")
+        val userNetworkMessage = NetworkMessage.UserNetworkMessage("Hello, how are you?")
 
         // When
-        val content = userMessage.toContent()
+        val content = userNetworkMessage.toContent()
 
         // Then
         assertEquals("user", content.role)
@@ -33,10 +31,10 @@ class GeminiApiTest {
     @Test
     fun `test Message AiTextMessage toContent`() {
         // Given
-        val aiMessage = Message.AiMessage.AiTextMessage("I'm doing well, thanks for asking!")
+        val aiNetworkMessage = NetworkMessage.AiNetworkMessage.Text("I'm doing well, thanks for asking!")
 
         // When
-        val content = aiMessage.toContent()
+        val content = aiNetworkMessage.toContent()
 
         // Then
         assertEquals("model", content.role)
@@ -52,13 +50,13 @@ class GeminiApiTest {
             "query" to JsonPrimitive("weather in San Francisco"),
             "includeDetails" to JsonPrimitive(true)
         )
-        val aiToolUse = Message.AiMessage.AiToolUse(
+        val toolUse = NetworkMessage.AiNetworkMessage.ToolUse(
             toolId = "search_weather",
             argumentsSupplied = arguments
         )
 
         // When
-        val content = aiToolUse.toContent()
+        val content = toolUse.toContent()
 
         // Then
         assertEquals("model", content.role)
@@ -131,8 +129,8 @@ class GeminiApiTest {
     fun `test createGenerateContentRequest with no tools and no system prompt`() {
         // Given
         val conversation = Conversation(
-            messages = listOf(
-                Message.UserMessage("Hello, AI!")
+            networkMessages = listOf(
+                NetworkMessage.UserNetworkMessage("Hello, AI!")
             )
         )
 
@@ -155,8 +153,8 @@ class GeminiApiTest {
     fun `test createGenerateContentRequest with system prompt`() {
         // Given
         val conversation = Conversation(
-            messages = listOf(
-                Message.UserMessage("Hello, AI!")
+            networkMessages = listOf(
+                NetworkMessage.UserNetworkMessage("Hello, AI!")
             )
         )
         val systemPrompt = "You are a helpful assistant."
@@ -181,8 +179,8 @@ class GeminiApiTest {
     fun `test createGenerateContentRequest with tools`() {
         // Given
         val conversation = Conversation(
-            messages = listOf(
-                Message.UserMessage("What's the weather?")
+            networkMessages = listOf(
+                NetworkMessage.UserNetworkMessage("What's the weather?")
             )
         )
         val tools = listOf(
@@ -235,8 +233,8 @@ class GeminiApiTest {
         // Then
         assertEquals(1, conversationResponse.newMessages.size)
         val message = conversationResponse.newMessages[0]
-        assertTrue(message is Message.AiMessage.AiTextMessage)
-        assertEquals("I'm an AI assistant.", (message as Message.AiMessage.AiTextMessage).text)
+        assertTrue(message is NetworkMessage.AiNetworkMessage.Text)
+        assertEquals("I'm an AI assistant.", (message as NetworkMessage.AiNetworkMessage.Text).text)
     }
 
     @Test
@@ -264,8 +262,8 @@ class GeminiApiTest {
         // Then
         assertEquals(1, conversationResponse.newMessages.size)
         val message = conversationResponse.newMessages[0]
-        assertTrue(message is Message.AiMessage.AiToolUse)
-        val toolUse = message as Message.AiMessage.AiToolUse
+        assertTrue(message is NetworkMessage.AiNetworkMessage.ToolUse)
+        val toolUse = message as NetworkMessage.AiNetworkMessage.ToolUse
         assertEquals("search_weather", toolUse.toolId)
         assertEquals(JsonPrimitive("New York"), toolUse.argumentsSupplied["location"])
     }
@@ -298,11 +296,11 @@ class GeminiApiTest {
         assertEquals(2, conversationResponse.newMessages.size)
 
         val textMessage = conversationResponse.newMessages[0]
-        assertTrue(textMessage is Message.AiMessage.AiTextMessage)
-        assertEquals("Here's the weather:", (textMessage as Message.AiMessage.AiTextMessage).text)
+        assertTrue(textMessage is NetworkMessage.AiNetworkMessage.Text)
+        assertEquals("Here's the weather:", (textMessage as NetworkMessage.AiNetworkMessage.Text).text)
 
         val toolUseMessage = conversationResponse.newMessages[1]
-        assertTrue(toolUseMessage is Message.AiMessage.AiToolUse)
+        assertTrue(toolUseMessage is NetworkMessage.AiNetworkMessage.ToolUse)
         assertEquals("search_weather", (toolUseMessage).toolId)
         assertEquals(
             JsonPrimitive("New York"),
