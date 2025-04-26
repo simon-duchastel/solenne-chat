@@ -134,7 +134,7 @@ internal fun NetworkMessage.toContent(): Content {
             parts = listOf(
                 Part(
                     functionCall = FunctionCall(
-                        name = toolId,
+                        name = toolName,
                         args = JsonObject(argumentsSupplied)
                     )
                 )
@@ -165,7 +165,7 @@ internal fun GenerateContentResponse.toConversationResponse(): ConversationRespo
             when {
                 part.text != null -> NetworkMessage.AiNetworkMessage.Text(part.text)
                 part.functionCall != null -> NetworkMessage.AiNetworkMessage.ToolUse(
-                    toolId = part.functionCall.name,
+                    toolName = part.functionCall.name,
                     argumentsSupplied = part.functionCall.args
                 )
                 else -> null
