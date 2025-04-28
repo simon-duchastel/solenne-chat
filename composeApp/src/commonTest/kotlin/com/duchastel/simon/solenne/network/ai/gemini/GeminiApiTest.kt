@@ -19,7 +19,7 @@ class GeminiApiTest {
         val userNetworkMessage = NetworkMessage.UserNetworkMessage("Hello, how are you?")
 
         // When
-        val content = userNetworkMessage.toContents()
+        val content = userNetworkMessage.toContents().first()
 
         // Then
         assertEquals("user", content.role)
@@ -34,7 +34,7 @@ class GeminiApiTest {
         val aiNetworkMessage = NetworkMessage.AiNetworkMessage.Text("I'm doing well, thanks for asking!")
 
         // When
-        val content = aiNetworkMessage.toContents()
+        val content = aiNetworkMessage.toContents().first()
 
         // Then
         assertEquals("model", content.role)
@@ -51,12 +51,12 @@ class GeminiApiTest {
             "includeDetails" to JsonPrimitive(true)
         )
         val toolUse = NetworkMessage.AiNetworkMessage.ToolUse(
-            toolId = "search_weather",
+            toolName = "search_weather",
             argumentsSupplied = arguments
         )
 
         // When
-        val content = toolUse.toContents()
+        val content = toolUse.toContents().first()
 
         // Then
         assertEquals("model", content.role)
@@ -264,7 +264,7 @@ class GeminiApiTest {
         val message = conversationResponse.newMessages[0]
         assertTrue(message is NetworkMessage.AiNetworkMessage.ToolUse)
         val toolUse = message as NetworkMessage.AiNetworkMessage.ToolUse
-        assertEquals("search_weather", toolUse.toolId)
+        assertEquals("search_weather", toolUse.toolName)
         assertEquals(JsonPrimitive("New York"), toolUse.argumentsSupplied["location"])
     }
 
@@ -301,10 +301,13 @@ class GeminiApiTest {
 
         val toolUseMessage = conversationResponse.newMessages[1]
         assertTrue(toolUseMessage is NetworkMessage.AiNetworkMessage.ToolUse)
-        assertEquals("search_weather", (toolUseMessage).toolId)
+        assertEquals(
+            "search_weather",
+            (toolUseMessage as NetworkMessage.AiNetworkMessage.ToolUse).toolName
+        )
         assertEquals(
             JsonPrimitive("New York"),
-            (toolUseMessage).argumentsSupplied["location"]
+            toolUseMessage.argumentsSupplied["location"]
         )
     }
 

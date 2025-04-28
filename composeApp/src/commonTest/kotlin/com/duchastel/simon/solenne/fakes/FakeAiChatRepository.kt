@@ -24,7 +24,13 @@ class FakeAiChatRepository(
     ) {
         conversations.value = conversations.value.toMutableMap().apply {
             this[conversationId] = this[conversationId].orEmpty().toMutableList().apply {
-                add(ChatMessage(id = "do-not-rely-on-this-id", text = text, author = MessageAuthor.User))
+                add(
+                    ChatMessage.Text(
+                        id = "do-not-rely-on-this-id",
+                        text = text,
+                        author = MessageAuthor.User
+                    )
+                )
             }
         }
     }

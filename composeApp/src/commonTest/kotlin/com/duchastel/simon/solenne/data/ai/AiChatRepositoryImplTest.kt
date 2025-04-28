@@ -1,9 +1,11 @@
 package com.duchastel.simon.solenne.data.ai
 
 import app.cash.turbine.test
+import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.data.chat.MessageAuthor
 import com.duchastel.simon.solenne.db.chat.DbMessage
+import com.duchastel.simon.solenne.db.chat.DbMessageContent
 import com.duchastel.simon.solenne.fakes.FakeAiChatApi
 import com.duchastel.simon.solenne.fakes.FakeChatMessageDb
 import com.duchastel.simon.solenne.fakes.FAKE_AI_MODEL_SCOPE
@@ -53,14 +55,14 @@ internal class AiChatRepositoryImplTest {
                         id = "1",
                         conversationId = conversationId,
                         author = 0L, // User
-                        content = "Hello AI",
+                        content = DbMessageContent.Text("Hello AI"),
                         timestamp = 100L
                     ),
                     DbMessage(
                         id = "2",
                         conversationId = conversationId,
                         author = 1L, // AI
-                        content = "Hello human",
+                        content = DbMessageContent.Text("Hello human"),
                         timestamp = 200L
                     )
                 )
@@ -70,10 +72,11 @@ internal class AiChatRepositoryImplTest {
         aiChatRepo.messageFlowForConversation(conversationId).test {
             val messages = awaitItem()
             assertEquals(2, messages.size)
-            assertEquals("Hello AI", messages[0].text)
+            assertEquals("Hello AI", (messages[0] as ChatMessage.Text).text)
             assertEquals(MessageAuthor.User, messages[0].author)
-            assertEquals("Hello human", messages[1].text)
+            assertEquals("Hello human", (messages[1] as ChatMessage.Text).text)
             assertEquals(MessageAuthor.AI, messages[1].author)
+            cancelAndConsumeRemainingEvents()
         }
     }
 
@@ -94,10 +97,11 @@ internal class AiChatRepositoryImplTest {
         fakeDb.getMessagesForConversation(conversationId).test {
             val dbMessages = awaitItem()
             assertEquals(2, dbMessages.size)
-            assertEquals(userMessage, dbMessages[0].content)
+            assertEquals(userMessage, (dbMessages[0].content as DbMessageContent.Text).text)
             assertEquals(0L, dbMessages[0].author) // User
-            assertEquals(aiResponseText, dbMessages[1].content)
+            assertEquals(aiResponseText, (dbMessages[1].content as DbMessageContent.Text).text)
             assertEquals(1L, dbMessages[1].author) // AI
+            cancelAndConsumeRemainingEvents()
         }
     }
 
@@ -111,14 +115,14 @@ internal class AiChatRepositoryImplTest {
                         id = "1",
                         conversationId = conversationId,
                         author = 0L, // User
-                        content = "First question",
+                        content = DbMessageContent.Text("First question"),
                         timestamp = 100L
                     ),
                     DbMessage(
                         id = "2",
                         conversationId = conversationId,
                         author = 1L, // AI
-                        content = "First answer",
+                        content = DbMessageContent.Text("First answer"),
                         timestamp = 200L
                     )
                 )
@@ -136,12 +140,13 @@ internal class AiChatRepositoryImplTest {
             assertEquals(4, messages.size)
 
             // First two messages are unchanged
-            assertEquals("First question", messages[0].content)
-            assertEquals("First answer", messages[1].content)
+            assertEquals("First question", (messages[0].content as DbMessageContent.Text).text)
+            assertEquals("First answer", (messages[1].content as DbMessageContent.Text).text)
 
             // new messages are added
-            assertEquals("Second question", messages[2].content)
-            assertEquals("AI response", messages[3].content)
+            assertEquals("Second question", (messages[2].content as DbMessageContent.Text).text)
+            assertEquals("AI response", (messages[3].content as DbMessageContent.Text).text)
+            cancelAndConsumeRemainingEvents()
         }
     }
 }

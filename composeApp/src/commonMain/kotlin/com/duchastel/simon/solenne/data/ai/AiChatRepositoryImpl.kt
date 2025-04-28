@@ -172,7 +172,7 @@ class AiChatRepositoryImpl @Inject constructor(
  * Helper function to transform the map of tools into a list of [NetworkTool]s that
  * can be passed to the AI model.
  */
-private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
+private fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
     return map { entry ->
         val functionName = entry.key
         val (_, tool) = entry.value
@@ -187,7 +187,7 @@ private inline fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<Ne
     }
 }
 
-private inline fun ChatMessage.toAiNetworkMessage(): NetworkMessage {
+private fun ChatMessage.toAiNetworkMessage(): NetworkMessage {
     return when (this) {
         is ChatMessage.Text -> {
             when (author) {
