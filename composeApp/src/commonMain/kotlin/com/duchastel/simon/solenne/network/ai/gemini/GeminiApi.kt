@@ -5,7 +5,7 @@ import com.duchastel.simon.solenne.network.JsonParser
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
-import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.network.ai.Tool
 import com.duchastel.simon.solenne.network.wrapHttpCall
 import com.duchastel.simon.solenne.util.SolenneResult
@@ -103,7 +103,7 @@ internal fun createGenerateContentRequest(
     systemPrompt: String?,
     tools: List<Tool>
 ): GenerateContentRequest {
-    val contents = conversation.messages.map { it.toContent() }
+    val contents = conversation.networkMessages.flatMap(NetworkMessage::toContents)
 
     val systemInstruction = systemPrompt?.let {
         Content(
@@ -118,28 +118,50 @@ internal fun createGenerateContentRequest(
     )
 }
 
-internal fun Message.toContent(): Content {
+internal fun NetworkMessage.toContents(): List<Content> {
     return when (this) {
-        is Message.UserMessage -> Content(
-            parts = listOf(Part(text = text)),
-            role = "user"
+        is NetworkMessage.UserNetworkMessage -> listOf(
+            Content(
+                parts = listOf(Part(text = text)),
+                role = "user"
+            )
         )
 
-        is Message.AiMessage.AiTextMessage -> Content(
-            parts = listOf(Part(text = text)),
-            role = "model"
+        is NetworkMessage.AiNetworkMessage.Text -> listOf(
+            Content(
+                parts = listOf(Part(text = text)),
+                role = "model"
+            )
         )
 
-        is Message.AiMessage.AiToolUse -> Content(
-            parts = listOf(
-                Part(
-                    functionCall = FunctionCall(
-                        name = toolId,
-                        args = JsonObject(argumentsSupplied)
-                    )
-                )
+        is NetworkMessage.AiNetworkMessage.ToolUse -> listOfNotNull(
+            Content(
+                parts = listOf(
+                    Part(
+                        functionCall = FunctionCall(
+                            name = toolName,
+                            args = JsonObject(argumentsSupplied)
+                        )
+                    ),
+                ),
+                role = "model"
             ),
-            role = "model"
+            result?.let {
+                Content(
+                    parts = listOf(
+                        Part(
+                            functionResponse = FunctionResponse(
+                                name = toolName,
+                                response = Response(
+                                    content = listOf(TextResponse(it.text)),
+                                    isError = it.isError,
+                                )
+                            )
+                        )
+                    ),
+                    role = "model",
+                )
+            }
         )
     }
 }
@@ -163,9 +185,9 @@ internal fun GenerateContentResponse.toConversationResponse(): ConversationRespo
     val aiMessages = candidates.flatMap { candidate ->
         candidate.content.parts.mapNotNull { part ->
             when {
-                part.text != null -> Message.AiMessage.AiTextMessage(part.text)
-                part.functionCall != null -> Message.AiMessage.AiToolUse(
-                    toolId = part.functionCall.name,
+                part.text != null -> NetworkMessage.AiNetworkMessage.Text(part.text)
+                part.functionCall != null -> NetworkMessage.AiNetworkMessage.ToolUse(
+                    toolName = part.functionCall.name,
                     argumentsSupplied = part.functionCall.args
                 )
                 else -> null

@@ -15,8 +15,20 @@ data class UIChatMessage(
 /**
  * Maps a domain ChatMessage to its UI counterpart.
  */
-fun ChatMessage.toUIChatMessage(): UIChatMessage = UIChatMessage(
-    text = this.text,
-    isUser = this.author is MessageAuthor.User,
-    id = this.id,
-)
+fun ChatMessage.toUIChatMessage(): UIChatMessage = when (this) {
+    is ChatMessage.Text -> {
+        UIChatMessage(
+            id = this.id,
+            text = this.text,
+            isUser = this.author is MessageAuthor.User,
+        )
+    }
+    is ChatMessage.ToolUse -> {
+        UIChatMessage(
+            id = this.id,
+            text = "Using tool ${this.toolName}..."
+                    + if (this.result != null) "\nResult: ${this.result}" else "",
+            isUser = this.author is MessageAuthor.User,
+        )
+    }
+}

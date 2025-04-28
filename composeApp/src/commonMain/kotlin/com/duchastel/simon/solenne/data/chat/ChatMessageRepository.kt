@@ -1,6 +1,8 @@
 package com.duchastel.simon.solenne.data.chat
 
+import com.duchastel.simon.solenne.data.tools.McpServer
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonElement
 
 /**
  * A repository for persisting and retrieving chat messages.
@@ -18,18 +20,45 @@ interface ChatMessageRepository {
     fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>>
 
     /**
-     * Persists a new text message in the conversation, then
-     * sends it to the AI backend and persists the AI's reply.
+     * Adds a new text message to the conversation.
      *
      * @param conversationId the id of the conversation
-     * @param text the plain‑text message from the user
-     * @return the id of the new message
+     * @param author the author of the message
+     * @param text the plain‑text message
+     * @return the added message if successful, null otherwise
      */
-    suspend fun addMessageToConversation(
+    suspend fun addTextMessageToConversation(
         conversationId: String,
         author: MessageAuthor,
         text: String,
-    ): String
+    ): ChatMessage?
+
+    /**
+     * Adds a tool use request message to the conversation.
+     *
+     * @param conversationId the id of the conversation
+     * @param toolUse the tool use requested by the AI
+     * @return the added message if successful, null otherwise
+     */
+    suspend fun addToolUseToConversation(
+        conversationId: String,
+        mcpServer: McpServer,
+        toolName: String,
+        argumentsSupplied: Map<String, JsonElement>,
+    ): ChatMessage?
+
+    /**
+     * Adds the result of a tool use to the conversation.
+     *
+     * @param conversationId the id of the conversation
+     * @param toolResult the result of using the tool
+     * @return the added message if successful, null otherwise
+     */
+    suspend fun addToolUseResultToConversation(
+        conversationId: String,
+        messageId: String,
+        toolResult: ChatMessage.ToolUse.ToolResult,
+    ): ChatMessage?
 
     /**
      * Modifies an existing message in the conversation.
@@ -39,12 +68,12 @@ interface ChatMessageRepository {
      *
      * @param conversationId the id of the conversation
      * @param messageId the id of the message to modify
-     * @param newText the new text of the message
-     * @return the id of the modified message
+     * @param updatedText the new text of the message
+     * @return the modified message if successful, null otherwise
      */
     suspend fun modifyMessageFromConversation(
         conversationId: String,
         messageId: String,
-        newText: String,
-    ): String
+        updatedText: String,
+    ): ChatMessage?
 }

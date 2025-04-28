@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
-import com.duchastel.simon.solenne.network.ai.Message
+import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.network.ai.Tool
 import com.duchastel.simon.solenne.util.SolenneResult
 import com.duchastel.simon.solenne.util.asSuccess
@@ -27,7 +27,7 @@ internal class FakeAiChatApi(
         return flowOf(
             ConversationResponse(
                 newMessages = listOf(
-                    Message.AiMessage.AiTextMessage(fakeResponse)
+                    NetworkMessage.AiNetworkMessage.Text(fakeResponse)
                 )
             ).asSuccess()
         )
@@ -41,7 +41,7 @@ internal class FakeAiChatApi(
     ): SolenneResult<ConversationResponse> {
         return ConversationResponse(
             newMessages = listOf(
-                Message.AiMessage.AiTextMessage(fakeResponse)
+                NetworkMessage.AiNetworkMessage.Text(fakeResponse)
             )
         ).asSuccess()
     }

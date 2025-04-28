@@ -1,9 +1,11 @@
 package com.duchastel.simon.solenne.data
 
 import app.cash.turbine.test
+import com.duchastel.simon.solenne.data.chat.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.data.chat.MessageAuthor
 import com.duchastel.simon.solenne.db.chat.DbMessage
+import com.duchastel.simon.solenne.db.chat.DbMessageContent
 import com.duchastel.simon.solenne.fakes.FakeAiChatApi
 import com.duchastel.simon.solenne.fakes.FakeChatMessageDb
 import kotlinx.coroutines.flow.first
@@ -12,9 +14,9 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import com.duchastel.simon.solenne.data.chat.toChatMessage
+import kotlin.test.assertIs
 
-internal class ChatMessageRepositoryImplTest {
+internal class ChatNetworkMessageRepositoryImplTest {
 
     private lateinit var fakeDb: FakeChatMessageDb
     private lateinit var fakeAi: FakeAiChatApi
@@ -47,14 +49,14 @@ internal class ChatMessageRepositoryImplTest {
                         id = "1",
                         conversationId = conversationId,
                         author = 0L,
-                        content = "user-text",
+                        content = DbMessageContent.Text("user-text"),
                         timestamp = 123L
                     ),
                     DbMessage(
                         id = "2",
                         conversationId = conversationId,
                         author = 1L,
-                        content = "ai-text",
+                        content = DbMessageContent.Text("ai-text"),
                         timestamp = 456L,
                     )
                 )
@@ -66,24 +68,27 @@ internal class ChatMessageRepositoryImplTest {
 
         val first = chats[0]
         assertEquals("1", first.id)
-        assertEquals("user-text", first.text)
+        assertIs<ChatMessage.Text>(first)
+        assertEquals("user-text", (first as ChatMessage.Text).text)
         assertEquals(MessageAuthor.User, first.author)
 
         val second = chats[1]
         assertEquals("2", second.id)
-        assertEquals("ai-text", second.text)
+        assertIs<ChatMessage.Text>(second)
+        assertEquals("ai-text", (second as ChatMessage.Text).text)
         assertEquals(MessageAuthor.AI, second.author)
     }
 
     @Test
     fun `addMessageToConversation - success`() = runTest {
         val conversationId = "conv-id"
-        repo.addMessageToConversation(
+        val sentMessage = repo.addTextMessageToConversation(
             conversationId = conversationId,
             author = MessageAuthor.User,
             text = "hello there",
         )
 
+        // Verify the message was stored in the database correctly
         fakeDb.getMessagesForConversation(conversationId).test {
             val dbMessages = awaitItem()
             assertEquals(1, dbMessages.size)
@@ -91,72 +96,41 @@ internal class ChatMessageRepositoryImplTest {
             val userMsg = dbMessages[0]
             assertEquals(conversationId, userMsg.conversationId)
             assertEquals(0L, userMsg.author)
-            assertEquals("hello there", userMsg.content)
+            assertIs<DbMessageContent.Text>(userMsg.content)
+            assertEquals("hello there", (userMsg.content as DbMessageContent.Text).text)
         }
+
+        // Verify the returned message is correctly formatted
+        assertIs<ChatMessage.Text>(sentMessage)
+        assertEquals("hello there", (sentMessage as ChatMessage.Text).text)
+        assertEquals(MessageAuthor.User, sentMessage?.author)
     }
 
     @Test
-    fun `DbMessage toChatMessage - User maps correctly`() {
-        val id = "1"
-        val content = "hello"
-        val dbMessage = DbMessage(
-            id = id,
-            conversationId = "conv",
-            author = 0L,
-            content = content,
-            timestamp = 0L
+    fun `message author mapping - User works correctly`() = runTest {
+        val conversationId = "conv-id"
+        val message = repo.addTextMessageToConversation(
+            conversationId = conversationId,
+            author = MessageAuthor.User,
+            text = "hello from user",
         )
-        val chatMessage = dbMessage.toChatMessage()
-        assertEquals(id, chatMessage.id)
-        assertEquals(content, chatMessage.text)
-        assertEquals(MessageAuthor.User, chatMessage.author)
+
+        assertIs<ChatMessage.Text>(message)
+        assertEquals("hello from user", (message as ChatMessage.Text).text)
+        assertEquals(MessageAuthor.User, message.author)
     }
 
     @Test
-    fun `DbMessage toChatMessage - AI maps correctly`() {
-        val id = "2"
-        val content = "hi from AI"
-        val dbMessage = DbMessage(
-            id = id,
-            conversationId = "conv",
-            author = 1L,
-            content = content,
-            timestamp = 0L
+    fun `message author mapping - AI works correctly`() = runTest {
+        val conversationId = "conv-id"
+        val message = repo.addTextMessageToConversation(
+            conversationId = conversationId,
+            author = MessageAuthor.AI,
+            text = "hello from AI",
         )
-        val chatMessage = dbMessage.toChatMessage()
-        assertEquals(id, chatMessage.id)
-        assertEquals(content, chatMessage.text)
-        assertEquals(MessageAuthor.AI, chatMessage.author)
-    }
 
-    @Test
-    fun `DbMessage toChatMessage - System maps correctly`() {
-        val id = "3"
-        val content = "hi from System"
-        val dbMessage = DbMessage(
-            id = id,
-            conversationId = "conv",
-            author = 2L,
-            content = content,
-            timestamp = 0L
-        )
-        val chatMessage = dbMessage.toChatMessage()
-        assertEquals(id, chatMessage.id)
-        assertEquals(content, chatMessage.text)
-        assertEquals(MessageAuthor.System, chatMessage.author)
-    }
-
-    @Test
-    fun `DbMessage toChatMessage - unknown author throws`() {
-        val dbMessage = DbMessage(
-            id = "4",
-            conversationId = "conv",
-            author = 3L,
-            content = "unknown",
-            timestamp = 0L
-        )
-        assertFailsWith<IllegalStateException> {
-            dbMessage.toChatMessage()
-        }
+        assertIs<ChatMessage.Text>(message)
+        assertEquals("hello from AI", (message as ChatMessage.Text).text)
+        assertEquals(MessageAuthor.AI, message.author)
     }
 }
