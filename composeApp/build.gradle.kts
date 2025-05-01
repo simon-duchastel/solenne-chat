@@ -87,6 +87,8 @@ kotlin {
             implementation(libs.ktor.client.logging)
 
             implementation(libs.mcp.kotlin)
+
+            implementation("com.slack.circuit:circuitx-gesture-navigation:0.27.1")
         }
         androidMain.dependencies {
             implementation(compose.preview)
