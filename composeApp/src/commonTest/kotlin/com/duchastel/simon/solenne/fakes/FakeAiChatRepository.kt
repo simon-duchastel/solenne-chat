@@ -13,8 +13,8 @@ class FakeAiChatRepository(
 ) : AiChatRepository {
     private val conversations = MutableStateFlow(initialMessages)
 
-    fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
-        return conversations.map { it[conversationId] ?: emptyList() }
+    fun getMessagesSent(conversationId: String): List<ChatMessage>? {
+        return conversations.value[conversationId]
     }
 
     override suspend fun sendTextMessageFromUserToConversation(

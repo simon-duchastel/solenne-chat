@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.screens.chat
 
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
@@ -12,9 +13,13 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ChatPresenterTest {
+    companion object {
+        private const val CONVERSATION_ID = "presenter-test-convo"
+    }
 
     private lateinit var navigator: FakeNavigator
     private lateinit var aiRepository: FakeAiChatRepository
@@ -24,10 +29,9 @@ class ChatPresenterTest {
 
     @BeforeTest
     fun setup() {
-        val conversationId = "presenter-test-convo"
-        val screen = ChatScreen(conversationId)
+        val screen = ChatScreen(CONVERSATION_ID)
         aiRepository = FakeAiChatRepository(
-            initialMessages = mapOf(conversationId to ChatMessagesFake.chatMessages),
+            initialMessages = mapOf(CONVERSATION_ID to ChatMessagesFake.chatMessages),
         )
         chatRepository = FakeChatMessageRepository()
         mcpRepository = FakeMcpRepository()
@@ -59,10 +63,11 @@ class ChatPresenterTest {
     }
 
     @Test
-    fun `present - send button enabled after api key populated and text input is not blank`() = runTest {
-        presenter.test {
-            val initial = expectMostRecentItem()
-            val eventSink = initial.eventSink
+    fun `present - send button enabled after api key populated and text input is not blank`() =
+        runTest {
+            presenter.test {
+                val initial = expectMostRecentItem()
+                val eventSink = initial.eventSink
 
             eventSink(ChatScreen.Event.TextInputChanged("hello"))
             val afterTextInputChanged = awaitItem()
@@ -89,6 +94,73 @@ class ChatPresenterTest {
 
             assertTrue(state.textInput.isEmpty())
             assertFalse(state.sendButtonEnabled)
+        }
+    }
+
+
+    @Test
+    fun `present - api key submission enables send button with text`() = runTest {
+        presenter.test {
+            val initial = awaitItem()
+            val eventSink = initial.eventSink
+
+            // Set some text input first
+            eventSink(ChatScreen.Event.TextInputChanged("hello"))
+            val withTextOnly = awaitItem()
+            assertFalse(withTextOnly.sendButtonEnabled)
+
+            // Submit API key
+            eventSink(ChatScreen.Event.ApiKeySubmitted("test-api-key"))
+
+            // Verify send button is enabled with text
+            val withApiKeyAndText = expectMostRecentItem()
+            assertTrue(withApiKeyAndText.sendButtonEnabled)
+        }
+    }
+
+    @Test
+    fun `present - API key change updates the key in state`() = runTest {
+        presenter.test {
+            val initial = awaitItem()
+            val eventSink = initial.eventSink
+            val apiKey = "test-api-key"
+
+            // Change API key
+            eventSink(ChatScreen.Event.ApiKeyChanged(apiKey))
+
+            val state = expectMostRecentItem()
+            assertEquals(apiKey, state.apiKey)
+        }
+    }
+
+    @Test
+    fun `present - back press triggers navigation pop`() = runTest {
+        presenter.test {
+            val initial = awaitItem()
+            val eventSink = initial.eventSink
+
+            eventSink(ChatScreen.Event.BackPressed)
+
+            navigator.awaitPop()
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `present - send message adds message to repository`() = runTest {
+        presenter.test {
+            val messageToSend = "new test message"
+
+            expectMostRecentItem().eventSink(ChatScreen.Event.ApiKeySubmitted("key"))
+            expectMostRecentItem().eventSink(ChatScreen.Event.TextInputChanged(messageToSend))
+            expectMostRecentItem().eventSink(ChatScreen.Event.SendMessage(messageToSend))
+
+            expectMostRecentItem()
+
+            val sentMessages = aiRepository.getMessagesSent(CONVERSATION_ID)
+            assertNotNull(sentMessages)
+            assertTrue(sentMessages.any { it is ChatMessage.Text && it.text == messageToSend })
         }
     }
 }
