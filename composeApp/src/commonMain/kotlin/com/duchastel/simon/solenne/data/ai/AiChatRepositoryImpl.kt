@@ -1,5 +1,9 @@
 package com.duchastel.simon.solenne.data.ai
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage.ToolUse
@@ -8,12 +12,14 @@ import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
+import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -26,6 +32,10 @@ class AiChatRepositoryImpl @Inject constructor(
     private val mcpRepository: McpRepository,
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
+
+    override fun getAvailableModelsFlow(): Flow<List<AIModelProvider>> {
+        return snapshotFlow { aiModels }
+    }
 
     override suspend fun sendTextMessageFromUserToConversation(
         aiModelScope: AIModelScope,
@@ -159,6 +169,18 @@ class AiChatRepositoryImpl @Inject constructor(
                 }
                 .toMap()
         }.distinctUntilChanged()
+
+    companion object {
+        private var aiModels by mutableStateOf(
+            listOf(
+                AIModelProvider.Gemini(null),
+                AIModelProvider.OpenAI(null),
+                AIModelProvider.Anthropic(null),
+                AIModelProvider.DeepSeek(null),
+                AIModelProvider.Grok(null),
+            )
+        )
+    }
 }
 
 /**
@@ -180,6 +202,10 @@ private fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTo
     }
 }
 
+/**
+ * Helper function to transform a [ChatMessage] into a [NetworkMessage] that
+ * can be passed to the AI model.
+ */
 private fun ChatMessage.toAiNetworkMessage(): NetworkMessage {
     return when (this) {
         is ChatMessage.Text -> {
