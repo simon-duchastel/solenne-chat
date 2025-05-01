@@ -1,14 +1,12 @@
 package com.duchastel.simon.solenne.screens.chat
 
+import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
 import com.duchastel.simon.solenne.fakes.FakeChatMessageRepository
 import com.duchastel.simon.solenne.fakes.FakeMcpRepository
-import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -18,24 +16,28 @@ import kotlin.test.assertTrue
 
 class ChatPresenterTest {
 
-    private lateinit var navigator: Navigator
-    private lateinit var repository: FakeAiChatRepository
+    private lateinit var navigator: FakeNavigator
+    private lateinit var aiRepository: FakeAiChatRepository
+    private lateinit var chatRepository: FakeChatMessageRepository
+    private lateinit var mcpRepository: McpRepository
     private lateinit var presenter: ChatPresenter
 
     @BeforeTest
     fun setup() {
         val conversationId = "presenter-test-convo"
         val screen = ChatScreen(conversationId)
-        repository = FakeAiChatRepository(
+        aiRepository = FakeAiChatRepository(
             initialMessages = mapOf(conversationId to ChatMessagesFake.chatMessages),
         )
+        chatRepository = FakeChatMessageRepository()
+        mcpRepository = FakeMcpRepository()
         navigator = FakeNavigator(screen)
         presenter = ChatPresenter(
             navigator = navigator,
             screen = screen,
-            chatRepository = FakeChatMessageRepository(),
-            aiChatRepository = repository,
-            mcpRepository = FakeMcpRepository(),
+            chatRepository = chatRepository,
+            aiChatRepository = aiRepository,
+            mcpRepository = mcpRepository,
         )
     }
 
