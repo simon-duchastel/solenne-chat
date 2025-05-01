@@ -12,11 +12,18 @@ import androidx.compose.runtime.setValue
 import com.duchastel.simon.solenne.data.ai.AIModelScope
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
-import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.ApiKeyChanged
+import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.ApiKeySubmitted
+import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.BackPressed
+import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.SendMessage
+import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.TextInputChanged
 import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
+import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
@@ -27,9 +34,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
+    @Assisted private val navigator: Navigator,
+    @Assisted private val screen: ChatScreen,
+    private val chatRepository: ChatMessageRepository,
     private val aiChatRepository: AiChatRepository,
     private val mcpRepository: McpRepository,
-    @Assisted private val screen: ChatScreen
 ) : Presenter<ChatScreen.State> {
 
     @Composable
@@ -43,8 +52,8 @@ class ChatPresenter @Inject constructor(
         var server: McpServer? by remember { mutableStateOf(null) }
 
         val scope = aiModelScope
-        val messages by remember(aiChatRepository, screen.conversationId) {
-            aiChatRepository.messageFlowForConversation(screen.conversationId)
+        val messages by remember {
+            chatRepository.getMessageFlowForConversation(screen.conversationId)
         }.collectAsState(initial = emptyList())
 
         val serverStatus: String by remember(server) {
@@ -81,7 +90,10 @@ class ChatPresenter @Inject constructor(
                 .toPersistentList(),
         ) { event ->
             when (event) {
-                is ChatScreen.Event.SendMessage -> coroutineScope.launch {
+                is BackPressed -> {
+                    navigator.pop()
+                }
+                is SendMessage -> coroutineScope.launch {
                     textInput = ""
                     scope ?: return@launch
                     aiChatRepository.sendTextMessageFromUserToConversation(
@@ -90,13 +102,13 @@ class ChatPresenter @Inject constructor(
                         event.text
                     )
                 }
-                is ChatScreen.Event.TextInputChanged -> {
+                is TextInputChanged -> {
                     textInput = event.text
                 }
-                is ChatScreen.Event.ApiKeyChanged -> {
+                is ApiKeyChanged -> {
                     userApiKey = event.apiKey
                 }
-                is ChatScreen.Event.ApiKeySubmitted -> {
+                is ApiKeySubmitted -> {
                     aiModelScope = GeminiModelScope(userApiKey)
                 }
             }
@@ -105,6 +117,6 @@ class ChatPresenter @Inject constructor(
 
     @AssistedFactory
     fun interface Factory {
-        fun create(screen: ChatScreen): ChatPresenter
+        fun create(screen: ChatScreen, navigator: Navigator): ChatPresenter
     }
 }

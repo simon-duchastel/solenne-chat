@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.screens.chat
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,9 +11,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event
+import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.ChatMessage
 import com.duchastel.simon.solenne.ui.components.MessageInput
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
@@ -26,13 +28,19 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
     val input = state.textInput
 
     Column(modifier = modifier.fillMaxSize()) {
-        MessageInput(
-            input = state.apiKey,
-            onInputChange = { newInput -> eventSink(Event.ApiKeyChanged(newInput)) },
-            onSend = { eventSink(Event.ApiKeySubmitted(state.apiKey)) },
-            sendEnabled = true,
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
-        )
+        Row {
+            BackButton(
+                modifier = Modifier.padding(8.dp),
+                onClick = { eventSink(Event.BackPressed) },
+            )
+            MessageInput(
+                input = state.apiKey,
+                onInputChange = { newInput -> eventSink(Event.ApiKeyChanged(newInput)) },
+                onSend = { eventSink(Event.ApiKeySubmitted(state.apiKey)) },
+                sendEnabled = true,
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            )
+        }
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             reverseLayout = true,

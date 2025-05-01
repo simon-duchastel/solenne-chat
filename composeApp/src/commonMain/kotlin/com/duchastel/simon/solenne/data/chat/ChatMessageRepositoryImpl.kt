@@ -1,5 +1,8 @@
 package com.duchastel.simon.solenne.data.chat
 
+import com.duchastel.simon.solenne.data.chat.models.ChatConversation
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.DbMessage
@@ -20,6 +23,18 @@ import kotlin.uuid.Uuid
 class ChatMessageRepositoryImpl @Inject constructor(
     private val chatMessageDb: ChatMessageDb,
 ) : ChatMessageRepository {
+
+    override fun getAvailableConversationsFlow(): Flow<List<ChatConversation>> {
+        return chatMessageDb.getConversationIds().map { conversationIds ->
+            conversationIds.map { ChatConversation(it) }
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun createNewConversation(): ChatConversation {
+        val id = chatMessageDb.createConversation(Uuid.random().toHexString())
+        return ChatConversation(id = id)
+    }
 
     override fun getMessageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
         return chatMessageDb.getMessagesForConversation(conversationId)

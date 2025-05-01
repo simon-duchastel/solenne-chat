@@ -1,8 +1,8 @@
 package com.duchastel.simon.solenne.fakes
 
-import com.duchastel.simon.solenne.data.chat.ChatMessage
-import com.duchastel.simon.solenne.data.chat.MessageAuthor.AI
-import com.duchastel.simon.solenne.data.chat.MessageAuthor.User
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor.AI
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor.User
 
 object ChatMessagesFake {
     val chatMessages = listOf(

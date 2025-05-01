@@ -1,9 +1,9 @@
 package com.duchastel.simon.solenne.data
 
 import app.cash.turbine.test
-import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
-import com.duchastel.simon.solenne.data.chat.MessageAuthor
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.db.chat.DbMessageContent
 import com.duchastel.simon.solenne.fakes.FakeAiChatApi
@@ -13,7 +13,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 internal class ChatNetworkMessageRepositoryImplTest {
