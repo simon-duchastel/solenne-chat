@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 internal class AiChatRepositoryImplTest {
 
@@ -146,6 +147,23 @@ internal class AiChatRepositoryImplTest {
             // new messages are added
             assertEquals("Second question", (messages[2].content as DbMessageContent.Text).text)
             assertEquals("AI response", (messages[3].content as DbMessageContent.Text).text)
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getAvailableModelsFlow - returns available AI model providers`() = runTest {
+        aiChatRepo.getAvailableModelsFlow().test {
+            val modelProviders = awaitItem()
+            assertEquals(5, modelProviders.size)
+
+            // Verify all expected providers are present
+            assertTrue(modelProviders.any { it is AIModelProvider.Gemini })
+            assertTrue(modelProviders.any { it is AIModelProvider.OpenAI })
+            assertTrue(modelProviders.any { it is AIModelProvider.Anthropic })
+            assertTrue(modelProviders.any { it is AIModelProvider.DeepSeek })
+            assertTrue(modelProviders.any { it is AIModelProvider.Grok })
+
             cancelAndConsumeRemainingEvents()
         }
     }
