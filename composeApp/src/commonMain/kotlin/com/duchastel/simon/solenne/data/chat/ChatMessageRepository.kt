@@ -1,5 +1,8 @@
 package com.duchastel.simon.solenne.data.chat
 
+import com.duchastel.simon.solenne.data.chat.models.ChatConversation
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpServer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonElement
@@ -10,6 +13,16 @@ import kotlinx.serialization.json.JsonElement
  * Responsible for creating, storing, and retrieving all chat conversations.
  */
 interface ChatMessageRepository {
+    /**
+     *  Returns a cold [Flow] that emits the list of available conversations.
+     */
+    fun getAvailableConversationsFlow(): Flow<List<ChatConversation>>
+
+    /**
+     *  Creates a new conversation and returns it if successful, null otherwise.
+     */
+    suspend fun createNewConversation(): ChatConversation?
+
     /**
      * Returns a cold [Flow] that emits the list of chat messages
      * in the conversation identified by [conversationId].
@@ -37,7 +50,9 @@ interface ChatMessageRepository {
      * Adds a tool use request message to the conversation.
      *
      * @param conversationId the id of the conversation
-     * @param toolUse the tool use requested by the AI
+     * @param mcpServer the server to use the tool on
+     * @param toolName the name of the tool to use
+     * @param argumentsSupplied the arguments supplied to the tool
      * @return the added message if successful, null otherwise
      */
     suspend fun addToolUseToConversation(
@@ -52,6 +67,7 @@ interface ChatMessageRepository {
      *
      * @param conversationId the id of the conversation
      * @param toolResult the result of using the tool
+     * @param messageId the id of the message to modify
      * @return the added message if successful, null otherwise
      */
     suspend fun addToolUseResultToConversation(

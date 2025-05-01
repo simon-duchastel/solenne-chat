@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.data.chat
+package com.duchastel.simon.solenne.data.chat.models
 
 import kotlinx.serialization.json.JsonElement
 

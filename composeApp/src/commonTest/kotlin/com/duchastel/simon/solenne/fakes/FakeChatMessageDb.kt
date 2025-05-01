@@ -12,6 +12,17 @@ internal class FakeChatMessageDb(
 ): ChatMessageDb {
     private val messages = MutableStateFlow(initialMessages)
 
+    override fun getConversationIds(): Flow<List<String>> {
+        return messages.map { it.keys.toList() }
+    }
+
+    override suspend fun createConversation(conversationId: String): String {
+        if (!messages.value.containsKey(conversationId)) {
+            messages.value += (conversationId to emptyList())
+        }
+        return conversationId
+    }
+
     override fun getMessagesForConversation(conversationId: String): Flow<List<DbMessage>> {
         return messages.map { it[conversationId].orEmpty() }
     }

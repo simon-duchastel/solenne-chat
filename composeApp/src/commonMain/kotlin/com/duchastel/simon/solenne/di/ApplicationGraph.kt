@@ -1,6 +1,7 @@
 package com.duchastel.simon.solenne.di
 
 import com.duchastel.simon.solenne.screens.chat.ChatPresenter
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListPresenter
 import com.slack.circuit.foundation.Circuit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
@@ -8,6 +9,8 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import com.duchastel.simon.solenne.screens.chat.ChatUi
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListUi
 
 @DependencyGraph(AppScope::class)
 interface ApplicationGraph: DataProviders, DbProviders, NetworkProviders {
@@ -16,14 +19,21 @@ interface ApplicationGraph: DataProviders, DbProviders, NetworkProviders {
     @SingleIn(AppScope::class)
     @Provides
     fun provideCircuit(
-        chatPresenterFactory: ChatPresenter.Factory
+        chatPresenterFactory: ChatPresenter.Factory,
+        conversationListPresenterFactory: ConversationListPresenter.Factory
     ): Circuit {
         return Circuit.Builder()
-            .addPresenter<ChatScreen, ChatScreen.State> { screen, _, _ ->
-                chatPresenterFactory.create(screen)
+            .addPresenter<ChatScreen, ChatScreen.State> { screen, navigator, _ ->
+                chatPresenterFactory.create(screen, navigator)
             }
             .addUi<ChatScreen, ChatScreen.State> { state, modifier ->
                 ChatUi(state, modifier)
+            }
+            .addPresenter<ConversationListScreen, ConversationListScreen.State> { _, navigator, _ ->
+                conversationListPresenterFactory.create(navigator)
+            }
+            .addUi<ConversationListScreen, ConversationListScreen.State> { state, modifier ->
+                ConversationListUi(state, modifier)
             }
             .build()
     }

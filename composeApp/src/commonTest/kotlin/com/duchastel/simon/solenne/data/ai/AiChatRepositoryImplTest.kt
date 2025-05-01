@@ -1,9 +1,9 @@
 package com.duchastel.simon.solenne.data.ai
 
 import app.cash.turbine.test
-import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
-import com.duchastel.simon.solenne.data.chat.MessageAuthor
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.db.chat.DbMessageContent
 import com.duchastel.simon.solenne.fakes.FakeAiChatApi
@@ -69,7 +69,7 @@ internal class AiChatRepositoryImplTest {
             )
         )
 
-        aiChatRepo.messageFlowForConversation(conversationId).test {
+        fakeChatRepo.getMessageFlowForConversation(conversationId).test {
             val messages = awaitItem()
             assertEquals(2, messages.size)
             assertEquals("Hello AI", (messages[0] as ChatMessage.Text).text)

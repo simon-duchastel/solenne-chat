@@ -2,8 +2,8 @@ package com.duchastel.simon.solenne.fakes
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
-import com.duchastel.simon.solenne.data.chat.ChatMessage
-import com.duchastel.simon.solenne.data.chat.MessageAuthor
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -13,8 +13,8 @@ class FakeAiChatRepository(
 ) : AiChatRepository {
     private val conversations = MutableStateFlow(initialMessages)
 
-    override fun messageFlowForConversation(conversationId: String): Flow<List<ChatMessage>> {
-        return conversations.map { it[conversationId] ?: emptyList() }
+    fun getMessagesSent(conversationId: String): List<ChatMessage>? {
+        return conversations.value[conversationId]
     }
 
     override suspend fun sendTextMessageFromUserToConversation(

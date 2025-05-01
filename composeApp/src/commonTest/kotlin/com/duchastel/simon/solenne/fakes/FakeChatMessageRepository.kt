@@ -1,16 +1,31 @@
 package com.duchastel.simon.solenne.fakes
 
-import com.duchastel.simon.solenne.data.chat.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
-import com.duchastel.simon.solenne.data.chat.MessageAuthor
+import com.duchastel.simon.solenne.data.chat.models.ChatConversation
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpServer
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.json.JsonElement
 
 internal class FakeChatMessageRepository(
     private val initialMessages: List<ChatMessage> = ChatMessagesFake.chatMessages,
-): ChatMessageRepository {
+    initialConversations: List<ChatConversation> = listOf(ChatConversation(id = "fake-conversation-id"))
+) : ChatMessageRepository {
+
+    private val conversations = MutableStateFlow(initialConversations)
+
+    override fun getAvailableConversationsFlow(): Flow<List<ChatConversation>> =
+        conversations.asStateFlow()
+
+    override suspend fun createNewConversation(): ChatConversation {
+        val newConversation = ChatConversation(id = "new-fake-conversation-id")
+        conversations.value += newConversation
+        return newConversation
+    }
 
     override fun getMessageFlowForConversation(
         conversationId: String,

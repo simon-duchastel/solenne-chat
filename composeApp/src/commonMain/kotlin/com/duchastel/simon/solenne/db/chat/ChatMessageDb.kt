@@ -9,6 +9,17 @@ import kotlinx.serialization.json.JsonElement
  */
 interface ChatMessageDb {
     /**
+     * Gets all conversations. Returns the list of conversation IDs.
+     */
+    fun getConversationIds(): Flow<List<String>>
+
+    /**
+     * Creates a new conversation with the given ID. Returns the ID of the new conversation if
+     * successful, null otherwise.
+     */
+    suspend fun createConversation(conversationId: String): String
+
+    /**
      * Gets all messages for a given conversation.
      */
     fun getMessagesForConversation(

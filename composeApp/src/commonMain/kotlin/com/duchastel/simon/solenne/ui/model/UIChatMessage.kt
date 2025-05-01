@@ -1,7 +1,7 @@
 package com.duchastel.simon.solenne.ui.model
 
-import com.duchastel.simon.solenne.data.chat.ChatMessage
-import com.duchastel.simon.solenne.data.chat.MessageAuthor
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
+import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 
 /**
  * UI representation of a chat message for presentation logic.

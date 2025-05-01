@@ -26,5 +26,6 @@ data class ChatScreen(
         data class SendMessage(val text: String): Event
         data class ApiKeyChanged(val apiKey: String) : Event
         data class ApiKeySubmitted(val apiKey: String) : Event
+        data object BackPressed : Event
     }
 }
