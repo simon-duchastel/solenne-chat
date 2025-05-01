@@ -9,7 +9,6 @@ import dev.zacsweers.metro.SingleIn
 import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import com.duchastel.simon.solenne.screens.chat.ChatUi
 
-@DependencyGraph(AppScope::class)
 interface ApplicationGraph: DataProviders, DbProviders, NetworkProviders {
     val circuit: Circuit
 

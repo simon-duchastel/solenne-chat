@@ -87,6 +87,9 @@ kotlin {
             implementation(libs.ktor.client.logging)
 
             implementation(libs.mcp.kotlin)
+
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
         }
         androidMain.dependencies {
             implementation(compose.preview)
