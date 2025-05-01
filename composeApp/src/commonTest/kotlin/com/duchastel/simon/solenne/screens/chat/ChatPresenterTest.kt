@@ -2,10 +2,15 @@ package com.duchastel.simon.solenne.screens.chat
 
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
+import com.duchastel.simon.solenne.fakes.FakeChatMessageRepository
 import com.duchastel.simon.solenne.fakes.FakeMcpRepository
+import com.slack.circuit.runtime.Navigator
+import com.slack.circuit.runtime.screen.Screen
+import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.test.runTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,18 +18,29 @@ import kotlin.test.assertTrue
 
 class ChatPresenterTest {
 
-    @Test
-    fun `present - emits initial empty state then list of messages`() = runTest {
+    private lateinit var navigator: Navigator
+    private lateinit var repository: FakeAiChatRepository
+    private lateinit var presenter: ChatPresenter
+
+    @BeforeTest
+    fun setup() {
         val conversationId = "presenter-test-convo"
-        val repository = FakeAiChatRepository(
+        val screen = ChatScreen(conversationId)
+        repository = FakeAiChatRepository(
             initialMessages = mapOf(conversationId to ChatMessagesFake.chatMessages),
         )
-        val presenter = ChatPresenter(
+        navigator = FakeNavigator(screen)
+        presenter = ChatPresenter(
+            navigator = navigator,
+            screen = screen,
+            chatRepository = FakeChatMessageRepository(),
             aiChatRepository = repository,
             mcpRepository = FakeMcpRepository(),
-            screen = ChatScreen(conversationId),
         )
+    }
 
+    @Test
+    fun `present - emits initial empty state then list of messages`() = runTest {
         presenter.test {
             val initial = awaitItem()
             assertEquals(
@@ -42,16 +58,6 @@ class ChatPresenterTest {
 
     @Test
     fun `present - send button enabled after api key populated and text input is not blank`() = runTest {
-        val conversationId = "convo-send-enabled"
-        val repository = FakeAiChatRepository(
-            initialMessages = mapOf(conversationId to ChatMessagesFake.chatMessages)
-        )
-        val presenter = ChatPresenter(
-            aiChatRepository = repository,
-            mcpRepository = FakeMcpRepository(),
-            screen = ChatScreen(conversationId)
-        )
-
         presenter.test {
             val initial = expectMostRecentItem()
             val eventSink = initial.eventSink
@@ -69,16 +75,6 @@ class ChatPresenterTest {
 
     @Test
     fun `present - send message clears text input`() = runTest {
-        val conversationId = "convo-send-clear"
-        val repository = FakeAiChatRepository(
-            initialMessages = mapOf(conversationId to ChatMessagesFake.chatMessages)
-        )
-        val presenter = ChatPresenter(
-            aiChatRepository = repository,
-            mcpRepository = FakeMcpRepository(),
-            screen = ChatScreen(conversationId)
-        )
-
         presenter.test {
             val initial = awaitItem()
             val eventSink = initial.eventSink

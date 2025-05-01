@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.fakes
 
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
+import com.duchastel.simon.solenne.data.chat.models.ChatConversation
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpServer
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +11,15 @@ import kotlinx.serialization.json.JsonElement
 
 internal class FakeChatMessageRepository(
     private val initialMessages: List<ChatMessage> = ChatMessagesFake.chatMessages,
-): ChatMessageRepository {
+    private val initialConversations: List<ChatConversation> = listOf(ChatConversation(id = "fake-conversation-id"))
+) : ChatMessageRepository {
+
+    override fun getAvailableConversationsFlow(): Flow<List<ChatConversation>> =
+        flowOf(initialConversations)
+
+    override suspend fun createNewConversation(): ChatConversation {
+        return ChatConversation(id = "new-fake-conversation-id")
+    }
 
     override fun getMessageFlowForConversation(
         conversationId: String,

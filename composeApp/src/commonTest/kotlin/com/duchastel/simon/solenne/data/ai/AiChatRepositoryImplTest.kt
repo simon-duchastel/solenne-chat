@@ -69,7 +69,7 @@ internal class AiChatRepositoryImplTest {
             )
         )
 
-        aiChatRepo.messageFlowForConversation(conversationId).test {
+        fakeChatRepo.getMessageFlowForConversation(conversationId).test {
             val messages = awaitItem()
             assertEquals(2, messages.size)
             assertEquals("Hello AI", (messages[0] as ChatMessage.Text).text)
