@@ -82,14 +82,23 @@ class ConversationListPresenterTest {
 
     @Test
     fun `present - new conversation clicked creates new conversation`() = runTest {
+        // First check the initial count
+        assertEquals(2, chatRepository.getAvailableConversationsFlow().first().size)
+
         presenter.test {
             val state = awaitItem()
             val eventSink = state.eventSink
 
-            assertEquals(2, chatRepository.getAvailableConversationsFlow().first().size)
+            // Trigger the event
             eventSink(Event.NewConversationClicked)
 
+            // Force the scheduler to process all pending tasks
+            advanceUntilIdle()
+
+            // Now check the updated count
             assertEquals(3, chatRepository.getAvailableConversationsFlow().first().size)
+
+            cancelAndConsumeRemainingEvents()
         }
     }
 }
