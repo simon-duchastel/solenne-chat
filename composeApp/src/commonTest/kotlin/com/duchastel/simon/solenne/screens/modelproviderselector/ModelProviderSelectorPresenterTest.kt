@@ -39,14 +39,13 @@ class ModelProviderSelectorPresenterTest {
             val state = expectMostRecentItem()
 
             // Verify we have the expected number of models
-            // 3 from repository + 1 "Other" option
-            assertEquals(4, state.models.size)
+            // 3 from repository
+            assertEquals(3, state.models.size)
 
             // Verify the models are correctly mapped
             assertTrue(state.models.contains(UiModelProvider.OpenAI))
             assertTrue(state.models.contains(UiModelProvider.Anthropic))
             assertTrue(state.models.contains(UiModelProvider.Gemini))
-            assertTrue(state.models.any { it is UiModelProvider.Other && it.name == null })
 
             cancelAndConsumeRemainingEvents()
         }
