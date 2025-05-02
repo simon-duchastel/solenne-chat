@@ -9,15 +9,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.duchastel.simon.solenne.data.ai.AIModelScope
-import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
+import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServer
-import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.ApiKeyChanged
-import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.ApiKeySubmitted
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.BackPressed
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.SendMessage
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.TextInputChanged
@@ -43,15 +40,16 @@ class ChatPresenter @Inject constructor(
 
     @Composable
     override fun present(): ChatScreen.State {
-        var aiModelScope: AIModelScope? by remember { mutableStateOf(null) }
+        val availableProviders by remember {
+            aiChatRepository.getAvailableModelsFlow()
+        }.collectAsState(null)
+        val aiModelScope = availableProviders?.find { it is AIModelProviderStatus.Gemini }?.scope
 
         var textInput by rememberSaveable { mutableStateOf("") }
-        var userApiKey by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
         var server: McpServer? by remember { mutableStateOf(null) }
 
-        val scope = aiModelScope
         val messages by remember {
             chatRepository.getMessageFlowForConversation(screen.conversationId)
         }.collectAsState(initial = emptyList())
@@ -80,7 +78,6 @@ class ChatPresenter @Inject constructor(
         return ChatScreen.State(
             sendButtonEnabled = aiModelScope != null && textInput.isNotBlank(),
             textInput = textInput,
-            apiKey = userApiKey,
             messages = messages.map(ChatMessage::toUIChatMessage)
                 .plus(UIChatMessage(
                     text = serverStatus,
@@ -95,21 +92,15 @@ class ChatPresenter @Inject constructor(
                 }
                 is SendMessage -> coroutineScope.launch {
                     textInput = ""
-                    scope ?: return@launch
+                    aiModelScope ?: return@launch
                     aiChatRepository.sendTextMessageFromUserToConversation(
-                        scope,
+                        aiModelScope,
                         screen.conversationId,
                         event.text
                     )
                 }
                 is TextInputChanged -> {
                     textInput = event.text
-                }
-                is ApiKeyChanged -> {
-                    userApiKey = event.apiKey
-                }
-                is ApiKeySubmitted -> {
-                    aiModelScope = GeminiModelScope(userApiKey)
                 }
             }
         }

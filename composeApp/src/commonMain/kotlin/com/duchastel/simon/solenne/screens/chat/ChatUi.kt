@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -33,13 +34,9 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
                 modifier = Modifier.padding(8.dp),
                 onClick = { eventSink(Event.BackPressed) },
             )
-            MessageInput(
-                input = state.apiKey,
-                onInputChange = { newInput -> eventSink(Event.ApiKeyChanged(newInput)) },
-                onSend = { eventSink(Event.ApiKeySubmitted(state.apiKey)) },
-                sendEnabled = true,
-                modifier = Modifier.fillMaxWidth().padding(8.dp)
-            )
+            Modifier.weight(1f)
+            Text("Chat with Gemini")
+            Modifier.weight(1f)
         }
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -68,7 +65,6 @@ internal fun ChatUi_Preview() {
         state = ChatScreen.State(
             sendButtonEnabled = true,
             textInput = "My input",
-            apiKey = "<<api-key>>",
             messages = ChatMessagesFake.chatMessages
                 .map(ChatMessage::toUIChatMessage)
                 .toPersistentList(),

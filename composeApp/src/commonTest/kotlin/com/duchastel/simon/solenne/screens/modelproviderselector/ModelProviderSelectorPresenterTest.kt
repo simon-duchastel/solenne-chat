@@ -1,6 +1,6 @@
 package com.duchastel.simon.solenne.screens.modelproviderselector
 
-import com.duchastel.simon.solenne.data.ai.AIModelProvider
+import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -20,9 +20,9 @@ class ModelProviderSelectorPresenterTest {
     fun setup() {
         val screen = ModelProviderSelectorScreen
         val availableModels = listOf(
-            AIModelProvider.OpenAI(scope = null),
-            AIModelProvider.Anthropic(scope = null),
-            AIModelProvider.Gemini(scope = null)
+            AIModelProviderStatus.OpenAI(scope = null),
+            AIModelProviderStatus.Anthropic(scope = null),
+            AIModelProviderStatus.Gemini(scope = null)
         )
 
         aiRepository = FakeAiChatRepository(availableModels = availableModels)

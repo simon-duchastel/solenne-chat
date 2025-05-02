@@ -158,11 +158,11 @@ internal class AiChatRepositoryImplTest {
             assertEquals(5, modelProviders.size)
 
             // Verify all expected providers are present
-            assertTrue(modelProviders.any { it is AIModelProvider.Gemini })
-            assertTrue(modelProviders.any { it is AIModelProvider.OpenAI })
-            assertTrue(modelProviders.any { it is AIModelProvider.Anthropic })
-            assertTrue(modelProviders.any { it is AIModelProvider.DeepSeek })
-            assertTrue(modelProviders.any { it is AIModelProvider.Grok })
+            assertTrue(modelProviders.any { it is AIModelProviderStatus.Gemini })
+            assertTrue(modelProviders.any { it is AIModelProviderStatus.OpenAI })
+            assertTrue(modelProviders.any { it is AIModelProviderStatus.Anthropic })
+            assertTrue(modelProviders.any { it is AIModelProviderStatus.DeepSeek })
+            assertTrue(modelProviders.any { it is AIModelProviderStatus.Grok })
 
             cancelAndConsumeRemainingEvents()
         }

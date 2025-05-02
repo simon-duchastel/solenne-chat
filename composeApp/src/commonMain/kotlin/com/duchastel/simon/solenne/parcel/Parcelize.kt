@@ -10,3 +10,5 @@ package com.duchastel.simon.solenne.parcel
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
 expect annotation class Parcelize()
+
+expect interface Parcelable

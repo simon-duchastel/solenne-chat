@@ -12,7 +12,6 @@ import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
-import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
@@ -33,8 +32,38 @@ class AiChatRepositoryImpl @Inject constructor(
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
-    override fun getAvailableModelsFlow(): Flow<List<AIModelProvider>> {
-        return snapshotFlow { aiModels }
+    override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> {
+        return snapshotFlow {
+            listOf(
+                geminiProvider,
+                openAiProvider,
+                anthropicProvider,
+                deepSeekProvider,
+                grokProvider
+            )
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : AIModelProvider> configureModel(config: AIProviderConfig<T>): AIModelProviderStatus<T>? {
+        when (config) {
+            is AIProviderConfig.GeminiConfig -> {
+                geminiProvider = AIModelProviderStatus.Gemini(GeminiModelScope(config.apiKey))
+                return geminiProvider as AIModelProviderStatus<T>
+            }
+            is AIProviderConfig.OpenAIConfig -> {
+                return null // TODO - support OpenAI
+            }
+            is AIProviderConfig.AnthropicConfig -> {
+                return null // TODO - support Anthropic
+            }
+            is AIProviderConfig.DeepSeekConfig -> {
+                return null // TODO - support DeepSeek
+            }
+            is AIProviderConfig.GrokConfig -> {
+                return null // TODO - support Grok
+            }
+        }
     }
 
     override suspend fun sendTextMessageFromUserToConversation(
@@ -171,14 +200,20 @@ class AiChatRepositoryImpl @Inject constructor(
         }.distinctUntilChanged()
 
     companion object {
-        private var aiModels by mutableStateOf(
-            listOf(
-                AIModelProvider.Gemini(null),
-                AIModelProvider.OpenAI(null),
-                AIModelProvider.Anthropic(null),
-                AIModelProvider.DeepSeek(null),
-                AIModelProvider.Grok(null),
-            )
+        private var geminiProvider: AIModelProviderStatus.Gemini by mutableStateOf(
+            AIModelProviderStatus.Gemini(null)
+        )
+        private var openAiProvider: AIModelProviderStatus.OpenAI by mutableStateOf(
+            AIModelProviderStatus.OpenAI(null)
+        )
+        private var anthropicProvider: AIModelProviderStatus.Anthropic by mutableStateOf(
+            AIModelProviderStatus.Anthropic(null)
+        )
+        private var deepSeekProvider: AIModelProviderStatus.DeepSeek by mutableStateOf(
+            AIModelProviderStatus.DeepSeek(null)
+        )
+        private var grokProvider: AIModelProviderStatus.Grok by mutableStateOf(
+            AIModelProviderStatus.Grok(null)
         )
     }
 }
