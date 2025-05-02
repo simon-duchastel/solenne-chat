@@ -1,7 +1,11 @@
 package com.duchastel.simon.solenne.screens.modelproviderselector
 
+import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigPresenter
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
@@ -62,6 +66,19 @@ class ModelProviderSelectorPresenterTest {
             // Verify navigator was popped
             navigator.awaitPop()
 
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `present - model selected event navigates to config screen`() = runTest {
+        presenter.test {
+            val state = expectMostRecentItem()
+            val eventSink = state.eventSink
+
+            eventSink(ModelProviderSelectorScreen.Event.ModelSelected(UiModelProvider.Gemini))
+
+            assertEquals(ModelProviderConfigScreen(AIModelProvider.Gemini), navigator.awaitNextScreen())
             cancelAndConsumeRemainingEvents()
         }
     }

@@ -4,7 +4,6 @@ import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AIProviderConfig
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
-import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
@@ -26,22 +25,6 @@ class ModelProviderConfigPresenterTest {
     }
 
     @Test
-    fun `present - maps model provider to UI model correctly`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.OpenAI)
-        presenter = ModelProviderConfigPresenter(
-            navigator = navigator,
-            screen = screen,
-            aiChatRepository = aiRepository
-        )
-
-        presenter.test {
-            val state = expectMostRecentItem()
-            assertEquals(UiModelProvider.OpenAI, state.modelProvider)
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
     fun `present - handles API key change event`() = runTest {
         val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.OpenAI)
         presenter = ModelProviderConfigPresenter(
@@ -51,7 +34,7 @@ class ModelProviderConfigPresenterTest {
         )
 
         presenter.test {
-            var state = expectMostRecentItem()
+            val state = expectMostRecentItem()
             val eventSink = state.eventSink
 
             // Initial null state
@@ -61,8 +44,8 @@ class ModelProviderConfigPresenterTest {
             eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("test-api-key"))
 
             // Get updated state
-            state = expectMostRecentItem()
-            assertEquals("test-api-key", state.apiKey)
+            val newState = expectMostRecentItem()
+            assertEquals("test-api-key", newState.apiKey)
 
             cancelAndConsumeRemainingEvents()
         }
@@ -78,12 +61,12 @@ class ModelProviderConfigPresenterTest {
         )
 
         presenter.test {
-            var state = expectMostRecentItem()
+            val state = expectMostRecentItem()
             val eventSink = state.eventSink
 
             // Set API key first
             eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("openai-key"))
-            state = expectMostRecentItem()
+            expectMostRecentItem()
 
             // Then save
             eventSink(ModelProviderConfigScreen.Event.SavePressed)
@@ -111,12 +94,12 @@ class ModelProviderConfigPresenterTest {
         )
 
         presenter.test {
-            var state = expectMostRecentItem()
+            val state = expectMostRecentItem()
             val eventSink = state.eventSink
 
             // Set API key first
             eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("anthropic-key"))
-            state = expectMostRecentItem()
+            expectMostRecentItem()
 
             // Then save
             eventSink(ModelProviderConfigScreen.Event.SavePressed)
@@ -177,12 +160,12 @@ class ModelProviderConfigPresenterTest {
         )
 
         presenter.test {
-            var state = expectMostRecentItem()
+            val state = expectMostRecentItem()
             val eventSink = state.eventSink
 
             // Set API key first
             eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("gemini-key"))
-            state = expectMostRecentItem()
+            expectMostRecentItem()
 
             // Then save
             eventSink(ModelProviderConfigScreen.Event.SavePressed)
@@ -210,12 +193,12 @@ class ModelProviderConfigPresenterTest {
         )
 
         presenter.test {
-            var state = expectMostRecentItem()
+            val state = expectMostRecentItem()
             val eventSink = state.eventSink
 
             // Set API key first
             eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("grok-key"))
-            state = expectMostRecentItem()
+            expectMostRecentItem()
 
             // Then save
             eventSink(ModelProviderConfigScreen.Event.SavePressed)
