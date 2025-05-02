@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorScreen
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.foundation.CircuitCompositionLocals

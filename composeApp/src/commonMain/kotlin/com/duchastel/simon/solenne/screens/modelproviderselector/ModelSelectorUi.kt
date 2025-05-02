@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.screens.modelselector
+package com.duchastel.simon.solenne.screens.modelproviderselector
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,11 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorScreen.Event
-import com.duchastel.simon.solenne.screens.modelselector.UiModelProvider.DeepSeek
-import com.duchastel.simon.solenne.screens.modelselector.UiModelProvider.Gemini
-import com.duchastel.simon.solenne.screens.modelselector.UiModelProvider.OpenAI
-import com.duchastel.simon.solenne.screens.modelselector.UiModelProvider.Other
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen.Event
+import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.DeepSeek
+import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.Gemini
+import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.OpenAI
+import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.Other
 import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.ModelProviderButton
 import kotlinx.collections.immutable.persistentListOf

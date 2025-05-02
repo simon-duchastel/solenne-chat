@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.screens.modelselector
+package com.duchastel.simon.solenne.screens.modelproviderselector
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorScreen.Event
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen.Event
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
@@ -15,7 +15,6 @@ import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 
 class ModelProviderSelectorPresenter @Inject constructor(
     @Assisted private val navigator: Navigator,

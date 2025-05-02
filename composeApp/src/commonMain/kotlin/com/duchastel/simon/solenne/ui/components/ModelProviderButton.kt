@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.duchastel.simon.solenne.screens.modelselector.UiModelProvider
+import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider
 
 @Composable
 fun ModelProviderButton(

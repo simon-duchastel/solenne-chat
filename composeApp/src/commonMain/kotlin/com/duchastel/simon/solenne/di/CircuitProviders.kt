@@ -6,9 +6,9 @@ import com.duchastel.simon.solenne.screens.chat.ChatUi
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListPresenter
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListUi
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorPresenter
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorScreen
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorUi
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorPresenter
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorUi
 import com.slack.circuit.foundation.Circuit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Provides

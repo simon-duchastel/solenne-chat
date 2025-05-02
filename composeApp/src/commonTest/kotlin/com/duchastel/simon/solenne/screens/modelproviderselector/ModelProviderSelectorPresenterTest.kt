@@ -1,11 +1,9 @@
-package com.duchastel.simon.solenne.screens.modelselector
+package com.duchastel.simon.solenne.screens.modelproviderselector
 
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
-import com.duchastel.simon.solenne.data.ai.AIModelScope
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
