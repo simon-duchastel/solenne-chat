@@ -63,22 +63,19 @@ class ChatPresenterTest {
     }
 
     @Test
-    fun `present - send button enabled after api key populated and text input is not blank`() =
+    fun `present - send button enabled when text input is not blank`() =
         runTest {
             presenter.test {
                 val initial = expectMostRecentItem()
                 val eventSink = initial.eventSink
 
-            eventSink(ChatScreen.Event.TextInputChanged("hello"))
-            val afterTextInputChanged = awaitItem()
-            assertFalse(afterTextInputChanged.sendButtonEnabled)
+                eventSink(ChatScreen.Event.TextInputChanged("hello"))
+                val afterTextInputChanged = expectMostRecentItem()
 
-            eventSink(ChatScreen.Event.ApiKeySubmitted("key"))
-            val state = expectMostRecentItem()
-            assertTrue(state.sendButtonEnabled)
-            assertEquals("hello", state.textInput)
+                assertTrue(afterTextInputChanged.sendButtonEnabled)
+                assertEquals("hello", afterTextInputChanged.textInput)
+            }
         }
-    }
 
     @Test
     fun `present - send message clears text input`() = runTest {
@@ -86,50 +83,12 @@ class ChatPresenterTest {
             val initial = awaitItem()
             val eventSink = initial.eventSink
 
-            eventSink(ChatScreen.Event.ApiKeySubmitted("key"))
             eventSink(ChatScreen.Event.TextInputChanged("to send"))
             eventSink(ChatScreen.Event.SendMessage("to send"))
 
             val state = expectMostRecentItem()
-
             assertTrue(state.textInput.isEmpty())
             assertFalse(state.sendButtonEnabled)
-        }
-    }
-
-
-    @Test
-    fun `present - api key submission enables send button with text`() = runTest {
-        presenter.test {
-            val initial = awaitItem()
-            val eventSink = initial.eventSink
-
-            // Set some text input first
-            eventSink(ChatScreen.Event.TextInputChanged("hello"))
-            val withTextOnly = awaitItem()
-            assertFalse(withTextOnly.sendButtonEnabled)
-
-            // Submit API key
-            eventSink(ChatScreen.Event.ApiKeySubmitted("test-api-key"))
-
-            // Verify send button is enabled with text
-            val withApiKeyAndText = expectMostRecentItem()
-            assertTrue(withApiKeyAndText.sendButtonEnabled)
-        }
-    }
-
-    @Test
-    fun `present - API key change updates the key in state`() = runTest {
-        presenter.test {
-            val initial = awaitItem()
-            val eventSink = initial.eventSink
-            val apiKey = "test-api-key"
-
-            // Change API key
-            eventSink(ChatScreen.Event.ApiKeyChanged(apiKey))
-
-            val state = expectMostRecentItem()
-            assertEquals(apiKey, state.apiKey)
         }
     }
 
@@ -152,12 +111,11 @@ class ChatPresenterTest {
         presenter.test {
             val messageToSend = "new test message"
 
-            expectMostRecentItem().eventSink(ChatScreen.Event.ApiKeySubmitted("key"))
-            expectMostRecentItem().eventSink(ChatScreen.Event.TextInputChanged(messageToSend))
-            expectMostRecentItem().eventSink(ChatScreen.Event.SendMessage(messageToSend))
+            val state = expectMostRecentItem()
+            state.eventSink(ChatScreen.Event.TextInputChanged(messageToSend))
+            state.eventSink(ChatScreen.Event.SendMessage(messageToSend))
 
             expectMostRecentItem()
-
             val sentMessages = aiRepository.getMessagesSent(CONVERSATION_ID)
             assertNotNull(sentMessages)
             assertTrue(sentMessages.any { it is ChatMessage.Text && it.text == messageToSend })

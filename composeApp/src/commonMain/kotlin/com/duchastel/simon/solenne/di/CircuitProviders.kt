@@ -6,9 +6,12 @@ import com.duchastel.simon.solenne.screens.chat.ChatUi
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListPresenter
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListUi
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorPresenter
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorScreen
-import com.duchastel.simon.solenne.screens.modelselector.ModelProviderSelectorUi
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigPresenter
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigUi
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorPresenter
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
+import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorUi
 import com.slack.circuit.foundation.Circuit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Provides
@@ -22,7 +25,8 @@ interface CircuitProviders {
     fun provideCircuit(
         chatPresenterFactory: ChatPresenter.Factory,
         conversationListPresenterFactory: ConversationListPresenter.Factory,
-        modelProviderSelectorPresenterFactory: ModelProviderSelectorPresenter.Factory
+        modelProviderSelectorPresenterFactory: ModelProviderSelectorPresenter.Factory,
+        modelProviderConfigPresenterFactory: ModelProviderConfigPresenter.Factory,
     ): Circuit {
         return Circuit.Builder()
             .addPresenter<ChatScreen, ChatScreen.State> { screen, navigator, _ ->
@@ -42,6 +46,12 @@ interface CircuitProviders {
             }
             .addUi<ModelProviderSelectorScreen, ModelProviderSelectorScreen.State> { state, modifier ->
                 ModelProviderSelectorUi(state, modifier)
+            }
+            .addPresenter<ModelProviderConfigScreen, ModelProviderConfigScreen.State> { screen, navigator, _ ->
+                modelProviderConfigPresenterFactory.create(screen, navigator)
+            }
+            .addUi<ModelProviderConfigScreen, ModelProviderConfigScreen.State> { state, modifier ->
+                ModelProviderConfigUi(state, modifier)
             }
             .build()
     }

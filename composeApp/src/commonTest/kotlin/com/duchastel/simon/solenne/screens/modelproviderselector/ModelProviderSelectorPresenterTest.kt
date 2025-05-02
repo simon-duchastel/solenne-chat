@@ -1,11 +1,13 @@
-package com.duchastel.simon.solenne.screens.modelselector
+package com.duchastel.simon.solenne.screens.modelproviderselector
 
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
-import com.duchastel.simon.solenne.data.ai.AIModelScope
+import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigPresenter
+import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -22,9 +24,9 @@ class ModelProviderSelectorPresenterTest {
     fun setup() {
         val screen = ModelProviderSelectorScreen
         val availableModels = listOf(
-            AIModelProvider.OpenAI(scope = null),
-            AIModelProvider.Anthropic(scope = null),
-            AIModelProvider.Gemini(scope = null)
+            AIModelProviderStatus.OpenAI(scope = null),
+            AIModelProviderStatus.Anthropic(scope = null),
+            AIModelProviderStatus.Gemini(scope = null)
         )
 
         aiRepository = FakeAiChatRepository(availableModels = availableModels)
@@ -41,14 +43,13 @@ class ModelProviderSelectorPresenterTest {
             val state = expectMostRecentItem()
 
             // Verify we have the expected number of models
-            // 3 from repository + 1 "Other" option
-            assertEquals(4, state.models.size)
+            // 3 from repository
+            assertEquals(3, state.models.size)
 
             // Verify the models are correctly mapped
             assertTrue(state.models.contains(UiModelProvider.OpenAI))
             assertTrue(state.models.contains(UiModelProvider.Anthropic))
             assertTrue(state.models.contains(UiModelProvider.Gemini))
-            assertTrue(state.models.any { it is UiModelProvider.Other && it.name == null })
 
             cancelAndConsumeRemainingEvents()
         }
@@ -65,6 +66,19 @@ class ModelProviderSelectorPresenterTest {
             // Verify navigator was popped
             navigator.awaitPop()
 
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `present - model selected event navigates to config screen`() = runTest {
+        presenter.test {
+            val state = expectMostRecentItem()
+            val eventSink = state.eventSink
+
+            eventSink(ModelProviderSelectorScreen.Event.ModelSelected(UiModelProvider.Gemini))
+
+            assertEquals(ModelProviderConfigScreen(AIModelProvider.Gemini), navigator.awaitNextScreen())
             cancelAndConsumeRemainingEvents()
         }
     }

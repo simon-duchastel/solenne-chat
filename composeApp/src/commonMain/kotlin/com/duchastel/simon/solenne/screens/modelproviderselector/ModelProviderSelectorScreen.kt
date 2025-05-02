@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.screens.modelselector
+package com.duchastel.simon.solenne.screens.modelproviderselector
 
 import androidx.compose.runtime.Immutable
 import com.duchastel.simon.solenne.parcel.Parcelize
