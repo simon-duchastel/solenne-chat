@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -37,6 +38,9 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
             Modifier.weight(1f)
             Text("Chat with Gemini")
             Modifier.weight(1f)
+            Button(onClick = { eventSink(Event.ToolsPressed) }) {
+                Text("View Tools")
+            }
         }
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
