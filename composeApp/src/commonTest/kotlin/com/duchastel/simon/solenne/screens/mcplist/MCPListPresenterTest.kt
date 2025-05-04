@@ -82,4 +82,41 @@ class MCPListPresenterTest {
             assertEquals(UIMCPServer.Status.Connected, updatedServer.status)
         }
     }
+
+    @Test
+    fun `toUiModel - correctly maps McpServerStatus to UIMCPServer`() = runTest {
+        // Test Connected status
+        val connectedServer = McpServer(
+            id = "test-id-1",
+            name = "Connected Test Server",
+            connection = McpServer.Connection.Stdio("test command")
+        )
+        val connectedStatus = McpServerStatus(
+            mcpServer = connectedServer,
+            status = McpServerStatus.Status.Connected,
+            tools = emptyList()
+        )
+
+        val connectedUiModel = connectedStatus.toUiModel()
+        assertEquals(connectedServer.id, connectedUiModel.id)
+        assertEquals(connectedServer.name, connectedUiModel.name)
+        assertEquals(UIMCPServer.Status.Connected, connectedUiModel.status)
+
+        // Test Offline status
+        val offlineServer = McpServer(
+            id = "test-id-2",
+            name = "Offline Test Server",
+            connection = McpServer.Connection.Stdio("test command")
+        )
+        val offlineStatus = McpServerStatus(
+            mcpServer = offlineServer,
+            status = McpServerStatus.Status.Offline,
+            tools = emptyList()
+        )
+
+        val offlineUiModel = offlineStatus.toUiModel()
+        assertEquals(offlineServer.id, offlineUiModel.id)
+        assertEquals(offlineServer.name, offlineUiModel.name)
+        assertEquals(UIMCPServer.Status.Disconnected, offlineUiModel.status)
+    }
 }
