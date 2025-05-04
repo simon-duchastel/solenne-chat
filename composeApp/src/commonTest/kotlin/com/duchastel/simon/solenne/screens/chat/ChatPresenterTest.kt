@@ -1,11 +1,9 @@
 package com.duchastel.simon.solenne.screens.chat
 
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
-import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
 import com.duchastel.simon.solenne.fakes.FakeChatMessageRepository
-import com.duchastel.simon.solenne.fakes.FakeMcpRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
@@ -24,7 +22,6 @@ class ChatPresenterTest {
     private lateinit var navigator: FakeNavigator
     private lateinit var aiRepository: FakeAiChatRepository
     private lateinit var chatRepository: FakeChatMessageRepository
-    private lateinit var mcpRepository: McpRepository
     private lateinit var presenter: ChatPresenter
 
     @BeforeTest
@@ -34,14 +31,12 @@ class ChatPresenterTest {
             initialMessages = mapOf(CONVERSATION_ID to ChatMessagesFake.chatMessages),
         )
         chatRepository = FakeChatMessageRepository()
-        mcpRepository = FakeMcpRepository()
         navigator = FakeNavigator(screen)
         presenter = ChatPresenter(
             navigator = navigator,
             screen = screen,
             chatRepository = chatRepository,
             aiChatRepository = aiRepository,
-            mcpRepository = mcpRepository,
         )
     }
 
@@ -50,13 +45,13 @@ class ChatPresenterTest {
         presenter.test {
             val initial = awaitItem()
             assertEquals(
-                expected = 1, // add 1 for mcp server test message
+                expected = 0,
                 actual = initial.messages.size,
             )
 
             val withMessages = expectMostRecentItem()
             assertEquals(
-                expected = ChatMessagesFake.chatMessages.size + 1, // add 1 for mcp server test message
+                expected = ChatMessagesFake.chatMessages.size,
                 actual = withMessages.messages.size,
             )
         }
