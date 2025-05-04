@@ -6,8 +6,4 @@ import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.createGraph
 
 @DependencyGraph(AppScope::class)
-interface AndroidApplicationGraph : ApplicationGraph {
-    companion object {
-        fun create(): AndroidApplicationGraph = createGraph()
-    }
-}
+interface AndroidApplicationGraph : ApplicationGraph

@@ -30,7 +30,7 @@ fun ChatUi(state: ChatScreen.State, modifier: Modifier) {
     val input = state.textInput
 
     Column(modifier = modifier.fillMaxSize()) {
-        Row {
+        Row(modifier = Modifier.fillMaxWidth()) {
             BackButton(
                 modifier = Modifier.padding(8.dp),
                 onClick = { eventSink(Event.BackPressed) },
