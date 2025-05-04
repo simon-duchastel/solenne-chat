@@ -17,7 +17,6 @@ import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 
-@SingleIn(AppScope::class)
 class MCPListPresenter @Inject constructor(
     @Assisted private val navigator: Navigator,
     private val mcpRepository: McpRepository,
