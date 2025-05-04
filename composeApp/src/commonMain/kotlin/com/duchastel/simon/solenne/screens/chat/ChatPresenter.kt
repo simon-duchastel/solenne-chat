@@ -1,7 +1,6 @@
 package com.duchastel.simon.solenne.screens.chat
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,12 +12,10 @@ import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
-import com.duchastel.simon.solenne.data.tools.McpRepository
-import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.BackPressed
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.SendMessage
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.TextInputChanged
-import com.duchastel.simon.solenne.ui.model.UIChatMessage
+import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -26,8 +23,6 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class ChatPresenter @Inject constructor(
@@ -35,7 +30,6 @@ class ChatPresenter @Inject constructor(
     @Assisted private val screen: ChatScreen,
     private val chatRepository: ChatMessageRepository,
     private val aiChatRepository: AiChatRepository,
-    private val mcpRepository: McpRepository,
 ) : Presenter<ChatScreen.State> {
 
     @Composable
@@ -48,47 +42,21 @@ class ChatPresenter @Inject constructor(
         var textInput by rememberSaveable { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
 
-        var server: McpServer? by remember { mutableStateOf(null) }
-
         val messages by remember {
             chatRepository.getMessageFlowForConversation(screen.conversationId)
         }.collectAsState(initial = emptyList())
 
-        val serverStatus: String by remember(server) {
-            if (server != null) {
-                mcpRepository.serverStatusFlow().map { serverStatus ->
-                    serverStatus.firstOrNull { it.mcpServer == server }?.status?.toString() ?: "Disconnected"
-                }
-            } else {
-                flowOf("Disconnected")
-            }
-        }.collectAsState("Disconnected")
-
-        LaunchedEffect(Unit) {
-            server = mcpRepository.addServer(
-                name = "Lifx",
-                connection = McpServer.Connection.Sse(
-                    url = "http://10.0.2.2:3000"
-                )
-            )?.mcpServer?.apply {
-                mcpRepository.connect(this)
-            }
-        }
-
         return ChatScreen.State(
             sendButtonEnabled = aiModelScope != null && textInput.isNotBlank(),
             textInput = textInput,
-            messages = messages.map(ChatMessage::toUIChatMessage)
-                .plus(UIChatMessage(
-                    text = serverStatus,
-                    isUser = false,
-                    id = "123",
-                ))
-                .toPersistentList(),
+            messages = messages.map(ChatMessage::toUIChatMessage).toPersistentList(),
         ) { event ->
             when (event) {
                 is BackPressed -> {
                     navigator.pop()
+                }
+                is ChatScreen.Event.ToolsPressed -> {
+                    navigator.goTo(MCPListScreen)
                 }
                 is SendMessage -> coroutineScope.launch {
                     textInput = ""

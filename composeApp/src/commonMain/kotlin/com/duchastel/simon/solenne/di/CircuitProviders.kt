@@ -6,6 +6,9 @@ import com.duchastel.simon.solenne.screens.chat.ChatUi
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListPresenter
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListUi
+import com.duchastel.simon.solenne.screens.mcplist.MCPListPresenter
+import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen
+import com.duchastel.simon.solenne.screens.mcplist.MCPListUi
 import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigPresenter
 import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen
 import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigUi
@@ -27,6 +30,7 @@ interface CircuitProviders {
         conversationListPresenterFactory: ConversationListPresenter.Factory,
         modelProviderSelectorPresenterFactory: ModelProviderSelectorPresenter.Factory,
         modelProviderConfigPresenterFactory: ModelProviderConfigPresenter.Factory,
+        mcpListPresenterFactory: MCPListPresenter.Factory,
     ): Circuit {
         return Circuit.Builder()
             .addPresenter<ChatScreen, ChatScreen.State> { screen, navigator, _ ->
@@ -52,6 +56,12 @@ interface CircuitProviders {
             }
             .addUi<ModelProviderConfigScreen, ModelProviderConfigScreen.State> { state, modifier ->
                 ModelProviderConfigUi(state, modifier)
+            }
+            .addPresenter<MCPListScreen, MCPListScreen.State> { _, navigator, _ ->
+                mcpListPresenterFactory.create(navigator)
+            }
+            .addUi<MCPListScreen, MCPListScreen.State> { state, modifier ->
+                MCPListUi(state, modifier)
             }
             .build()
     }
