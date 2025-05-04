@@ -264,7 +264,7 @@ class McpRepositoryImpl(
                 id = Uuid.random().toString(),
                 name = "Lifx",
                 connection = Connection.Sse(
-                    url = "http://localhost:3000"
+                    url = "http://10.0.2.2:3000"
                 ),
             )
         ))
