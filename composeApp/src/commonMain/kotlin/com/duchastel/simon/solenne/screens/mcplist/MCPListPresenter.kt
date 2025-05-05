@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.Event
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -39,6 +40,9 @@ class MCPListPresenter @Inject constructor(
                     // TODO - handle and log the unexpected null case
                     val server = servers.find { it.mcpServer.id == event.server.id } ?: return@launch
                     mcpRepository.connect(server.mcpServer)
+                }
+                is Event.AddServerPressed -> {
+                    navigator.goTo(AddMCPScreen)
                 }
             }
         }

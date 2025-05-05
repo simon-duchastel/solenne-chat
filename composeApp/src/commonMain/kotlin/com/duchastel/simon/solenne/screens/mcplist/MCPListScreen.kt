@@ -18,6 +18,7 @@ data object MCPListScreen : Screen {
     sealed interface Event : CircuitUiEvent {
         data object BackPressed : Event
         data class ConnectToServer(val server: UIMCPServer) : Event
+        data object AddServerPressed : Event
     }
 }
 
