@@ -6,11 +6,11 @@ import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.db.chat.DbMessageContent
-import com.duchastel.simon.solenne.fakes.FakeAiChatApi
-import com.duchastel.simon.solenne.fakes.FakeChatMessageDb
-import com.duchastel.simon.solenne.fakes.FAKE_AI_MODEL_SCOPE
+import com.duchastel.simon.solenne.util.fakes.FakeAiChatApi
+import com.duchastel.simon.solenne.util.fakes.FakeChatMessageDb
+import com.duchastel.simon.solenne.util.fakes.FAKE_AI_MODEL_SCOPE
 import com.duchastel.simon.solenne.data.tools.McpRepository
-import com.duchastel.simon.solenne.fakes.FakeMcpRepository
+import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test

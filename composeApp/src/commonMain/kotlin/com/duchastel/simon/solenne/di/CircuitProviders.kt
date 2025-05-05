@@ -1,5 +1,8 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPPresenter
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPUi
 import com.duchastel.simon.solenne.screens.chat.ChatPresenter
 import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import com.duchastel.simon.solenne.screens.chat.ChatUi
@@ -31,6 +34,7 @@ interface CircuitProviders {
         modelProviderSelectorPresenterFactory: ModelProviderSelectorPresenter.Factory,
         modelProviderConfigPresenterFactory: ModelProviderConfigPresenter.Factory,
         mcpListPresenterFactory: MCPListPresenter.Factory,
+        addMCPPresenterFactory: AddMCPPresenter.Factory,
     ): Circuit {
         return Circuit.Builder()
             .addPresenter<ChatScreen, ChatScreen.State> { screen, navigator, _ ->
@@ -62,6 +66,12 @@ interface CircuitProviders {
             }
             .addUi<MCPListScreen, MCPListScreen.State> { state, modifier ->
                 MCPListUi(state, modifier)
+            }
+            .addPresenter<AddMCPScreen, AddMCPScreen.State> { _, navigator, _ ->
+                addMCPPresenterFactory.create(navigator)
+            }
+            .addUi<AddMCPScreen, AddMCPScreen.State> { state, modifier ->
+                AddMCPUi(state, modifier)
             }
             .build()
     }

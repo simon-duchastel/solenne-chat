@@ -2,8 +2,8 @@ package com.duchastel.simon.solenne.screens.chat
 
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
-import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
-import com.duchastel.simon.solenne.fakes.FakeChatMessageRepository
+import com.duchastel.simon.solenne.util.fakes.FakeAiChatRepository
+import com.duchastel.simon.solenne.util.fakes.FakeChatMessageRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest

@@ -8,19 +8,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.Event
+import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.State
 import com.duchastel.simon.solenne.ui.components.BackButton
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun MCPListUi(state: MCPListScreen.State, modifier: Modifier) {
+fun MCPListUi(state: State, modifier: Modifier) {
     val eventSink = state.eventSink
     val servers = state.mcpServers
 
@@ -43,6 +47,12 @@ fun MCPListUi(state: MCPListScreen.State, modifier: Modifier) {
                     onConnectClick = { eventSink(Event.ConnectToServer(server)) },
                 )
             }
+        }
+        FloatingActionButton(
+            onClick = { eventSink(Event.AddServerPressed) },
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Server")
         }
     }
 }

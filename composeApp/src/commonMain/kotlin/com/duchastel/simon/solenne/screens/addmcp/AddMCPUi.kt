@@ -1,0 +1,77 @@
+package com.duchastel.simon.solenne.screens.addmcp
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
+import com.duchastel.simon.solenne.ui.components.BackButton
+import org.jetbrains.compose.ui.tooling.preview.Preview
+
+@Composable
+fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier) {
+    val eventSink = state.eventSink
+
+    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            BackButton(
+                modifier = Modifier.padding(8.dp),
+                onClick = { eventSink(Event.BackPressed) },
+            )
+            Modifier.weight(1f)
+            Text("Add MCP Server")
+            Modifier.weight(1f)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = state.serverName,
+            onValueChange = { eventSink(Event.ServerNameChanged(it)) },
+            label = { Text("Server Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = state.serverUrl,
+            onValueChange = { eventSink(Event.ServerUrlChanged(it)) },
+            label = { Text("Server URL") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = { eventSink(Event.SavePressed) },
+            enabled = state.isSaveEnabled,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Save")
+        }
+    }
+}
+
+@Preview
+@Composable
+internal fun AddMCPUi_Preview() {
+    AddMCPUi(
+        modifier = Modifier,
+        state = AddMCPScreen.State(
+            serverName = "Test Server",
+            serverUrl = "http://localhost:3000",
+            isSaveEnabled = true
+        )
+    )
+}

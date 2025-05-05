@@ -257,17 +257,7 @@ class McpRepositoryImpl(
         /**
          * Map of MCP Server to MCP Client
          */
-        @OptIn(ExperimentalUuidApi::class)
-        private var mcpServers by mutableStateOf(listOf(
-            // TODO - remove this debug code
-            McpServer(
-                id = Uuid.random().toString(),
-                name = "Lifx",
-                connection = Connection.Sse(
-                    url = "http://10.0.2.2:3000"
-                ),
-            )
-        ))
+        private var mcpServers by mutableStateOf(listOf<McpServer>())
 
         /**
          * Map of MCP Server to MCP Tools

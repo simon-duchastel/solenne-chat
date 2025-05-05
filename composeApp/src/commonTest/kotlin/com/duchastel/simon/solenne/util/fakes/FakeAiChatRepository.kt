@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.fakes
+package com.duchastel.simon.solenne.util.fakes
 
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
