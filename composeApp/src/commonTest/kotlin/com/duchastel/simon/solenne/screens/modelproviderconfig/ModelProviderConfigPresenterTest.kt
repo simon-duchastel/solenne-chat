@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne.screens.modelproviderconfig
 
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AIProviderConfig
-import com.duchastel.simon.solenne.fakes.FakeAiChatRepository
+import com.duchastel.simon.solenne.util.fakes.FakeAiChatRepository
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test

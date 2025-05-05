@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.fakes
+package com.duchastel.simon.solenne.util.fakes
 
 import com.duchastel.simon.solenne.data.tools.CallToolResult
 import com.duchastel.simon.solenne.data.tools.McpRepository
@@ -23,6 +23,9 @@ internal class FakeMcpRepository(
     override fun serverStatusFlow(): Flow<List<McpServerStatus>> = _statuses
 
     private var nextId = 1
+
+    // Helper method for tests to get current servers
+    fun getServers(): List<McpServerStatus> = _statuses.value
 
     override suspend fun addServer(
         name: String,

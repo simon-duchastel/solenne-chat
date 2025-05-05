@@ -1,21 +1,18 @@
 package com.duchastel.simon.solenne.screens.conversationlist
 
 import com.duchastel.simon.solenne.data.chat.models.ChatConversation
-import com.duchastel.simon.solenne.fakes.FakeChatMessageRepository
+import com.duchastel.simon.solenne.util.fakes.FakeChatMessageRepository
 import com.duchastel.simon.solenne.screens.chat.ChatScreen
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen.Event
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 class ConversationListPresenterTest {
 

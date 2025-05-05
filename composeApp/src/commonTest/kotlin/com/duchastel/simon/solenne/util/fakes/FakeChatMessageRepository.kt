@@ -1,10 +1,11 @@
-package com.duchastel.simon.solenne.fakes
+package com.duchastel.simon.solenne.util.fakes
 
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.ChatConversation
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

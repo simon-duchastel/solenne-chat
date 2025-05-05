@@ -2,14 +2,13 @@ package com.duchastel.simon.solenne.screens.mcplist
 
 import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
-import com.duchastel.simon.solenne.fakes.FakeMcpRepository
+import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class MCPListPresenterTest {
 
