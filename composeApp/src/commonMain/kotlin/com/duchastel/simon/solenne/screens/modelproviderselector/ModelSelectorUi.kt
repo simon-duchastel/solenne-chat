@@ -20,6 +20,7 @@ import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider
 import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.Other
 import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.ModelProviderButton
+import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -30,27 +31,29 @@ fun ModelProviderSelectorUi(
 ) {
     val eventSink = state.eventSink
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BackButton(
-                onClick = { eventSink(Event.BackPressed) },
-                modifier = Modifier.padding(end = 16.dp)
-            )
-            Text("Select AI Model")
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth()
-        ) {
-            items(state.models) { modelInfo ->
-                ModelProviderButton(
-                    model = modelInfo,
-                    onModelSelected = { eventSink(Event.ModelSelected(modelInfo)) }
+    SolenneScaffold(modifier = modifier) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BackButton(
+                    onClick = { eventSink(Event.BackPressed) },
+                    modifier = Modifier.padding(end = 16.dp)
                 )
-                Divider()
+                Text("Select AI Model")
+            }
+
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) {
+                items(state.models) { modelInfo ->
+                    ModelProviderButton(
+                        model = modelInfo,
+                        onModelSelected = { eventSink(Event.ModelSelected(modelInfo)) }
+                    )
+                    Divider()
+                }
             }
         }
     }

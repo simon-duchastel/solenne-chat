@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,11 +16,13 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.Event
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.State
 import com.duchastel.simon.solenne.ui.components.BackButton
+import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -28,31 +31,36 @@ fun MCPListUi(state: State, modifier: Modifier) {
     val eventSink = state.eventSink
     val servers = state.mcpServers
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Row {
-            BackButton(
-                modifier = Modifier.padding(8.dp),
-                onClick = { eventSink(Event.BackPressed) },
-            )
-            Modifier.weight(1f)
-            Text("MCP Servers")
-            Modifier.weight(1f)
-        }
-        LazyColumn(
-            modifier = Modifier.weight(1f).padding(8.dp)
-        ) {
-            items(servers) { server ->
-                MCPServerItem(
-                    server = server,
-                    onConnectClick = { eventSink(Event.ConnectToServer(server)) },
+    SolenneScaffold(modifier = modifier) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BackButton(
+                    modifier = Modifier.padding(8.dp),
+                    onClick = { eventSink(Event.BackPressed) },
                 )
+                Spacer(Modifier.weight(1f))
+                Text("MCP Servers")
+                Spacer(Modifier.weight(1f))
             }
-        }
-        FloatingActionButton(
-            onClick = { eventSink(Event.AddServerPressed) },
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Server")
+            LazyColumn(
+                modifier = Modifier.weight(1f).padding(8.dp)
+            ) {
+                items(servers) { server ->
+                    MCPServerItem(
+                        server = server,
+                        onConnectClick = { eventSink(Event.ConnectToServer(server)) },
+                    )
+                }
+            }
+            FloatingActionButton(
+                onClick = { eventSink(Event.AddServerPressed) },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Server")
+            }
         }
     }
 }
@@ -79,7 +87,7 @@ private fun MCPServerItem(
 internal fun MCPListUi_Preview() {
     MCPListUi(
         modifier = Modifier,
-        state = MCPListScreen.State(
+        state = State(
             mcpServers = persistentListOf(
                 UIMCPServer(
                     "1",
