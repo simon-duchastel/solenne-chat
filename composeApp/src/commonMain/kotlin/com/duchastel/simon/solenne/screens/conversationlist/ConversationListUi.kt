@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen.Event
+import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -18,26 +19,28 @@ fun ConversationListUi(state: ConversationListScreen.State, modifier: Modifier) 
     val eventSink = state.eventSink
     val conversations = state.conversations
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(conversations) { conversationId ->
-            TextButton(
-                onClick = {
-                    eventSink(Event.ConversationClicked(conversationId))
+    SolenneScaffold(modifier = modifier) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(conversations) { conversationId ->
+                TextButton(
+                    onClick = {
+                        eventSink(Event.ConversationClicked(conversationId))
+                    }
+                ) {
+                    Text("Conversation $conversationId")
                 }
-            ) {
-                Text("Conversation $conversationId")
             }
-        }
-        item {
-            TextButton(
-                onClick = {
-                    eventSink(Event.NewConversationClicked)
+            item {
+                TextButton(
+                    onClick = {
+                        eventSink(Event.NewConversationClicked)
+                    }
+                ) {
+                    Text("New Conversation")
                 }
-            ) {
-                Text("New Conversation")
             }
         }
     }
