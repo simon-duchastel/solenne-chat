@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.di
 
 import app.cash.sqldelight.db.SqlDriver
 import com.duchastel.simon.solenne.Database
+import com.duchastel.simon.solenne.db.DatabaseFactory
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.SQLDelightChatDb
@@ -13,7 +14,7 @@ interface DbProviders {
 
     @SingleIn(AppScope::class)
     @Provides
-    fun provideSqlDriver(sqlDriverFactory: SqlDriverFactory): SqlDriver {
+    suspend fun provideSqlDriver(sqlDriverFactory: SqlDriverFactory): SqlDriver {
         return sqlDriverFactory.createDriver()
     }
 
@@ -23,9 +24,15 @@ interface DbProviders {
         return Database(sqlDriver)
     }
 
-     @SingleIn(AppScope::class)
-     @Provides
-     fun providesChatMessageDb(database: Database): ChatMessageDb {
-         return SQLDelightChatDb(database)
-     }
+    @SingleIn(AppScope::class)
+    @Provides
+    fun provideDatabaseFactory(sqlDriverFactory: SqlDriverFactory): DatabaseFactory {
+        return DatabaseFactory(sqlDriverFactory)
+    }
+
+    @SingleIn(AppScope::class)
+    @Provides
+    fun providesChatMessageDb(databaseFactory: DatabaseFactory): ChatMessageDb {
+        return SQLDelightChatDb(databaseFactory)
+    }
 }

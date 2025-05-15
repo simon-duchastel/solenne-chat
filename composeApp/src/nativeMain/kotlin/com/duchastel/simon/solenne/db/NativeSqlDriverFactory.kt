@@ -8,7 +8,7 @@ import dev.zacsweers.metro.Inject
 
 @Inject
 class NativeSqlDriverFactory : SqlDriverFactory {
-    override fun createDriver(): SqlDriver {
+    override suspend fun createDriver(): SqlDriver {
         return NativeSqliteDriver(
             schema = Database.Schema.synchronous(),
             name = "solenne.db",
