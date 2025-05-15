@@ -14,18 +14,6 @@ interface DbProviders {
 
     @SingleIn(AppScope::class)
     @Provides
-    suspend fun provideSqlDriver(sqlDriverFactory: SqlDriverFactory): SqlDriver {
-        return sqlDriverFactory.createDriver()
-    }
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideDatabase(sqlDriver: SqlDriver): Database {
-        return Database(sqlDriver)
-    }
-
-    @SingleIn(AppScope::class)
-    @Provides
     fun provideDatabaseFactory(sqlDriverFactory: SqlDriverFactory): DatabaseFactory {
         return DatabaseFactory(sqlDriverFactory)
     }
