@@ -11,6 +11,7 @@ plugins {
     id("dev.zacsweers.metro")
     id("kotlin-parcelize")
     kotlin("plugin.serialization") version "2.1.20"
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -86,6 +87,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.logging)
 
+            implementation(libs.sqldelight.coroutines)
+
             implementation(libs.mcp.kotlin)
         }
         androidMain.dependencies {
@@ -94,17 +97,29 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
+
+            implementation(libs.sqldelight.android)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.apache5)
+
+            implementation(libs.sqldelight.jvm)
         }
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
+
+            implementation(libs.sqldelight.js)
+            implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.0.2"))
+            implementation(npm("sql.js", "1.8.0"))
+            implementation(devNpm("copy-webpack-plugin", "11.0.0"))
+
         }
         nativeMain.dependencies {
             implementation(libs.ktor.client.darwin)
+
+            implementation(libs.sqldelight.native)
         }
 
         commonTest.dependencies {
@@ -164,6 +179,15 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.duchastel.simon.solenne"
             packageVersion = "1.0.0"
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("com.duchastel.simon.solenne")
+            generateAsync = true
         }
     }
 }

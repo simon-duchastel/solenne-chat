@@ -1,0 +1,48 @@
+-- Messages table
+CREATE TABLE Message (
+  id TEXT PRIMARY KEY NOT NULL,
+  conversation_id TEXT NOT NULL,
+  author INTEGER NOT NULL, -- 0 = User, 1 = AI
+  timestamp INTEGER NOT NULL,
+  content_type TEXT NOT NULL, -- "text" or "tool_use"
+  text_content TEXT,
+  tool_name TEXT, 
+  mcp_server_id TEXT,
+  arguments_supplied TEXT, -- JSON string
+  result_text TEXT,
+  result_is_error INTEGER, -- 0 = false, 1 = true
+
+  FOREIGN KEY (conversation_id) REFERENCES Conversation(id) ON DELETE CASCADE
+);
+
+-- Get messages for a conversation
+getMessagesForConversation:
+SELECT *
+FROM Message
+WHERE conversation_id = ?
+ORDER BY timestamp ASC;
+
+-- Insert a message
+insertMessage:
+INSERT INTO Message (
+  id, conversation_id, author, timestamp, 
+  content_type, text_content, tool_name, mcp_server_id, 
+  arguments_supplied, result_text, result_is_error
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Update message content (text)
+updateTextMessageContent:
+UPDATE Message
+SET text_content = ?
+WHERE id = ? AND conversation_id = ? AND content_type = 'text';
+
+-- Update message content (tool use)
+updateToolUseMessageContent:
+UPDATE Message
+SET tool_name = ?,
+    mcp_server_id = ?,
+    arguments_supplied = ?,
+    result_text = ?,
+    result_is_error = ?
+WHERE id = ? AND conversation_id = ? AND content_type = 'tool_use';

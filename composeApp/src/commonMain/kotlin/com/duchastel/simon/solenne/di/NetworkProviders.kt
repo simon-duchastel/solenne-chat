@@ -34,6 +34,7 @@ interface NetworkProviders {
         }
     }
 
+    @SingleIn(AppScope::class)
     @Binds
     fun GeminiApi.bind(): AiChatApi<GeminiModelScope>
 }
