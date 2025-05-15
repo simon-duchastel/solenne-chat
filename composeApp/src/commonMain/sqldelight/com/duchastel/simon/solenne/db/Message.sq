@@ -1,20 +1,3 @@
--- Conversations table
-CREATE TABLE Conversation (
-  id TEXT PRIMARY KEY NOT NULL,
-  created_at INTEGER NOT NULL
-);
-
--- Get all conversations
-getAllConversations:
-SELECT id
-FROM Conversation
-ORDER BY created_at DESC;
-
--- Insert a new conversation
-insertConversation:
-INSERT INTO Conversation (id, created_at)
-VALUES (?, ?);
-
 -- Messages table
 CREATE TABLE Message (
   id TEXT PRIMARY KEY NOT NULL,
@@ -28,7 +11,7 @@ CREATE TABLE Message (
   arguments_supplied TEXT, -- JSON string
   result_text TEXT,
   result_is_error INTEGER, -- 0 = false, 1 = true
-  
+
   FOREIGN KEY (conversation_id) REFERENCES Conversation(id) ON DELETE CASCADE
 );
 

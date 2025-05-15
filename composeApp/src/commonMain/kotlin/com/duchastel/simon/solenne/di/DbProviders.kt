@@ -6,16 +6,15 @@ import com.duchastel.simon.solenne.db.chat.InMemoryChatDb
 import com.duchastel.simon.solenne.db.chat.SQLDelightChatDb
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Binds
-import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 
 interface DbProviders {
 
-//    @SingleIn(AppScope::class)
-//    @Binds
-//    fun InMemoryChatDb.bind(): ChatMessageDb
-
     @SingleIn(AppScope::class)
     @Binds
-    fun SQLDelightChatDb.bind(driver: SqlDriver): ChatMessageDb
+    fun InMemoryChatDb.bind(): ChatMessageDb
+
+//    @SingleIn(AppScope::class)
+//    @Binds
+//    fun SQLDelightChatDb.bind(driver: SqlDriver): ChatMessageDb
 }

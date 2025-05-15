@@ -2,40 +2,45 @@ package com.duchastel.simon.solenne.db.chat
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import com.duchastel.simon.solenne.Database
+import com.duchastel.simon.solenne.db.Message
+import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
-import io.ktor.http.ContentType.Message
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * SQLDelight implementation of [ChatMessageDb].
  * Uses SQLDelight to persist chat messages and conversations.
  */
 @Inject
+@OptIn(ExperimentalTime::class)
 class SQLDelightChatDb(
-    private val database: ChatDatabase
+    private val database: Database,
+    private val dispatcher: CoroutineDispatcher = IODispatcher,
 ) : ChatMessageDb {
 
     override fun getConversationIds(): Flow<List<String>> {
-        return database.chatDatabaseQueries.getAllConversations()
+        return database.conversationQueries.getConversations()
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatcher)
     }
 
     override suspend fun createConversation(conversationId: String): String {
         val timestamp = Clock.System.now().toEpochMilliseconds()
-        database.chatDatabaseQueries.insertConversation(conversationId, timestamp)
+        database.conversationQueries.insertConversation(conversationId, timestamp)
         return conversationId
     }
 
     override fun getMessagesForConversation(conversationId: String): Flow<List<DbMessage>> {
-        return database.chatDatabaseQueries.getMessagesForConversation(conversationId)
+        return database.messageQueries.getMessagesForConversation(conversationId)
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatcher)
             .map { messages ->
                 messages.map { message -> messageToDbMessage(message) }
             }
@@ -44,7 +49,7 @@ class SQLDelightChatDb(
     override suspend fun writeMessage(message: DbMessage): DbMessage {
         when (val content = message.content) {
             is DbMessageContent.Text -> {
-                database.chatDatabaseQueries.insertMessage(
+                database.messageQueries.insertMessage(
                     id = message.id,
                     conversation_id = message.conversationId,
                     author = message.author,
@@ -60,7 +65,7 @@ class SQLDelightChatDb(
             }
             is DbMessageContent.ToolUse -> {
                 val argumentsJson = Json.encodeToString(content.argumentsSupplied)
-                database.chatDatabaseQueries.insertMessage(
+                database.messageQueries.insertMessage(
                     id = message.id,
                     conversation_id = message.conversationId,
                     author = message.author,
@@ -75,7 +80,7 @@ class SQLDelightChatDb(
                 )
             }
         }
-        
+
         return message
     }
 
@@ -85,7 +90,7 @@ class SQLDelightChatDb(
         newContent: DbMessageContent
     ): DbMessage? {
         // Get the current message to check its type
-        val currentMessages = database.chatDatabaseQueries
+        val currentMessages = database.messageQueries
             .getMessagesForConversation(conversationId)
             .executeAsList()
 
@@ -99,21 +104,18 @@ class SQLDelightChatDb(
             (currentMessage.content is DbMessageContent.ToolUse && newContent !is DbMessageContent.ToolUse)) {
             return null
         }
-        
+
         when (newContent) {
             is DbMessageContent.Text -> {
-                val rowsUpdated = database.chatDatabaseQueries.updateTextMessageContent(
+                database.messageQueries.updateTextMessageContent(
                     text_content = newContent.text,
                     id = messageId,
                     conversation_id = conversationId
                 )
-                if (rowsUpdated == 0L) {
-                    return null
-                }
             }
             is DbMessageContent.ToolUse -> {
                 val argumentsJson = Json.encodeToString(newContent.argumentsSupplied)
-                val rowsUpdated = database.chatDatabaseQueries.updateToolUseMessageContent(
+                database.messageQueries.updateToolUseMessageContent(
                     tool_name = newContent.toolName,
                     mcp_server_id = newContent.mcpServerId,
                     arguments_supplied = argumentsJson,
@@ -122,12 +124,9 @@ class SQLDelightChatDb(
                     id = messageId,
                     conversation_id = conversationId
                 )
-                if (rowsUpdated == 0L) {
-                    return null
-                }
             }
         }
-        
+
         return DbMessage(
             id = currentMessage.id,
             conversationId = currentMessage.conversationId,
@@ -158,7 +157,7 @@ class SQLDelightChatDb(
                 } else {
                     null
                 }
-                
+
                 DbMessageContent.ToolUse(
                     toolName = message.tool_name!!,
                     mcpServerId = message.mcp_server_id!!,
@@ -168,7 +167,7 @@ class SQLDelightChatDb(
             }
             else -> throw IllegalArgumentException("Unknown content type: ${message.content_type}")
         }
-        
+
         return DbMessage(
             id = message.id,
             conversationId = message.conversation_id,
