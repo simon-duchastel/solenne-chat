@@ -7,11 +7,15 @@ config.resolve = {
     }
 };
 
+const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 config.plugins.push(
     new CopyWebpackPlugin({
         patterns: [
-            '../../node_modules/sql.js/dist/sql-wasm.wasm'
+            {
+                from: path.resolve(__dirname, '../../../node_modules/sql.js/dist/sql-wasm.wasm'),
+                to: '.'
+            }
         ]
     })
 );
