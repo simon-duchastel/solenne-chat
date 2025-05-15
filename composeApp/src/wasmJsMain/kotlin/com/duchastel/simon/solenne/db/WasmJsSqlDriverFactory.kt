@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.db
 
+import app.cash.sqldelight.async.coroutines.awaitCreate
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.worker.WebWorkerDriver
 import com.duchastel.simon.solenne.Database
@@ -8,9 +9,9 @@ import org.w3c.dom.Worker
 
 @Inject
 class WasmJsSqlDriverFactory : SqlDriverFactory {
-    override fun createDriver(): SqlDriver {
+    override suspend fun createDriver(): SqlDriver {
         return WebWorkerDriver(Worker(sqlWorkerUrl)).also {
-            Database.Schema.create(it)
+            Database.Schema.create(it).await()
         }
     }
 }
