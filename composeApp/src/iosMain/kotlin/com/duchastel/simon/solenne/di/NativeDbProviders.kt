@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne.di
 
 import com.duchastel.simon.solenne.db.NativeSqlDriverFactory
 import com.duchastel.simon.solenne.db.SqlDriverFactory
-import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeSettings
+import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.NSUserDefaultsSettings
 import com.russhwolf.settings.ObservableSettings
@@ -19,7 +19,7 @@ interface NativeDbProviders {
 
     @OptIn(ExperimentalSettingsApi::class)
     @Provides
-    @AIModelScopeSettings
+    @AIApiKeySettings
     @SingleIn(AppScope::class)
     fun provideAIModelScopeSettings(): ObservableSettings {
         return NSUserDefaultsSettings.Factory()

@@ -1,15 +1,16 @@
 package com.duchastel.simon.solenne.data.ai
 
 import app.cash.turbine.test
-import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
+import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.db.chat.DbMessageContent
+import com.duchastel.simon.solenne.util.fakes.FAKE_AI_MODEL_SCOPE
+import com.duchastel.simon.solenne.util.fakes.FakeAiApiKeyDb
 import com.duchastel.simon.solenne.util.fakes.FakeAiChatApi
 import com.duchastel.simon.solenne.util.fakes.FakeChatMessageDb
-import com.duchastel.simon.solenne.util.fakes.FAKE_AI_MODEL_SCOPE
-import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
@@ -23,6 +24,7 @@ internal class AiChatRepositoryImplTest {
     private lateinit var fakeDb: FakeChatMessageDb
     private lateinit var fakeAiApi: FakeAiChatApi
     private lateinit var fakeMcpRepo: McpRepository
+    private lateinit var fakeAiApiKeyDb: FakeAiApiKeyDb
     private lateinit var aiChatRepo: AiChatRepositoryImpl
 
     @BeforeTest
@@ -38,8 +40,10 @@ internal class AiChatRepositoryImplTest {
         fakeChatRepo = ChatMessageRepositoryImpl(fakeDb)
         fakeAiApi = FakeAiChatApi(fakeResponse = aiResponse)
         fakeMcpRepo = FakeMcpRepository()
+        fakeAiApiKeyDb = FakeAiApiKeyDb()
 
         aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
             chatMessageRepository = fakeChatRepo,
             mcpRepository = fakeMcpRepo,
             geminiApi = fakeAiApi
@@ -155,10 +159,90 @@ internal class AiChatRepositoryImplTest {
     fun `getAvailableModelsFlow - returns available AI model providers`() = runTest {
         aiChatRepo.getAvailableModelsFlow().test {
             val modelProviders = awaitItem()
-            assertEquals(5, modelProviders.size)
+            assertEquals(1, modelProviders.size)
 
             // Verify all expected providers are present
             assertTrue(modelProviders.any { it is AIModelProviderStatus.Gemini })
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getAvailableModelsFlow - returns empty scope when API key is null`() = runTest {
+        // Setup with null API key
+        fakeAiApiKeyDb = FakeAiApiKeyDb(initialGeminiApiKey = null)
+        aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
+            geminiApi = fakeAiApi
+        )
+
+        aiChatRepo.getAvailableModelsFlow().test {
+            val modelProviders = awaitItem()
+            assertEquals(1, modelProviders.size)
+
+            val geminiProvider = modelProviders[0] as AIModelProviderStatus.Gemini
+            assertEquals(null, geminiProvider.scope)
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getAvailableModelsFlow - returns valid scope when API key is present`() = runTest {
+        // Setup with a valid API key
+        val testApiKey = "test-api-key"
+        fakeAiApiKeyDb = FakeAiApiKeyDb(initialGeminiApiKey = testApiKey)
+        aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
+            geminiApi = fakeAiApi
+        )
+
+        aiChatRepo.getAvailableModelsFlow().test {
+            val modelProviders = awaitItem()
+            assertEquals(1, modelProviders.size)
+
+            val geminiProvider = modelProviders[0] as AIModelProviderStatus.Gemini
+            assertTrue(geminiProvider.scope != null)
+            assertEquals(testApiKey, (geminiProvider.scope as AIModelScope.GeminiModelScope).apiKey)
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getAvailableModelsFlow - emits updated providers when API key changes`() = runTest {
+        // Start with no API key
+        fakeAiApiKeyDb = FakeAiApiKeyDb(initialGeminiApiKey = null)
+        aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
+            geminiApi = fakeAiApi
+        )
+
+        aiChatRepo.getAvailableModelsFlow().test {
+            // Initial state - no API key
+            val initialProviders = awaitItem()
+            val initialGeminiProvider = initialProviders[0] as AIModelProviderStatus.Gemini
+            assertEquals(null, initialGeminiProvider.scope)
+
+            // Update the API key
+            val newApiKey = "new-api-key"
+            fakeAiApiKeyDb.saveGeminiApiKey(newApiKey)
+
+            // Should get an updated emission with the new key
+            val updatedProviders = awaitItem()
+            val updatedGeminiProvider = updatedProviders[0] as AIModelProviderStatus.Gemini
+            assertTrue(updatedGeminiProvider.scope != null)
+            assertEquals(
+                newApiKey,
+                (updatedGeminiProvider.scope as AIModelScope.GeminiModelScope).apiKey
+            )
 
             cancelAndConsumeRemainingEvents()
         }

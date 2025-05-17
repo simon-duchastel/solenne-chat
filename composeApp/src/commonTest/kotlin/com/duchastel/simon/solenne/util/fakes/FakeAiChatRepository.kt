@@ -26,7 +26,7 @@ class FakeAiChatRepository(
 
     override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> = modelsFlow
 
-    override fun <T : AIModelProvider> configureModel(config: AIProviderConfig<T>): AIModelProviderStatus<T>? {
+    override suspend fun <T : AIModelProvider> configureModel(config: AIProviderConfig<T>): AIModelProviderStatus<T>? {
         receivedConfigs.add(config)
         return null
     }

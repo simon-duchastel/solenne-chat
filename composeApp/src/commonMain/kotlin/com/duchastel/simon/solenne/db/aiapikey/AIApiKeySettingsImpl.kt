@@ -1,21 +1,18 @@
-package com.duchastel.simon.solenne.db.aimodelscope
+package com.duchastel.simon.solenne.db.aiapikey
 
-import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
-import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
 import com.russhwolf.settings.set
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 /**
  * Implementation of [AIApiKeyDb] that uses [Settings] to store AI model configurations.
  */
 @OptIn(ExperimentalSettingsApi::class)
-class AIApiKeyDbImpl @Inject constructor(
-    @AIModelScopeSettings
+class AIApiKeySettingsImpl @Inject constructor(
+    @AIApiKeySettings
     private val settings: ObservableSettings,
 ) : AIApiKeyDb {
 
@@ -24,15 +21,8 @@ class AIApiKeyDbImpl @Inject constructor(
         return apiKey
     }
 
-    override fun getGeminiModelScopeFlow(): Flow<GeminiModelScope?> {
+    override fun getGeminiApiKeyFlow(): Flow<String?> {
         return settings.getStringOrNullFlow(KEY_GEMINI_API_KEY)
-            .map { apiKey ->
-                if (apiKey == null) {
-                    null
-                } else {
-                    GeminiModelScope(apiKey = apiKey)
-                }
-            }
     }
 
     companion object {

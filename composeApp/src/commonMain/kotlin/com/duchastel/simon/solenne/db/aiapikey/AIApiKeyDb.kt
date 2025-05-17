@@ -1,6 +1,5 @@
-package com.duchastel.simon.solenne.db.aimodelscope
+package com.duchastel.simon.solenne.db.aiapikey
 
-import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -9,10 +8,10 @@ import kotlinx.coroutines.flow.Flow
  */
 interface AIApiKeyDb {
     /**
-     * Returns a flow that emits the current Gemini model scope,
+     * Returns a flow that emits the current Gemini API key,
      * or null if no API key has been saved.
      */
-    fun getGeminiModelScopeFlow(): Flow<GeminiModelScope?>
+    fun getGeminiApiKeyFlow(): Flow<String?>
 
     /**
      * Saves the provided Gemini API key.
