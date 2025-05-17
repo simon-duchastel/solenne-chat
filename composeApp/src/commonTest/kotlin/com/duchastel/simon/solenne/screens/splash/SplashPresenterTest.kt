@@ -21,49 +21,41 @@ class SplashPresenterTest {
     fun setup() {
         navigator = FakeNavigator(SplashScreen)
         aiRepository = FakeAiChatRepository()
-        presenter = SplashPresenter(
+        presenter = setupPresenter()
+    }
+
+    private fun setupPresenter(
+        availableModels: List<AIModelProviderStatus<*>> = emptyList(),
+    ): SplashPresenter {
+        aiRepository = FakeAiChatRepository(availableModels = availableModels)
+        return SplashPresenter(
             navigator = navigator,
             aiChatRepository = aiRepository,
         )
     }
 
     @Test
-    fun `present - navigates to ModelProviderSelector when no models are configured`() = runTest {
-        // Create a repository with unConfigured models
-        val unConfiguredModels = listOf(AIModelProviderStatus.Gemini(null))
-        val repo = FakeAiChatRepository(availableModels = unConfiguredModels)
-
-        // Create presenter with this repository
-        val testNavigator = FakeNavigator(SplashScreen)
-        val testPresenter = SplashPresenter(
-            navigator = testNavigator,
-            aiChatRepository = repo,
-        )
+    fun `present - navigates to ModelProviderSelector when no models have non-null scope`() = runTest {
+        val testPresenter = setupPresenter( listOf(AIModelProviderStatus.Gemini(null)))
 
         testPresenter.test {
             awaitItem()
-            assertEquals(ModelProviderSelectorScreen, testNavigator.awaitNextScreen())
+            assertEquals(ModelProviderSelectorScreen, navigator.awaitResetRoot().newRoot)
             cancelAndConsumeRemainingEvents()
         }
     }
 
     @Test
     fun `present - navigates to ConversationList when model is configured`() = runTest {
-        // Create a repository with configured model
-        val mockScope = AIModelScope.GeminiModelScope("test-api-key")
-        val configuredModels = listOf(AIModelProviderStatus.Gemini(mockScope))
-        val repo = FakeAiChatRepository(availableModels = configuredModels)
-
-        // Create presenter with this repository
-        val testNavigator = FakeNavigator(SplashScreen)
-        val testPresenter = SplashPresenter(
-            navigator = testNavigator,
-            aiChatRepository = repo,
+        val presenter = setupPresenter(
+            availableModels = listOf(
+                AIModelProviderStatus.Gemini(AIModelScope.GeminiModelScope("test-api-key")),
+            )
         )
 
-        testPresenter.test {
+        presenter.test {
             awaitItem()
-            assertEquals(ConversationListScreen, testNavigator.awaitNextScreen())
+            assertEquals(ConversationListScreen, navigator.awaitResetRoot().newRoot)
             cancelAndConsumeRemainingEvents()
         }
     }
