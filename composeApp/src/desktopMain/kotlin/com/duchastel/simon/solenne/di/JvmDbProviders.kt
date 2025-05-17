@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne.di
 
 import com.duchastel.simon.solenne.db.JvmSqlDriverFactory
 import com.duchastel.simon.solenne.db.SqlDriverFactory
-import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeSettings
+import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.PreferencesSettings
 import dev.zacsweers.metro.AppScope
@@ -16,7 +16,7 @@ interface JvmDbProviders {
     fun JvmSqlDriverFactory.bind(): SqlDriverFactory
 
     @Provides
-    @AIModelScopeSettings
+    @AIApiKeySettings
     @SingleIn(AppScope::class)
     fun provideAIModelScopeSettings(): ObservableSettings {
         return PreferencesSettings.Factory()

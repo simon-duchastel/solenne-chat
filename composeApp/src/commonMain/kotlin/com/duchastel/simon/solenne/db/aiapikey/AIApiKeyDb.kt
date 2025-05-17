@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.db.aimodelscope
+package com.duchastel.simon.solenne.db.aiapikey
 
 import kotlinx.coroutines.flow.Flow
 

@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne.di
 
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.WasmJsSqlDriverFactory
-import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeSettings
+import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.StorageSettings
@@ -20,7 +20,7 @@ interface WasmJsDbProviders {
 
     @OptIn(ExperimentalSettingsApi::class)
     @Provides
-    @AIModelScopeSettings
+    @AIApiKeySettings
     @SingleIn(AppScope::class)
     fun provideAIModelScopeSettings(): ObservableSettings {
         return StorageSettings().makeObservable()

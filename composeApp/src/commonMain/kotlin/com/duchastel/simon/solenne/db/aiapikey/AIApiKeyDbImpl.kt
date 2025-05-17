@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.db.aimodelscope
+package com.duchastel.simon.solenne.db.aiapikey
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
  */
 @OptIn(ExperimentalSettingsApi::class)
 class AIApiKeyDbImpl @Inject constructor(
-    @AIModelScopeSettings
+    @AIApiKeySettings
     private val settings: ObservableSettings,
 ) : AIApiKeyDb {
 
