@@ -90,6 +90,9 @@ kotlin {
             implementation(libs.sqldelight.coroutines)
 
             implementation(libs.mcp.kotlin)
+
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
         }
         androidMain.dependencies {
             implementation(compose.preview)
