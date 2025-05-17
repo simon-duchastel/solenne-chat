@@ -3,8 +3,8 @@ package com.duchastel.simon.solenne.di
 import app.cash.sqldelight.db.SqlDriver
 import com.duchastel.simon.solenne.Database
 import com.duchastel.simon.solenne.db.SqlDriverFactory
-import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeDb
-import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeDbImpl
+import com.duchastel.simon.solenne.db.aimodelscope.AIApiKeyDb
+import com.duchastel.simon.solenne.db.aimodelscope.AIApiKeyDbImpl
 import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeSettings
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.SQLDelightChatDb
@@ -37,7 +37,7 @@ interface DbProviders {
     @Provides
     fun provideAIModelScopeDb(
         @AIModelScopeSettings settings: ObservableSettings,
-    ): AIModelScopeDb {
-        return AIModelScopeDbImpl(settings)
+    ): AIApiKeyDb {
+        return AIApiKeyDbImpl(settings)
     }
 }

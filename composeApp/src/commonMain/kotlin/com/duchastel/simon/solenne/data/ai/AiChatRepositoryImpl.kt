@@ -1,8 +1,5 @@
 package com.duchastel.simon.solenne.data.ai
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
@@ -11,7 +8,7 @@ import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
-import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeDb
+import com.duchastel.simon.solenne.db.aimodelscope.AIApiKeyDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
@@ -27,24 +24,27 @@ import kotlinx.coroutines.withContext
 import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
 class AiChatRepositoryImpl @Inject constructor(
-    private val aiModelScopeDb: AIModelScopeDb,
+    private val aiApiKeyDb: AIApiKeyDb,
     private val chatMessageRepository: ChatMessageRepository,
     private val mcpRepository: McpRepository,
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
     override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> {
-        return aiModelScopeDb.getGeminiModelScopeFlow()
+        return aiApiKeyDb.getGeminiModelScopeFlow()
             .map(GeminiModelScope?::toGeminiModelProviderStatus)
             .map(::listOf)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : AIModelProvider> configureModel(config: AIProviderConfig<T>): AIModelProviderStatus<T>? {
+    override suspend fun <T : AIModelProvider> configureModel(
+        config: AIProviderConfig<T>,
+    ): AIModelProviderStatus<T>? {
         when (config) {
             is AIProviderConfig.GeminiConfig -> {
-                geminiProvider = AIModelProviderStatus.Gemini(GeminiModelScope(config.apiKey))
-                return geminiProvider as AIModelProviderStatus<T>
+                val apiKey = aiApiKeyDb.saveGeminiApiKey(config.apiKey) ?: return null
+                val geminiModelStatus = AIModelProviderStatus.Gemini(GeminiModelScope(apiKey))
+                return geminiModelStatus as AIModelProviderStatus<T>
             }
         }
     }
@@ -181,12 +181,6 @@ class AiChatRepositoryImpl @Inject constructor(
                 }
                 .toMap()
         }.distinctUntilChanged()
-
-    companion object {
-        private var geminiProvider: AIModelProviderStatus.Gemini by mutableStateOf(
-            AIModelProviderStatus.Gemini(null)
-        )
-    }
 }
 
 /**

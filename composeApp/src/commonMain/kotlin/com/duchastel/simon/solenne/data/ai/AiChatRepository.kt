@@ -16,9 +16,11 @@ interface AiChatRepository {
     fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>>
 
     /**
-     * Configures the given model provider [T].
+     * Configures the given [AIModelProvider] [T].
      */
-    fun <T: AIModelProvider> configureModel(config: AIProviderConfig<T>): AIModelProviderStatus<T>?
+    suspend fun <T: AIModelProvider> configureModel(
+        config: AIProviderConfig<T>,
+    ): AIModelProviderStatus<T>?
 
     /**
      * Sends a text message as the user to a conversation.

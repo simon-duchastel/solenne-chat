@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AIModelProvider.Gemini
@@ -17,6 +18,7 @@ import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.launch
 
 class ModelProviderConfigPresenter @Inject constructor(
     @Assisted private val navigator: Navigator,
@@ -26,6 +28,7 @@ class ModelProviderConfigPresenter @Inject constructor(
 
     @Composable
     override fun present(): ModelProviderConfigScreen.State {
+        val coroutineScope = rememberCoroutineScope()
         var apiKey: String? by remember { mutableStateOf(null) }
 
         return ModelProviderConfigScreen.State(
@@ -39,7 +42,9 @@ class ModelProviderConfigPresenter @Inject constructor(
                 is Event.SavePressed -> {
                     when (screen.modelProvider) {
                         is Gemini -> {
-                            aiChatRepository.configureModel(AIProviderConfig.GeminiConfig(apiKey!!))
+                            coroutineScope.launch {
+                                aiChatRepository.configureModel(AIProviderConfig.GeminiConfig(apiKey!!))
+                            }
                         }
                     }
                     navigator.goTo(ConversationListScreen)

@@ -11,16 +11,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
- * Implementation of [AIModelScopeDb] that uses [Settings] to store AI model configurations.
+ * Implementation of [AIApiKeyDb] that uses [Settings] to store AI model configurations.
  */
 @OptIn(ExperimentalSettingsApi::class)
-class AIModelScopeDbImpl @Inject constructor(
+class AIApiKeyDbImpl @Inject constructor(
     @AIModelScopeSettings
     private val settings: ObservableSettings,
-) : AIModelScopeDb {
+) : AIApiKeyDb {
 
-    override suspend fun saveGeminiApiKey(apiKey: String) {
+    override suspend fun saveGeminiApiKey(apiKey: String): String {
         settings[KEY_GEMINI_API_KEY] = apiKey
+        return apiKey
     }
 
     override fun getGeminiModelScopeFlow(): Flow<GeminiModelScope?> {
