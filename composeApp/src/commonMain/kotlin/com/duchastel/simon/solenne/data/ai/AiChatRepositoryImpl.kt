@@ -31,7 +31,10 @@ class AiChatRepositoryImpl @Inject constructor(
 ) : AiChatRepository {
 
     override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> {
-        return aiApiKeyDb.getGeminiModelScopeFlow()
+        return aiApiKeyDb.getGeminiApiKeyFlow()
+            .map { apiKey ->
+                if (apiKey == null) null else GeminiModelScope(apiKey)
+            }
             .map(GeminiModelScope?::toGeminiModelProviderStatus)
             .map(::listOf)
     }
