@@ -167,4 +167,84 @@ internal class AiChatRepositoryImplTest {
             cancelAndConsumeRemainingEvents()
         }
     }
+
+    @Test
+    fun `getAvailableModelsFlow - returns empty scope when API key is null`() = runTest {
+        // Setup with null API key
+        fakeAiApiKeyDb = FakeAiApiKeyDb(initialGeminiApiKey = null)
+        aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
+            geminiApi = fakeAiApi
+        )
+
+        aiChatRepo.getAvailableModelsFlow().test {
+            val modelProviders = awaitItem()
+            assertEquals(1, modelProviders.size)
+
+            val geminiProvider = modelProviders[0] as AIModelProviderStatus.Gemini
+            assertEquals(null, geminiProvider.scope)
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getAvailableModelsFlow - returns valid scope when API key is present`() = runTest {
+        // Setup with a valid API key
+        val testApiKey = "test-api-key"
+        fakeAiApiKeyDb = FakeAiApiKeyDb(initialGeminiApiKey = testApiKey)
+        aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
+            geminiApi = fakeAiApi
+        )
+
+        aiChatRepo.getAvailableModelsFlow().test {
+            val modelProviders = awaitItem()
+            assertEquals(1, modelProviders.size)
+
+            val geminiProvider = modelProviders[0] as AIModelProviderStatus.Gemini
+            assertTrue(geminiProvider.scope != null)
+            assertEquals(testApiKey, (geminiProvider.scope as AIModelScope.GeminiModelScope).apiKey)
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getAvailableModelsFlow - emits updated providers when API key changes`() = runTest {
+        // Start with no API key
+        fakeAiApiKeyDb = FakeAiApiKeyDb(initialGeminiApiKey = null)
+        aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
+            chatMessageRepository = fakeChatRepo,
+            mcpRepository = fakeMcpRepo,
+            geminiApi = fakeAiApi
+        )
+
+        aiChatRepo.getAvailableModelsFlow().test {
+            // Initial state - no API key
+            val initialProviders = awaitItem()
+            val initialGeminiProvider = initialProviders[0] as AIModelProviderStatus.Gemini
+            assertEquals(null, initialGeminiProvider.scope)
+
+            // Update the API key
+            val newApiKey = "new-api-key"
+            fakeAiApiKeyDb.saveGeminiApiKey(newApiKey)
+
+            // Should get an updated emission with the new key
+            val updatedProviders = awaitItem()
+            val updatedGeminiProvider = updatedProviders[0] as AIModelProviderStatus.Gemini
+            assertTrue(updatedGeminiProvider.scope != null)
+            assertEquals(
+                newApiKey,
+                (updatedGeminiProvider.scope as AIModelScope.GeminiModelScope).apiKey
+            )
+
+            cancelAndConsumeRemainingEvents()
+        }
+    }
 }

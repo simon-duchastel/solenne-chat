@@ -4,7 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import com.duchastel.simon.solenne.Database
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeyDb
-import com.duchastel.simon.solenne.db.aiapikey.AIApiKeyDbImpl
+import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettingsImpl
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.SQLDelightChatDb
@@ -38,6 +38,6 @@ interface DbProviders {
     fun provideAIModelScopeDb(
         @AIApiKeySettings settings: ObservableSettings,
     ): AIApiKeyDb {
-        return AIApiKeyDbImpl(settings)
+        return AIApiKeySettingsImpl(settings)
     }
 }

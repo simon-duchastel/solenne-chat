@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
  * Implementation of [AIApiKeyDb] that uses [Settings] to store AI model configurations.
  */
 @OptIn(ExperimentalSettingsApi::class)
-class AIApiKeyDbImpl @Inject constructor(
+class AIApiKeySettingsImpl @Inject constructor(
     @AIApiKeySettings
     private val settings: ObservableSettings,
 ) : AIApiKeyDb {
