@@ -14,10 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen.Event
-import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.DeepSeek
 import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.Gemini
-import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.OpenAI
-import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider.Other
 import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.ModelProviderButton
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
@@ -64,9 +61,6 @@ fun ModelProviderSelectorUi(
 internal fun ModelSelectorUi_Preview() {
     val models = persistentListOf(
         Gemini,
-        OpenAI,
-        DeepSeek,
-        Other("Custom provider")
     )
 
     ModelProviderSelectorUi(

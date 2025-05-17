@@ -73,7 +73,7 @@ internal fun ModelProviderConfigUi_Preview() {
     ModelProviderConfigUi(
         state = State(
             apiKey = "sk-1234567890",
-            modelProvider = UiModelProvider.OpenAI,
+            modelProvider = UiModelProvider.Gemini,
         )
     )
 }

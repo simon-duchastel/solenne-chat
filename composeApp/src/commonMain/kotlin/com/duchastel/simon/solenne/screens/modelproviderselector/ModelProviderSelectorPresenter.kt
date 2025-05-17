@@ -56,22 +56,12 @@ class ModelProviderSelectorPresenter @Inject constructor(
 
 fun  AIModelProviderStatus<*>.toUiModel(): UiModelProvider {
     return when (this) {
-        is AIModelProviderStatus.OpenAI -> UiModelProvider.OpenAI
-        is AIModelProviderStatus.Anthropic -> UiModelProvider.Anthropic
-        is AIModelProviderStatus.DeepSeek -> UiModelProvider.DeepSeek
         is AIModelProviderStatus.Gemini -> UiModelProvider.Gemini
-        is AIModelProviderStatus.Grok -> UiModelProvider.Grok
     }
 }
 
 fun UiModelProvider.toAiModelProvider(): AIModelProvider {
     return when (this) {
-        UiModelProvider.OpenAI -> AIModelProvider.OpenAI
-        UiModelProvider.Anthropic -> AIModelProvider.Anthropic
-        UiModelProvider.DeepSeek -> AIModelProvider.DeepSeek
         UiModelProvider.Gemini -> AIModelProvider.Gemini
-        UiModelProvider.Grok -> AIModelProvider.Grok
-        // TODO - add support for custom models
-        is UiModelProvider.Other -> throw IllegalArgumentException("Other model provider not supported yet")
     }
 }

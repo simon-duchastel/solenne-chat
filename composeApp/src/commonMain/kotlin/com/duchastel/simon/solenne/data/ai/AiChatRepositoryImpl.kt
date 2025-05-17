@@ -1,17 +1,14 @@
 package com.duchastel.simon.solenne.data.ai
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage.ToolUse
-import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
+import com.duchastel.simon.solenne.db.aimodelscope.AIApiKeyDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
@@ -27,41 +24,27 @@ import kotlinx.coroutines.withContext
 import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
 class AiChatRepositoryImpl @Inject constructor(
+    private val aiApiKeyDb: AIApiKeyDb,
     private val chatMessageRepository: ChatMessageRepository,
     private val mcpRepository: McpRepository,
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
     override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> {
-        return snapshotFlow {
-            listOf(
-                geminiProvider,
-                openAiProvider,
-                anthropicProvider,
-                deepSeekProvider,
-                grokProvider
-            )
-        }
+        return aiApiKeyDb.getGeminiModelScopeFlow()
+            .map(GeminiModelScope?::toGeminiModelProviderStatus)
+            .map(::listOf)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : AIModelProvider> configureModel(config: AIProviderConfig<T>): AIModelProviderStatus<T>? {
+    override suspend fun <T : AIModelProvider> configureModel(
+        config: AIProviderConfig<T>,
+    ): AIModelProviderStatus<T>? {
         when (config) {
             is AIProviderConfig.GeminiConfig -> {
-                geminiProvider = AIModelProviderStatus.Gemini(GeminiModelScope(config.apiKey))
-                return geminiProvider as AIModelProviderStatus<T>
-            }
-            is AIProviderConfig.OpenAIConfig -> {
-                return null // TODO - support OpenAI
-            }
-            is AIProviderConfig.AnthropicConfig -> {
-                return null // TODO - support Anthropic
-            }
-            is AIProviderConfig.DeepSeekConfig -> {
-                return null // TODO - support DeepSeek
-            }
-            is AIProviderConfig.GrokConfig -> {
-                return null // TODO - support Grok
+                val apiKey = aiApiKeyDb.saveGeminiApiKey(config.apiKey) ?: return null
+                val geminiModelStatus = AIModelProviderStatus.Gemini(GeminiModelScope(apiKey))
+                return geminiModelStatus as AIModelProviderStatus<T>
             }
         }
     }
@@ -198,24 +181,6 @@ class AiChatRepositoryImpl @Inject constructor(
                 }
                 .toMap()
         }.distinctUntilChanged()
-
-    companion object {
-        private var geminiProvider: AIModelProviderStatus.Gemini by mutableStateOf(
-            AIModelProviderStatus.Gemini(null)
-        )
-        private var openAiProvider: AIModelProviderStatus.OpenAI by mutableStateOf(
-            AIModelProviderStatus.OpenAI(null)
-        )
-        private var anthropicProvider: AIModelProviderStatus.Anthropic by mutableStateOf(
-            AIModelProviderStatus.Anthropic(null)
-        )
-        private var deepSeekProvider: AIModelProviderStatus.DeepSeek by mutableStateOf(
-            AIModelProviderStatus.DeepSeek(null)
-        )
-        private var grokProvider: AIModelProviderStatus.Grok by mutableStateOf(
-            AIModelProviderStatus.Grok(null)
-        )
-    }
 }
 
 /**
@@ -262,4 +227,12 @@ private fun ChatMessage.toAiNetworkMessage(): NetworkMessage {
             )
         }
     }
+}
+
+/**
+ * Converts a [GeminiModelScope] to a [AIModelProviderStatus.Gemini].
+ * If null is provided, a status with a null scope is used.
+ */
+private fun GeminiModelScope?.toGeminiModelProviderStatus(): AIModelProviderStatus.Gemini {
+    return AIModelProviderStatus.Gemini(this)
 }

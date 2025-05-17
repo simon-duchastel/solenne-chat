@@ -90,6 +90,9 @@ kotlin {
             implementation(libs.sqldelight.coroutines)
 
             implementation(libs.mcp.kotlin)
+
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -109,6 +112,7 @@ kotlin {
         }
         wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
+            implementation(libs.multiplatform.settings.makeobservable)
 
             implementation(libs.sqldelight.js)
             implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.0.2"))
