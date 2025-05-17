@@ -1,15 +1,16 @@
 package com.duchastel.simon.solenne.data.ai
 
 import app.cash.turbine.test
-import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepositoryImpl
+import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
+import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.db.chat.DbMessageContent
+import com.duchastel.simon.solenne.util.fakes.FAKE_AI_MODEL_SCOPE
+import com.duchastel.simon.solenne.util.fakes.FakeAiApiKeyDb
 import com.duchastel.simon.solenne.util.fakes.FakeAiChatApi
 import com.duchastel.simon.solenne.util.fakes.FakeChatMessageDb
-import com.duchastel.simon.solenne.util.fakes.FAKE_AI_MODEL_SCOPE
-import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
@@ -23,6 +24,7 @@ internal class AiChatRepositoryImplTest {
     private lateinit var fakeDb: FakeChatMessageDb
     private lateinit var fakeAiApi: FakeAiChatApi
     private lateinit var fakeMcpRepo: McpRepository
+    private lateinit var fakeAiApiKeyDb: FakeAiApiKeyDb
     private lateinit var aiChatRepo: AiChatRepositoryImpl
 
     @BeforeTest
@@ -38,8 +40,10 @@ internal class AiChatRepositoryImplTest {
         fakeChatRepo = ChatMessageRepositoryImpl(fakeDb)
         fakeAiApi = FakeAiChatApi(fakeResponse = aiResponse)
         fakeMcpRepo = FakeMcpRepository()
+        fakeAiApiKeyDb = FakeAiApiKeyDb()
 
         aiChatRepo = AiChatRepositoryImpl(
+            aiApiKeyDb = fakeAiApiKeyDb,
             chatMessageRepository = fakeChatRepo,
             mcpRepository = fakeMcpRepo,
             geminiApi = fakeAiApi
@@ -155,7 +159,7 @@ internal class AiChatRepositoryImplTest {
     fun `getAvailableModelsFlow - returns available AI model providers`() = runTest {
         aiChatRepo.getAvailableModelsFlow().test {
             val modelProviders = awaitItem()
-            assertEquals(5, modelProviders.size)
+            assertEquals(1, modelProviders.size)
 
             // Verify all expected providers are present
             assertTrue(modelProviders.any { it is AIModelProviderStatus.Gemini })

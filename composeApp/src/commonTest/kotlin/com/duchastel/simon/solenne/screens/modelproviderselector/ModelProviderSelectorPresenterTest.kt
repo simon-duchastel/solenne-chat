@@ -2,8 +2,8 @@ package com.duchastel.simon.solenne.screens.modelproviderselector
 
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
 import com.duchastel.simon.solenne.data.ai.AIModelProviderStatus
-import com.duchastel.simon.solenne.util.fakes.FakeAiChatRepository
 import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen
+import com.duchastel.simon.solenne.util.fakes.FakeAiChatRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
@@ -22,8 +22,6 @@ class ModelProviderSelectorPresenterTest {
     fun setup() {
         val screen = ModelProviderSelectorScreen
         val availableModels = listOf(
-            AIModelProviderStatus.OpenAI(scope = null),
-            AIModelProviderStatus.Anthropic(scope = null),
             AIModelProviderStatus.Gemini(scope = null)
         )
 
@@ -41,12 +39,9 @@ class ModelProviderSelectorPresenterTest {
             val state = expectMostRecentItem()
 
             // Verify we have the expected number of models
-            // 3 from repository
-            assertEquals(3, state.models.size)
+            assertEquals(1, state.models.size)
 
             // Verify the models are correctly mapped
-            assertTrue(state.models.contains(UiModelProvider.OpenAI))
-            assertTrue(state.models.contains(UiModelProvider.Anthropic))
             assertTrue(state.models.contains(UiModelProvider.Gemini))
 
             cancelAndConsumeRemainingEvents()
