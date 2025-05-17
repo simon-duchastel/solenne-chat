@@ -21,12 +21,12 @@ class ModelProviderConfigPresenterTest {
     @BeforeTest
     fun setup() {
         aiRepository = FakeAiChatRepository()
-        navigator = FakeNavigator(ModelProviderConfigScreen(modelProvider = AIModelProvider.OpenAI))
+        navigator = FakeNavigator(ModelProviderConfigScreen(modelProvider = AIModelProvider.Gemini))
     }
 
     @Test
     fun `present - handles API key change event`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.OpenAI)
+        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.Gemini)
         presenter = ModelProviderConfigPresenter(
             navigator = navigator,
             screen = screen,
@@ -46,105 +46,6 @@ class ModelProviderConfigPresenterTest {
             // Get updated state
             val newState = expectMostRecentItem()
             assertEquals("test-api-key", newState.apiKey)
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `present - handles save event for OpenAI provider`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.OpenAI)
-        presenter = ModelProviderConfigPresenter(
-            navigator = navigator,
-            screen = screen,
-            aiChatRepository = aiRepository
-        )
-
-        presenter.test {
-            val state = expectMostRecentItem()
-            val eventSink = state.eventSink
-
-            // Set API key first
-            eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("openai-key"))
-            expectMostRecentItem()
-
-            // Then save
-            eventSink(ModelProviderConfigScreen.Event.SavePressed)
-
-            // Verify the repository was called with correct config
-            val configs = aiRepository.getReceivedConfigs()
-            assertEquals(1, configs.size)
-            assertTrue(configs[0] is AIProviderConfig.OpenAIConfig)
-            assertEquals("openai-key", (configs[0] as AIProviderConfig.OpenAIConfig).apiKey)
-
-            // Verify navigation to conversation list
-            assertEquals(ConversationListScreen, navigator.awaitNextScreen())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `present - handles save event for Anthropic provider`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.Anthropic)
-        presenter = ModelProviderConfigPresenter(
-            navigator = navigator,
-            screen = screen,
-            aiChatRepository = aiRepository
-        )
-
-        presenter.test {
-            val state = expectMostRecentItem()
-            val eventSink = state.eventSink
-
-            // Set API key first
-            eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("anthropic-key"))
-            expectMostRecentItem()
-
-            // Then save
-            eventSink(ModelProviderConfigScreen.Event.SavePressed)
-
-            // Verify the repository was called with correct config
-            val configs = aiRepository.getReceivedConfigs()
-            assertEquals(1, configs.size)
-            assertTrue(configs[0] is AIProviderConfig.AnthropicConfig)
-            assertEquals("anthropic-key", (configs[0] as AIProviderConfig.AnthropicConfig).apiKey)
-
-            // Verify navigation to conversation list
-            assertEquals(ConversationListScreen, navigator.awaitNextScreen())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `present - handles save event for DeepSeek provider`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.DeepSeek)
-        presenter = ModelProviderConfigPresenter(
-            navigator = navigator,
-            screen = screen,
-            aiChatRepository = aiRepository
-        )
-
-        presenter.test {
-            var state = expectMostRecentItem()
-            val eventSink = state.eventSink
-
-            // Set API key first
-            eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("deepseek-key"))
-            state = expectMostRecentItem()
-
-            // Then save
-            eventSink(ModelProviderConfigScreen.Event.SavePressed)
-
-            // Verify the repository was called with correct config
-            val configs = aiRepository.getReceivedConfigs()
-            assertEquals(1, configs.size)
-            assertTrue(configs[0] is AIProviderConfig.DeepSeekConfig)
-            assertEquals("deepseek-key", (configs[0] as AIProviderConfig.DeepSeekConfig).apiKey)
-
-            // Verify navigation to conversation list
-            assertEquals(ConversationListScreen, navigator.awaitNextScreen())
 
             cancelAndConsumeRemainingEvents()
         }
@@ -184,41 +85,8 @@ class ModelProviderConfigPresenterTest {
     }
 
     @Test
-    fun `present - handles save event for Grok provider`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.Grok)
-        presenter = ModelProviderConfigPresenter(
-            navigator = navigator,
-            screen = screen,
-            aiChatRepository = aiRepository
-        )
-
-        presenter.test {
-            val state = expectMostRecentItem()
-            val eventSink = state.eventSink
-
-            // Set API key first
-            eventSink(ModelProviderConfigScreen.Event.ApiKeyChanged("grok-key"))
-            expectMostRecentItem()
-
-            // Then save
-            eventSink(ModelProviderConfigScreen.Event.SavePressed)
-
-            // Verify the repository was called with correct config
-            val configs = aiRepository.getReceivedConfigs()
-            assertEquals(1, configs.size)
-            assertTrue(configs[0] is AIProviderConfig.GrokConfig)
-            assertEquals("grok-key", (configs[0] as AIProviderConfig.GrokConfig).apiKey)
-
-            // Verify navigation to conversation list
-            assertEquals(ConversationListScreen, navigator.awaitNextScreen())
-
-            cancelAndConsumeRemainingEvents()
-        }
-    }
-
-    @Test
     fun `present - handles back pressed event`() = runTest {
-        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.OpenAI)
+        val screen = ModelProviderConfigScreen(modelProvider = AIModelProvider.Gemini)
         presenter = ModelProviderConfigPresenter(
             navigator = navigator,
             screen = screen,

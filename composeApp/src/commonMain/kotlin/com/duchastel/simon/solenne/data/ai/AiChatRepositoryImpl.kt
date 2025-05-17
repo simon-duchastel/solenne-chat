@@ -46,18 +46,6 @@ class AiChatRepositoryImpl @Inject constructor(
                 geminiProvider = AIModelProviderStatus.Gemini(GeminiModelScope(config.apiKey))
                 return geminiProvider as AIModelProviderStatus<T>
             }
-            is AIProviderConfig.OpenAIConfig -> {
-                return null // TODO - support OpenAI
-            }
-            is AIProviderConfig.AnthropicConfig -> {
-                return null // TODO - support Anthropic
-            }
-            is AIProviderConfig.DeepSeekConfig -> {
-                return null // TODO - support DeepSeek
-            }
-            is AIProviderConfig.GrokConfig -> {
-                return null // TODO - support Grok
-            }
         }
     }
 
@@ -197,18 +185,6 @@ class AiChatRepositoryImpl @Inject constructor(
     companion object {
         private var geminiProvider: AIModelProviderStatus.Gemini by mutableStateOf(
             AIModelProviderStatus.Gemini(null)
-        )
-        private var openAiProvider: AIModelProviderStatus.OpenAI by mutableStateOf(
-            AIModelProviderStatus.OpenAI(null)
-        )
-        private var anthropicProvider: AIModelProviderStatus.Anthropic by mutableStateOf(
-            AIModelProviderStatus.Anthropic(null)
-        )
-        private var deepSeekProvider: AIModelProviderStatus.DeepSeek by mutableStateOf(
-            AIModelProviderStatus.DeepSeek(null)
-        )
-        private var grokProvider: AIModelProviderStatus.Grok by mutableStateOf(
-            AIModelProviderStatus.Grok(null)
         )
     }
 }

@@ -23,9 +23,4 @@ data object ModelProviderSelectorScreen : Screen {
 
 sealed interface UiModelProvider {
     data object Gemini : UiModelProvider
-    data object OpenAI : UiModelProvider
-    data object Anthropic : UiModelProvider
-    data object DeepSeek : UiModelProvider
-    data object Grok : UiModelProvider
-    data class Other(val name: String?) : UiModelProvider // null if no name specified yet
 }

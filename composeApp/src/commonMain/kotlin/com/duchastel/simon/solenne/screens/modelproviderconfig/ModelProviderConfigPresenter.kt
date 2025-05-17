@@ -6,11 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.duchastel.simon.solenne.data.ai.AIModelProvider
-import com.duchastel.simon.solenne.data.ai.AIModelProvider.Anthropic
-import com.duchastel.simon.solenne.data.ai.AIModelProvider.DeepSeek
 import com.duchastel.simon.solenne.data.ai.AIModelProvider.Gemini
-import com.duchastel.simon.solenne.data.ai.AIModelProvider.Grok
-import com.duchastel.simon.solenne.data.ai.AIModelProvider.OpenAI
 import com.duchastel.simon.solenne.data.ai.AIProviderConfig
 import com.duchastel.simon.solenne.data.ai.AiChatRepository
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen
@@ -42,20 +38,8 @@ class ModelProviderConfigPresenter @Inject constructor(
                 }
                 is Event.SavePressed -> {
                     when (screen.modelProvider) {
-                        is OpenAI -> {
-                            aiChatRepository.configureModel(AIProviderConfig.OpenAIConfig(apiKey!!))
-                        }
-                        is Anthropic -> {
-                            aiChatRepository.configureModel(AIProviderConfig.AnthropicConfig(apiKey!!))
-                        }
-                        is DeepSeek -> {
-                            aiChatRepository.configureModel(AIProviderConfig.DeepSeekConfig(apiKey!!))
-                        }
                         is Gemini -> {
                             aiChatRepository.configureModel(AIProviderConfig.GeminiConfig(apiKey!!))
-                        }
-                        is Grok -> {
-                            aiChatRepository.configureModel(AIProviderConfig.GrokConfig(apiKey!!))
                         }
                     }
                     navigator.goTo(ConversationListScreen)
@@ -78,10 +62,6 @@ class ModelProviderConfigPresenter @Inject constructor(
 
 fun AIModelProvider.toUiModel(): UiModelProvider {
     return when (this) {
-        is OpenAI -> UiModelProvider.OpenAI
-        is Anthropic -> UiModelProvider.Anthropic
-        is DeepSeek -> UiModelProvider.DeepSeek
         is Gemini -> UiModelProvider.Gemini
-        is Grok -> UiModelProvider.Grok
     }
 }

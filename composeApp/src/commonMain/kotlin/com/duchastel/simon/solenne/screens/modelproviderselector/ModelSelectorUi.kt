@@ -64,9 +64,6 @@ fun ModelProviderSelectorUi(
 internal fun ModelSelectorUi_Preview() {
     val models = persistentListOf(
         Gemini,
-        OpenAI,
-        DeepSeek,
-        Other("Custom provider")
     )
 
     ModelProviderSelectorUi(
