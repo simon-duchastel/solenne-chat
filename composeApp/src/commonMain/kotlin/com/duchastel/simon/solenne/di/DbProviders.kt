@@ -23,9 +23,9 @@ interface DbProviders {
         return Database(sqlDriver)
     }
 
-     @SingleIn(AppScope::class)
-     @Provides
-     fun providesChatMessageDb(database: Database): ChatMessageDb {
-         return SQLDelightChatDb(database)
-     }
+    @SingleIn(AppScope::class)
+    @Provides
+    fun providesChatMessageDb(database: Database): ChatMessageDb {
+        return SQLDelightChatDb(database)
+    }
 }

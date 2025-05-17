@@ -3,15 +3,15 @@ package com.duchastel.simon.solenne.data.ai
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
+import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage.ToolUse
-import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
+import com.duchastel.simon.solenne.db.AIChatModelsDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
@@ -27,21 +27,16 @@ import kotlinx.coroutines.withContext
 import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
 class AiChatRepositoryImpl @Inject constructor(
+    private val aiChatModelsDb: AIChatModelsDb,
     private val chatMessageRepository: ChatMessageRepository,
     private val mcpRepository: McpRepository,
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
     override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> {
-        return snapshotFlow {
-            listOf(
-                geminiProvider,
-                openAiProvider,
-                anthropicProvider,
-                deepSeekProvider,
-                grokProvider
-            )
-        }
+        return aiChatModelsDb.getGeminiModelScopeFlow()
+            .map(GeminiModelScope?::toGeminiModelProviderStatus)
+            .map(::listOf)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -262,4 +257,12 @@ private fun ChatMessage.toAiNetworkMessage(): NetworkMessage {
             )
         }
     }
+}
+
+/**
+ * Converts a [GeminiModelScope] to a [AIModelProviderStatus.Gemini].
+ * If null is provided, a status with a null scope is used.
+ */
+private fun GeminiModelScope?.toGeminiModelProviderStatus(): AIModelProviderStatus.Gemini {
+    return AIModelProviderStatus.Gemini(this)
 }
