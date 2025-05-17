@@ -18,6 +18,9 @@ import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConf
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorPresenter
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorUi
+import com.duchastel.simon.solenne.screens.splash.SplashPresenter
+import com.duchastel.simon.solenne.screens.splash.SplashScreen
+import com.duchastel.simon.solenne.screens.splash.SplashUi
 import com.slack.circuit.foundation.Circuit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Provides
@@ -35,8 +38,15 @@ interface CircuitProviders {
         modelProviderConfigPresenterFactory: ModelProviderConfigPresenter.Factory,
         mcpListPresenterFactory: MCPListPresenter.Factory,
         addMCPPresenterFactory: AddMCPPresenter.Factory,
+        splashPresenterFactory: SplashPresenter.Factory,
     ): Circuit {
         return Circuit.Builder()
+            .addPresenter<SplashScreen, SplashScreen.State> { _, navigator, _ ->
+                splashPresenterFactory.create(navigator)
+            }
+            .addUi<SplashScreen, SplashScreen.State> { state, modifier ->
+                SplashUi(state, modifier)
+            }
             .addPresenter<ChatScreen, ChatScreen.State> { screen, navigator, _ ->
                 chatPresenterFactory.create(screen, navigator)
             }

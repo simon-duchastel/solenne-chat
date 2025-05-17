@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
+import com.duchastel.simon.solenne.screens.splash.SplashScreen
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -16,7 +16,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun App(circuit: Circuit) {
     MaterialTheme {
         CircuitCompositionLocals(circuit) {
-            val backStack = rememberSaveableBackStack(root = ModelProviderSelectorScreen)
+            val backStack = rememberSaveableBackStack(root = SplashScreen)
             val navigator = rememberCircuitNavigator(backStack, onRootPop = {})
 
             // NavigableCircuitContent appears not to pop the backstack
