@@ -6,7 +6,9 @@ import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 
 @DependencyGraph(AppScope::class)
-interface AndroidApplicationGraph : ApplicationGraph, AndroidDbProviders {
+interface AndroidApplicationGraph :
+    ApplicationGraph,
+    AndroidDbProviders {
     val appContext: Context
 
     @DependencyGraph.Factory

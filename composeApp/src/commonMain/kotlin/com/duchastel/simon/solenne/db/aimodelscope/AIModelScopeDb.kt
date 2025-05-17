@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.db
+package com.duchastel.simon.solenne.db.aimodelscope
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import kotlinx.coroutines.flow.Flow
@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
  * Interface for storing and retrieving AI model configurations in a persistent way.
  * Currently only supports Gemini model scope.
  */
-interface AIChatModelsDb {
+interface AIModelScopeDb {
     /**
      * Saves the provided Gemini API key.
      */

@@ -11,7 +11,7 @@ import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerStatus
 import com.duchastel.simon.solenne.data.tools.Tool
-import com.duchastel.simon.solenne.db.AIChatModelsDb
+import com.duchastel.simon.solenne.db.aimodelscope.AIModelScopeDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.network.ai.AiChatApi
 import com.duchastel.simon.solenne.network.ai.Conversation
@@ -27,14 +27,14 @@ import kotlinx.coroutines.withContext
 import com.duchastel.simon.solenne.network.ai.Tool as NetworkTool
 
 class AiChatRepositoryImpl @Inject constructor(
-    private val aiChatModelsDb: AIChatModelsDb,
+    private val aiModelScopeDb: AIModelScopeDb,
     private val chatMessageRepository: ChatMessageRepository,
     private val mcpRepository: McpRepository,
     private val geminiApi: AiChatApi<GeminiModelScope>,
 ) : AiChatRepository {
 
     override fun getAvailableModelsFlow(): Flow<List<AIModelProviderStatus<*>>> {
-        return aiChatModelsDb.getGeminiModelScopeFlow()
+        return aiModelScopeDb.getGeminiModelScopeFlow()
             .map(GeminiModelScope?::toGeminiModelProviderStatus)
             .map(::listOf)
     }

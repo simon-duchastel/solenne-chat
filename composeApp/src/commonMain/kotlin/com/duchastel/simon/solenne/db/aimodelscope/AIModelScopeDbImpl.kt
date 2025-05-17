@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.db
+package com.duchastel.simon.solenne.db.aimodelscope
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope.GeminiModelScope
 import com.russhwolf.settings.ExperimentalSettingsApi
@@ -11,12 +11,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
- * Implementation of [AIChatModelsDb] that uses [Settings] to store AI model configurations.
+ * Implementation of [AIModelScopeDb] that uses [Settings] to store AI model configurations.
  */
 @OptIn(ExperimentalSettingsApi::class)
-class AIChatModelsDbImpl @Inject constructor(
+class AIModelScopeDbImpl @Inject constructor(
+    @AIModelScopeSettings
     private val settings: ObservableSettings,
-) : AIChatModelsDb {
+) : AIModelScopeDb {
 
     override suspend fun saveGeminiApiKey(apiKey: String) {
         settings[KEY_GEMINI_API_KEY] = apiKey
