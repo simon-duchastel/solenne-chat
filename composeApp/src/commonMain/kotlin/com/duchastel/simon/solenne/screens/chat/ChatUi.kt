@@ -46,8 +46,8 @@ fun ChatUi(state: State, modifier: Modifier) {
                 Spacer(Modifier.weight(1f))
                 Text("Chat with Gemini")
                 Spacer(Modifier.weight(1f))
-                Button(onClick = { eventSink(Event.ToolsPressed) }) {
-                    Text("View Tools")
+                Button(onClick = { eventSink(Event.Settings) }) {
+                    Text("Settings")
                 }
             }
             LazyColumn(
