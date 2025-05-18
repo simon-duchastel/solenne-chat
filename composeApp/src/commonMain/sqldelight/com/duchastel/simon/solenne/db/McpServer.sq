@@ -1,0 +1,58 @@
+-- McpServer table
+CREATE TABLE McpServer (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  connection_type TEXT NOT NULL, -- "sse" or "stdio"
+  connection_url TEXT, -- for SSE connections
+  connection_command TEXT, -- for stdio connections
+  created_at INTEGER NOT NULL
+);
+
+-- McpTool table
+CREATE TABLE McpTool (
+  server_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  arguments_schema TEXT NOT NULL, -- JSON string of the arguments schema
+  required_arguments TEXT, -- JSON array of required argument names
+  PRIMARY KEY (server_id, name),
+  FOREIGN KEY (server_id) REFERENCES McpServer(id) ON DELETE CASCADE
+);
+
+-- Get all MCPServers
+getAllServers:
+SELECT *
+FROM McpServer
+ORDER BY created_at DESC;
+
+-- Get server by ID
+getServerById:
+SELECT *
+FROM McpServer
+WHERE id = ?;
+
+-- Insert a new server
+insertServer:
+INSERT INTO McpServer (id, name, connection_type, connection_url, connection_command, created_at)
+VALUES (?, ?, ?, ?, ?, ?);
+
+-- Delete a server
+deleteServer:
+DELETE FROM McpServer
+WHERE id = ?;
+
+-- Get all tools for a server
+getToolsForServer:
+SELECT *
+FROM McpTool
+WHERE server_id = ?;
+
+-- Insert a tool
+insertTool:
+INSERT OR REPLACE INTO McpTool (server_id, name, description, arguments_schema, required_arguments)
+VALUES (?, ?, ?, ?, ?);
+
+-- Delete all tools for a server
+deleteToolsForServer:
+DELETE FROM McpTool
+WHERE server_id = ?;

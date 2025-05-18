@@ -1,10 +1,7 @@
 package com.duchastel.simon.solenne.data.tools
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.tools.McpServer.Connection
+import com.duchastel.simon.solenne.db.mcp.McpToolsDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.util.types.Failure
 import com.duchastel.simon.solenne.util.types.SolenneResult
@@ -31,8 +28,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.JsonElement
@@ -45,14 +44,10 @@ import kotlin.uuid.Uuid
 class McpRepositoryImpl(
     private val ioCoroutineScope: CoroutineScope = CoroutineScope(IODispatcher),
     private val httpClient: HttpClient,
+    private val mcpToolsDb: McpToolsDb,
 ): McpRepository {
 
     init {
-        /**
-         * Spawns an infinite loop that pings all clients to keep the
-         * connection open. Whenever a client doesn't respond to a ping,
-         * it's disconnected.
-         */
         ioCoroutineScope.launch {
             while (true) {
                 delay(HEARTBEAT_DELAY)
@@ -67,23 +62,35 @@ class McpRepositoryImpl(
                 }.awaitAll()
             }
         }
+
+        ioCoroutineScope.launch {
+            mcpToolsDb.getAllServers().first().forEach { server ->
+                connect(server)
+            }
+        }
     }
 
     override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
-        return snapshotFlow {
-            val mcpServersStatus = mcpServers.map {
+        return combine(
+            mcpToolsDb.getAllServers(),
+            mcpToolsDb.getAllServers().map { servers ->
+                servers.associateWith { server ->
+                    mcpToolsDb.getToolsForServer(server.id).first()
+                }
+            }
+        ) { servers, toolsMap ->
+            servers.map { server ->
                 val status = when {
-                    clients.contains(it) -> McpServerStatus.Status.Connected
+                    clients.contains(server) -> McpServerStatus.Status.Connected
                     else -> McpServerStatus.Status.Offline
                 }
-                val tools = tools[it] ?: emptyList()
+                val tools = toolsMap[server] ?: emptyList()
                 McpServerStatus(
-                    mcpServer = it,
+                    mcpServer = server,
                     status = status,
                     tools = tools,
                 )
             }
-            mcpServersStatus
         }.distinctUntilChanged()
     }
 
@@ -97,7 +104,7 @@ class McpRepositoryImpl(
             name = name,
             connection = connection,
         )
-        mcpServers += server
+        mcpToolsDb.addServer(server)
 
         return server.getCurrentStatus()
     }
@@ -125,20 +132,17 @@ class McpRepositoryImpl(
             )
         }
 
-        // ignore the status of the call
         wrapMcpServerCall {
             client.connect(sseTransport)
-            clients += (server to client) // only add the client after a successful connection
+            clients += (server to client)
             loadToolsForServer(server)
         }
         return server.getCurrentStatus()
     }
 
     override suspend fun disconnect(server: McpServer): McpServerStatus? {
-        // no-op if already disconnected
         val client = clients[server] ?: return server.getCurrentStatus()
 
-        // ignore the status of the call since we're disconnecting anyways - just don't crash
         wrapMcpServerCall {
             client.close()
         }
@@ -161,7 +165,9 @@ class McpRepositoryImpl(
                 requiredArguments = toolRaw.inputSchema.required ?: emptyList(),
             )
         }
-        tools += (server to toolsParsed)
+
+        mcpToolsDb.updateToolsForServer(server.id, toolsParsed)
+
         return toolsParsed
     }
 
@@ -193,10 +199,7 @@ class McpRepositoryImpl(
         val deferred = CompletableDeferred<Unit>()
         ioCoroutineScope.launch {
             try {
-                // ignore any errors since loading new tools is
-                // opportunistic
-                val newTools = loadToolsForServer(server) ?: return@launch
-                tools += (server to newTools)
+                loadToolsForServer(server)
             } finally {
                 deferred.complete(Unit)
             }
@@ -249,19 +252,6 @@ class McpRepositoryImpl(
             version = "0.1.0",
         )
 
-        /**
-         * Map of MCP Server to MCP Client
-         */
-        private var clients by mutableStateOf<Map<McpServer, Client>>(emptyMap())
-
-        /**
-         * Map of MCP Server to MCP Client
-         */
-        private var mcpServers by mutableStateOf(listOf<McpServer>())
-
-        /**
-         * Map of MCP Server to MCP Tools
-         */
-        var tools by mutableStateOf<Map<McpServer, List<Tool>>>(emptyMap())
+        private var clients = mutableMapOf<McpServer, Client>()
     }
 }
