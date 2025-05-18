@@ -1,4 +1,4 @@
-package com.duchastel.simon.solenne.util
+package com.duchastel.simon.solenne.util.types
 
 /**
  * A result that mimics Kotlin's [Result] type but allows for

@@ -15,12 +15,12 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.Event
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.State
 import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
+import com.duchastel.simon.solenne.ui.components.GithubSourceFooter
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -89,11 +89,9 @@ fun SettingsUi(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // GitHub footer
-                Text(
-                    text = "github.com/simon-duchastel/solenne-chat",
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                    textAlign = TextAlign.Center
+                GithubSourceFooter(
+                    onClick = { eventSink(Event.ViewSourcePressed) },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

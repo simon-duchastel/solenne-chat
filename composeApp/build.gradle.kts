@@ -93,6 +93,8 @@ kotlin {
 
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
+
+            implementation(compose.components.resources)
         }
         androidMain.dependencies {
             implementation(compose.preview)

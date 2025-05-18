@@ -8,8 +8,8 @@ import dev.zacsweers.metro.Provides
 @DependencyGraph(AppScope::class)
 interface AndroidApplicationGraph :
     ApplicationGraph,
-    AndroidDbProviders {
-    val appContext: Context
+    AndroidDbProviders,
+    AndroidUtilProviders {
 
     @DependencyGraph.Factory
     fun interface Factory {

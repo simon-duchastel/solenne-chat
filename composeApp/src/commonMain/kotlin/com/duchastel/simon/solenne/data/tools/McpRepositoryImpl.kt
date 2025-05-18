@@ -6,10 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.duchastel.simon.solenne.data.tools.McpServer.Connection
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
-import com.duchastel.simon.solenne.util.Failure
-import com.duchastel.simon.solenne.util.SolenneResult
-import com.duchastel.simon.solenne.util.Success
-import com.duchastel.simon.solenne.util.onFailure
+import com.duchastel.simon.solenne.util.types.Failure
+import com.duchastel.simon.solenne.util.types.SolenneResult
+import com.duchastel.simon.solenne.util.types.Success
+import com.duchastel.simon.solenne.util.types.onFailure
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
