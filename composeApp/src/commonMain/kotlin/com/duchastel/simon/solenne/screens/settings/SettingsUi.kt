@@ -1,17 +1,12 @@
 package com.duchastel.simon.solenne.screens.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +15,7 @@ import com.duchastel.simon.solenne.screens.settings.SettingsScreen.Event
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.State
 import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.GithubSourceFooter
+import com.duchastel.simon.solenne.ui.components.SettingsRow
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -46,45 +42,17 @@ fun SettingsUi(
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth().padding(16.dp)
             ) {
-                // Model Provider Selector option
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { eventSink(Event.ConfigureAIModelPressed) },
-                    elevation = 2.dp,
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "Configure AI Models",
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(Icons.Default.ArrowForward, contentDescription = null)
-                    }
-                }
+                SettingsRow(
+                    Modifier.fillMaxWidth().padding(8.dp),
+                    text = "Configure AI Models",
+                    onClick = { eventSink(Event.ConfigureAIModelPressed) },
+                )
 
-                // Add MCP option
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { eventSink(Event.AddMCPPressed)},
-                    elevation = 2.dp,
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "Configure MCP Servers",
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(Icons.Default.ArrowForward, contentDescription = null)
-                    }
-                }
+                SettingsRow(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    text = "Configure MCP Servers",
+                    onClick = { eventSink(Event.ConfigureMcpPressed) },
+                )
 
                 Spacer(modifier = Modifier.weight(1f))
 

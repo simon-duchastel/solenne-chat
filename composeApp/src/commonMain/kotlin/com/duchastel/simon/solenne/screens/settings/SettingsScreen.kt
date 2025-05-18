@@ -17,6 +17,6 @@ data object SettingsScreen : Screen {
         data object BackPressed : Event
         data object ViewSourcePressed : Event
         data object ConfigureAIModelPressed : Event
-        data object AddMCPPressed : Event
+        data object ConfigureMcpPressed : Event
     }
 }

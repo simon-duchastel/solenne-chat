@@ -28,7 +28,7 @@ class SettingsPresenter @Inject constructor(
                     navigator.goTo(ModelProviderSelectorScreen)
                 }
 
-                is Event.AddMCPPressed -> {
+                is Event.ConfigureMcpPressed -> {
                     navigator.goTo(AddMCPScreen)
                 }
 
