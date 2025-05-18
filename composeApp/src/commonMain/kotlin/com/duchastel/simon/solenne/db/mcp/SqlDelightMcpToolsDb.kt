@@ -2,20 +2,14 @@ package com.duchastel.simon.solenne.db.mcp
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.duchastel.simon.solenne.Database
 import com.duchastel.simon.solenne.data.tools.McpServer
-import com.duchastel.simon.solenne.data.tools.Tool
-import com.duchastel.simon.solenne.db.McpTool
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -29,22 +23,12 @@ class SqlDelightMcpToolsDb(
     private val dispatcher: CoroutineDispatcher = IODispatcher,
 ) : McpToolsDb {
 
-    @OptIn(ExperimentalTime::class)
     override fun getAllServers(): Flow<List<McpServer>> {
         return database.mcpServerQueries.getAllServers()
             .asFlow()
             .mapToList(dispatcher)
             .map { serverRows ->
                 serverRows.map { row -> mcpServerRowToMcpServer(row) }
-            }
-    }
-
-    override fun getServerById(id: String): Flow<McpServer?> {
-        return database.mcpServerQueries.getServerById(id)
-            .asFlow()
-            .mapToOneOrNull(dispatcher)
-            .map { serverRow ->
-                serverRow?.let { row -> mcpServerRowToMcpServer(row) }
             }
     }
 
@@ -80,42 +64,9 @@ class SqlDelightMcpToolsDb(
         }
     }
 
-    override suspend fun deleteServer(serverId: String) {
+    override suspend fun deleteServer(server: McpServer) {
         withContext(dispatcher) {
-            database.mcpServerQueries.deleteToolsForServer(serverId)
-            database.mcpServerQueries.deleteServer(serverId)
-        }
-    }
-
-    override fun getToolsForServer(serverId: String): Flow<List<Tool>> {
-        return database.mcpToolQueries.getToolsForServer(serverId)
-            .asFlow()
-            .mapToList(dispatcher)
-            .map { toolRows ->
-                toolRows.map { row -> mcpToolRowToTool(row) }
-            }
-    }
-
-    override suspend fun updateToolsForServer(serverId: String, tools: List<Tool>): List<Tool> {
-        return withContext(dispatcher) {
-            // Delete all existing tools for the server
-            database.mcpToolQueries.deleteToolsForServer(serverId)
-
-            // Insert all new tools
-            tools.forEach { tool ->
-                val argumentsSchemaJson = Json.encodeToString(tool.argumentsSchema)
-                val requiredArgumentsJson = Json.encodeToString(tool.requiredArguments)
-
-                database.mcpToolQueries.insertTool(
-                    server_id = serverId,
-                    name = tool.name,
-                    description = tool.description,
-                    arguments_schema = argumentsSchemaJson,
-                    required_arguments = requiredArgumentsJson
-                )
-            }
-
-            tools
+            database.mcpServerQueries.deleteServer(server.id)
         }
     }
 
@@ -133,25 +84,6 @@ class SqlDelightMcpToolsDb(
             id = row.id,
             name = row.name,
             connection = connection
-        )
-    }
-
-    /**
-     * Converts a SQLDelight McpTool row to a Tool object.
-     */
-    private fun mcpToolRowToTool(row: McpTool): Tool {
-        val argumentsSchema = Json.decodeFromString<Map<String, JsonElement>>(row.arguments_schema)
-        val requiredArguments = if (row.required_arguments != null) {
-            Json.decodeFromString<List<String>>(row.required_arguments)
-        } else {
-            emptyList()
-        }
-
-        return Tool(
-            name = row.name,
-            description = row.description,
-            argumentsSchema = argumentsSchema,
-            requiredArguments = requiredArguments
         )
     }
 }
