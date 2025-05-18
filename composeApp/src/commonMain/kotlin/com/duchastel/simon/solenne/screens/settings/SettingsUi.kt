@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.screens.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.Event
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.State
 import com.duchastel.simon.solenne.ui.components.BackButton
-import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import com.duchastel.simon.solenne.ui.components.GithubSourceFooter
+import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -48,7 +48,10 @@ fun SettingsUi(
             ) {
                 // Model Provider Selector option
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { eventSink(Event.ConfigureAIModelPressed) },
                     elevation = 2.dp,
                 ) {
                     Row(
@@ -56,21 +59,19 @@ fun SettingsUi(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "Configure Model Provider",
+                            text = "Configure AI Models",
                             modifier = Modifier.weight(1f)
                         )
-                        IconButton(onClick = { eventSink(Event.ModelProviderSelectorPressed) }) {
-                            Icon(
-                                Icons.Default.ArrowForward,
-                                contentDescription = "Go to Model Provider"
-                            )
-                        }
+                        Icon(Icons.Default.ArrowForward, contentDescription = null)
                     }
                 }
 
                 // Add MCP option
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { eventSink(Event.AddMCPPressed)},
                     elevation = 2.dp,
                 ) {
                     Row(
@@ -78,12 +79,10 @@ fun SettingsUi(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "Add Model Provider Server",
+                            text = "Configure MCP Servers",
                             modifier = Modifier.weight(1f)
                         )
-                        IconButton(onClick = { eventSink(Event.AddMCPPressed) }) {
-                            Icon(Icons.Default.ArrowForward, contentDescription = "Go to Add MCP")
-                        }
+                        Icon(Icons.Default.ArrowForward, contentDescription = null)
                     }
                 }
 

@@ -24,7 +24,7 @@ class SettingsPresenter @Inject constructor(
                     navigator.pop()
                 }
 
-                is Event.ModelProviderSelectorPressed -> {
+                is Event.ConfigureAIModelPressed -> {
                     navigator.goTo(ModelProviderSelectorScreen)
                 }
 
