@@ -1,6 +1,6 @@
 package com.duchastel.simon.solenne.screens.addmcp
 
-import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.util.expectNoNavigationEvents
 import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import com.slack.circuit.test.FakeNavigator
@@ -114,10 +114,10 @@ class AddMCPPresenterTest {
             // Check server was added with correct values
             val servers = mcpRepository.getServers()
             assertEquals(1, servers.size)
-            assertEquals("Test Server", servers[0].mcpServer.name)
+            assertEquals("Test Server", servers[0].config.name)
             assertEquals(
-                McpServer.Connection.Sse("http://example.com"),
-                servers[0].mcpServer.connection
+                McpServerConfig.Connection.Sse("http://example.com"),
+                servers[0].config.connection
             )
 
             cancelAndConsumeRemainingEvents()

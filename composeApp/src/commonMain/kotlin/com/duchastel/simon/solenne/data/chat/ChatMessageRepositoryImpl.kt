@@ -3,7 +3,7 @@ package com.duchastel.simon.solenne.data.chat
 import com.duchastel.simon.solenne.data.chat.models.ChatConversation
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
-import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.db.chat.ChatMessageDb
 import com.duchastel.simon.solenne.db.chat.DbMessage
 import com.duchastel.simon.solenne.db.chat.DbMessageContent
@@ -83,7 +83,7 @@ class ChatMessageRepositoryImpl @Inject constructor(
     @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
     override suspend fun addToolUseToConversation(
         conversationId: String,
-        mcpServer: McpServer,
+        mcpServer: McpServerConfig,
         toolName: String,
         argumentsSupplied: Map<String, JsonElement>,
     ): ChatMessage? {

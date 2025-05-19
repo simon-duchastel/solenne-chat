@@ -16,33 +16,33 @@ interface McpRepository {
      * those which are currently disconnected, not just those with
      * active connections.
      */
-    fun serverStatusFlow(): Flow<List<McpServerStatus>>
+    fun serverStatusFlow(): Flow<List<McpServer>>
 
     /**
      * Add a new MCP server configuration for a server.
      * This will not connect to the server - that must be
      * done separately through [connect].
      *
-     * Returns [McpServerStatus] of the server was added successfully,
+     * Returns [McpServer] of the server was added successfully,
      * null otherwise.
      */
     suspend fun addServer(
         name: String,
-        connection: McpServer.Connection,
-    ): McpServerStatus?
+        connection: McpServerConfig.Connection,
+    ): McpServerConfig?
 
     /**
      * Connect to the MCP server [server].
      *
-     * Returns [McpServerStatus] if the server was connected successfully,
+     * Returns [McpServer] if the server was connected successfully,
      * null otherwise.
      */
-    suspend fun connect(server: McpServer): McpServerStatus?
+    suspend fun connect(server: McpServerConfig): McpServer?
 
     /**
-     * Disconnect from the MCP server [server].
+     * Disconnect from the MCP server [serverId].
      */
-    suspend fun disconnect(server: McpServer): McpServerStatus?
+    suspend fun disconnect(serverId: String): String?
 
     /**
      * Fetches an updated list of tools available from the MCP server [server].
@@ -52,7 +52,7 @@ interface McpRepository {
      *
      * Returns the list of tools, or null if the tools could not be loaded.
      */
-    suspend fun loadToolsForServer(server: McpServer): List<Tool>?
+    suspend fun loadToolsForServer(server: McpServerConfig): List<Tool>?
 
     /**
      * Call a specific tool on the MCP server [server].
@@ -65,7 +65,7 @@ interface McpRepository {
      * connection to the MCP server could not properly be completed.
      */
     suspend fun callTool(
-        server: McpServer,
+        server: McpServerConfig,
         tool: Tool,
         arguments: Map<String, JsonElement?>,
     ): CallToolResult?

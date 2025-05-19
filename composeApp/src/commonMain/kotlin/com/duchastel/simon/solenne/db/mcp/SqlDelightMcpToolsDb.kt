@@ -3,7 +3,7 @@ package com.duchastel.simon.solenne.db.mcp
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.duchastel.simon.solenne.Database
-import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -23,7 +23,7 @@ class SqlDelightMcpToolsDb(
     private val dispatcher: CoroutineDispatcher = IODispatcher,
 ) : McpToolsDb {
 
-    override fun getAllServers(): Flow<List<McpServer>> {
+    override fun getAllServers(): Flow<List<McpServerConfig>> {
         return database.mcpServerQueries.getAllServers()
             .asFlow()
             .mapToList(dispatcher)
@@ -33,19 +33,19 @@ class SqlDelightMcpToolsDb(
     }
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun addServer(server: McpServer): McpServer {
+    override suspend fun addServer(server: McpServerConfig): McpServerConfig {
         return withContext(dispatcher) {
             val connectionType: String
             val connectionUrl: String?
             val connectionCommand: String?
             when (val connection = server.connection) {
-                is McpServer.Connection.Sse -> {
+                is McpServerConfig.Connection.Sse -> {
                     connectionType = "sse"
                     connectionUrl = connection.url
                     connectionCommand = null
                 }
 
-                is McpServer.Connection.Stdio -> {
+                is McpServerConfig.Connection.Stdio -> {
                     connectionType = "stdio"
                     connectionUrl = null
                     connectionCommand = connection.commandToRun
@@ -64,7 +64,7 @@ class SqlDelightMcpToolsDb(
         }
     }
 
-    override suspend fun deleteServer(server: McpServer) {
+    override suspend fun deleteServer(server: McpServerConfig) {
         withContext(dispatcher) {
             database.mcpServerQueries.deleteServer(server.id)
         }
@@ -73,14 +73,14 @@ class SqlDelightMcpToolsDb(
     /**
      * Converts a SQLDelight McpServer row to an McpServer object.
      */
-    private fun mcpServerRowToMcpServer(row: com.duchastel.simon.solenne.db.McpServer): McpServer {
+    private fun mcpServerRowToMcpServer(row: com.duchastel.simon.solenne.db.McpServer): McpServerConfig {
         val connection = when (row.connection_type) {
-            "sse" -> McpServer.Connection.Sse(row.connection_url!!)
-            "stdio" -> McpServer.Connection.Stdio(row.connection_command!!)
+            "sse" -> McpServerConfig.Connection.Sse(row.connection_url!!)
+            "stdio" -> McpServerConfig.Connection.Stdio(row.connection_command!!)
             else -> throw IllegalArgumentException("Unknown connection type: ${row.connection_type}")
         }
 
-        return McpServer(
+        return McpServerConfig(
             id = row.id,
             name = row.name,
             connection = connection

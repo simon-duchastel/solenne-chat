@@ -5,16 +5,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import com.duchastel.simon.solenne.data.tools.McpRepository
-import com.duchastel.simon.solenne.data.tools.McpServerStatus
+import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.Event
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 
@@ -30,7 +28,7 @@ class MCPListPresenter @Inject constructor(
         val servers by mcpRepository.serverStatusFlow().collectAsState(initial = emptyList())
 
         return MCPListScreen.State(
-            mcpServers = servers.map(McpServerStatus::toUiModel).toPersistentList(),
+            mcpServers = servers.map(McpServer::toUiModel).toPersistentList(),
         ) { event ->
             when (event) {
                 is Event.BackPressed -> {
@@ -38,8 +36,8 @@ class MCPListPresenter @Inject constructor(
                 }
                 is Event.ConnectToServer -> coroutineScope.launch {
                     // TODO - handle and log the unexpected null case
-                    val server = servers.find { it.mcpServer.id == event.server.id } ?: return@launch
-                    mcpRepository.connect(server.mcpServer)
+                    val server = servers.find { it.config.id == event.server.id } ?: return@launch
+                    mcpRepository.connect(server.config)
                 }
                 is Event.AddServerPressed -> {
                     navigator.goTo(AddMCPScreen)
@@ -54,13 +52,13 @@ class MCPListPresenter @Inject constructor(
     }
 }
 
-fun McpServerStatus.toUiModel(): UIMCPServer {
+fun McpServer.toUiModel(): UIMCPServer {
     return UIMCPServer(
-        id = mcpServer.id,
-        name = mcpServer.name,
+        id = config.id,
+        name = config.name,
         status = when (status) {
-            is McpServerStatus.Status.Connected -> UIMCPServer.Status.Connected
-            is McpServerStatus.Status.Offline -> UIMCPServer.Status.Disconnected
+            is McpServer.Status.Connected -> UIMCPServer.Status.Connected
+            is McpServer.Status.Offline -> UIMCPServer.Status.Disconnected
         },
     )
 }

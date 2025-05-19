@@ -47,14 +47,14 @@ internal class McpRepositoryImplTest {
     @Test
     fun `serverStatusFlow - emits after addServer`() = testScope.runTest {
         // add a server
-        val conn = McpServer.Connection.Stdio("cmd")
+        val conn = McpServerConfig.Connection.Stdio("cmd")
         val server = repo.addServer("server1", conn)
 
         repo.serverStatusFlow().test {
             val statuses = awaitItem()
             assertEquals(1, statuses.size)
-            assertEquals(server?.mcpServer, statuses[0].mcpServer)
-            assertTrue(statuses[0].status is McpServerStatus.Status.Offline)
+            assertEquals(server?.config, statuses[0].config)
+            assertTrue(statuses[0].status is McpServer.Status.Offline)
             assertTrue(statuses[0].tools.isEmpty())
 
             cancelAndIgnoreRemainingEvents()
@@ -63,16 +63,16 @@ internal class McpRepositoryImplTest {
 
     @Test
     fun `addServer returns server`() = testScope.runTest {
-        val conn = McpServer.Connection.Sse("url")
+        val conn = McpServerConfig.Connection.Sse("url")
         val server = repo.addServer("srv", conn)
-        assertEquals("srv", server?.mcpServer?.name)
-        assertEquals(conn, server?.mcpServer?.connection)
-        assertTrue(server?.mcpServer?.id?.isNotBlank() == true)
+        assertEquals("srv", server?.config?.name)
+        assertEquals(conn, server?.config?.connection)
+        assertTrue(server?.config?.id?.isNotBlank() == true)
     }
 
     @Test
     fun `loadToolsForServer not connected returns empty`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServer.Connection.Sse("url"))?.mcpServer
+        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))?.config
             ?: error("Failed to add server")
         val tools = repo.loadToolsForServer(server)
         assertTrue(tools?.isEmpty() == true)
@@ -80,7 +80,7 @@ internal class McpRepositoryImplTest {
 
     @Test
     fun `callTool not connected returns null`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServer.Connection.Sse("url"))?.mcpServer
+        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))?.config
             ?: error("Failed to add server")
         val tool = Tool(
             name = "test-tool",
@@ -94,22 +94,22 @@ internal class McpRepositoryImplTest {
 
     @Test
     fun `connect with Stdio does not throw`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServer.Connection.Stdio("cmd"))?.mcpServer
+        val server = repo.addServer("srv", McpServerConfig.Connection.Stdio("cmd"))?.config
             ?: error("Failed to add server")
         repo.connect(server)
         val statuses = repo.serverStatusFlow().first()
         assertTrue(statuses.isNotEmpty())
         val status = statuses.first()
-        assertEquals(McpServerStatus.Status.Offline, status.status)
+        assertEquals(McpServer.Status.Offline, status.status)
     }
 
     @Test
     fun `disconnect without connect does not throw`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServer.Connection.Sse("url"))?.mcpServer
+        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))?.config
             ?: error("Failed to add server")
         val result = repo.disconnect(server)
         // Should return status even if not connected
-        assertEquals(server, result?.mcpServer)
-        assertEquals(McpServerStatus.Status.Offline, result?.status)
+        assertEquals(server, result?.mcpServerConfig)
+        assertEquals(McpServer.Status.Offline, result?.status)
     }
 }

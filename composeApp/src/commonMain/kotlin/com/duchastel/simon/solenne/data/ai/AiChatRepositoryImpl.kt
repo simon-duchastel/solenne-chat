@@ -6,7 +6,7 @@ import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage.ToolUse
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.data.tools.McpRepository
-import com.duchastel.simon.solenne.data.tools.McpServerStatus
+import com.duchastel.simon.solenne.data.tools.McpServer
 import com.duchastel.simon.solenne.data.tools.Tool
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeyDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
@@ -135,13 +135,13 @@ class AiChatRepositoryImpl @Inject constructor(
 
                             val toolUseMessage = chatMessageRepository.addToolUseToConversation(
                                 conversationId = conversationId,
-                                mcpServer = serverToCall.mcpServer,
+                                mcpServer = serverToCall.config,
                                 toolName = toolToCall.name,
                                 argumentsSupplied = message.argumentsSupplied,
                             ) ?: return@collect // if null, we had an error adding the tool message
 
                             val callToolResult = mcpRepository.callTool(
-                                server = serverToCall.mcpServer,
+                                server = serverToCall.config,
                                 tool = toolToCall,
                                 arguments = message.argumentsSupplied,
                             ) ?: return@collect // if null, we had an error calling the tool
@@ -174,7 +174,7 @@ class AiChatRepositoryImpl @Inject constructor(
         .distinctUntilChanged()
         .map { servers ->
             servers
-                .filter { it.status is McpServerStatus.Status.Connected }
+                .filter { it.status is McpServer.Status.Connected }
                 .flatMap { server ->
                     server.tools.map { tool ->
                         // Warning: this has a risk of collisions since two MCP servers
@@ -190,7 +190,7 @@ class AiChatRepositoryImpl @Inject constructor(
  * Helper function to transform the map of tools into a list of [NetworkTool]s that
  * can be passed to the AI model.
  */
-private fun Map<String, Pair<McpServerStatus, Tool>>.toAiTools(): List<NetworkTool> {
+private fun Map<String, Pair<McpServer, Tool>>.toAiTools(): List<NetworkTool> {
     return map { entry ->
         val functionName = entry.key
         val (_, tool) = entry.value

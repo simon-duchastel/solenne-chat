@@ -1,6 +1,10 @@
 package com.duchastel.simon.solenne.data.tools
 
-import com.duchastel.simon.solenne.data.tools.McpServer.Connection
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import com.duchastel.simon.solenne.data.tools.McpServerConfig.Connection
 import com.duchastel.simon.solenne.db.mcp.McpToolsDb
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import com.duchastel.simon.solenne.util.types.Failure
@@ -28,10 +32,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.JsonElement
@@ -51,12 +53,12 @@ class McpRepositoryImpl(
         ioCoroutineScope.launch {
             while (true) {
                 delay(HEARTBEAT_DELAY)
-                clients.map { (server, client) ->
+                mcpServerStatuses.map { (id, status) ->
                     async {
                         wrapMcpServerCall {
-                            client.ping()
+                            status.client?.ping()
                         }.onFailure {
-                            disconnect(server)
+                            disconnect(id)
                         }
                     }
                 }.awaitAll()
@@ -64,54 +66,57 @@ class McpRepositoryImpl(
         }
 
         ioCoroutineScope.launch {
-            mcpToolsDb.getAllServers().first().forEach { server ->
-                connect(server)
-            }
+            mcpToolsDb.getAllServers()
+                .distinctUntilChanged()
+                .collect { serversFromDb ->
+                    serversFromDb.forEach { serverConfigFromDb ->
+                        val existingConnection = mcpServerStatuses[serverConfigFromDb.id]
+                        mcpServerStatuses += (serverConfigFromDb.id to
+                            McpServerStatus(
+                                config = serverConfigFromDb,
+                                client = existingConnection?.client,
+                                tools = existingConnection?.tools ?: emptyList(),
+                            )
+                        )
+
+                        // if this is our first time adding this server,
+                        // try to connect to it
+                        if (existingConnection == null) {
+                            connect(serverConfigFromDb)
+                        }
+                    }
+                }
         }
     }
 
-    override fun serverStatusFlow(): Flow<List<McpServerStatus>> {
-        return combine(
-            mcpToolsDb.getAllServers(),
-            mcpToolsDb.getAllServers().map { servers ->
-                servers.associateWith { server ->
-                    mcpToolsDb.getToolsForServer(server.id).first()
-                }
-            }
-        ) { servers, toolsMap ->
-            servers.map { server ->
-                val status = when {
-                    clients.contains(server) -> McpServerStatus.Status.Connected
-                    else -> McpServerStatus.Status.Offline
-                }
-                val tools = toolsMap[server] ?: emptyList()
-                McpServerStatus(
-                    mcpServer = server,
-                    status = status,
-                    tools = tools,
-                )
-            }
-        }.distinctUntilChanged()
+    override fun serverStatusFlow(): Flow<List<McpServer>> {
+        return snapshotFlow {
+            mcpServerStatuses.values.map { it.toMcpServer() }
+        }
     }
 
     @OptIn(ExperimentalUuidApi::class)
     override suspend fun addServer(
         name: String,
         connection: Connection,
-    ): McpServerStatus? {
-        val server = McpServer(
+    ): McpServerConfig {
+        val server = McpServerConfig(
             id = Uuid.random().toString(),
             name = name,
             connection = connection,
         )
         mcpToolsDb.addServer(server)
 
-        return server.getCurrentStatus()
+        return server
     }
 
-    override suspend fun connect(server: McpServer): McpServerStatus? {
+    override suspend fun connect(server: McpServerConfig): McpServer? {
         // only SSE supported for now
-        if (server.connection !is Connection.Sse) return server.getCurrentStatus()
+        if (server.connection !is Connection.Sse) return mcpServerStatuses[server.id]?.toMcpServer()
+
+        // if we already have an existing connection, don't try to reconnect
+        val existingConnection = mcpServerStatuses[server.id]
+        if (existingConnection?.client != null) return existingConnection.toMcpServer()
 
         val url = server.connection.url
         val sseTransport = SseClientTransport(
@@ -122,7 +127,10 @@ class McpRepositoryImpl(
                 accept(ContentType.Text.EventStream)
             }
         ).apply {
-            onClose { clients -= server }
+            onClose {
+                val connectionToClose = mcpServerStatuses[server.id] ?: return@onClose
+                mcpServerStatuses += (server.id to connectionToClose.copy(client = null))
+            }
         }
 
         val client = Client(clientInfo = clientInfo).apply {
@@ -132,27 +140,35 @@ class McpRepositoryImpl(
             )
         }
 
-        wrapMcpServerCall {
+        val serverStatus = wrapMcpServerCall {
             client.connect(sseTransport)
-            clients += (server to client)
+            val serverStatus = McpServerStatus(
+                config = server,
+                client = client,
+                tools = existingConnection?.tools ?: emptyList(),
+            )
+            mcpServerStatuses += (server.id to serverStatus)
             loadToolsForServer(server)
+            serverStatus
         }
-        return server.getCurrentStatus()
+        return serverStatus.getOrNull()?.toMcpServer()
     }
 
-    override suspend fun disconnect(server: McpServer): McpServerStatus? {
-        val client = clients[server] ?: return server.getCurrentStatus()
+    override suspend fun disconnect(serverId: String): String {
+        val server = mcpServerStatuses[serverId] ?: return serverId
 
         wrapMcpServerCall {
-            client.close()
+            server.client?.close()
         }
-        clients -= server
-        return server.getCurrentStatus()
+        mcpServerStatuses += (serverId to server.copy(client = null))
+        return serverId
     }
 
-    override suspend fun loadToolsForServer(server: McpServer): List<Tool>? {
-        val client = clients[server] ?: return emptyList()
+    override suspend fun loadToolsForServer(server: McpServerConfig): List<Tool>? {
+        val serverInstance = mcpServerStatuses[server.id] ?: return null
+        val client = serverInstance.client ?: return null
         val toolsListResponse = wrapMcpServerCall {
+            // server encodes "no tools" as null, while we encode it as empty list
             client.listTools()?.tools ?: emptyList()
         }
 
@@ -165,19 +181,18 @@ class McpRepositoryImpl(
                 requiredArguments = toolRaw.inputSchema.required ?: emptyList(),
             )
         }
-
-        mcpToolsDb.updateToolsForServer(server.id, toolsParsed)
+        mcpServerStatuses += server.id to serverInstance.copy(tools = toolsParsed)
 
         return toolsParsed
     }
 
     override suspend fun callTool(
-        server: McpServer,
+        server: McpServerConfig,
         tool: Tool,
         arguments: Map<String, JsonElement?>,
     ): CallToolResult? {
         return wrapMcpServerCall {
-            val client = clients[server] ?: error("Not connected to server")
+            val client = mcpServerStatuses[server.id]?.client ?: error("Not connected to server")
             val callToolResultRaw = client.callTool(tool.name, arguments)
             val text = (callToolResultRaw?.content?.get(0) as TextContent).text
                 ?: error("No text returned")
@@ -194,7 +209,7 @@ class McpRepositoryImpl(
      * changes for a given server.
      */
     private fun handleToolChangedForServer(
-        server: McpServer,
+        server: McpServerConfig,
     ): Deferred<Unit> {
         val deferred = CompletableDeferred<Unit>()
         ioCoroutineScope.launch {
@@ -205,14 +220,6 @@ class McpRepositoryImpl(
             }
         }
         return deferred
-    }
-
-    /**
-     * Helper function that gets the status for a given [McpServer], or null
-     * if it can't be found.
-     */
-    private suspend inline fun McpServer.getCurrentStatus(): McpServerStatus? {
-        return serverStatusFlow().first().firstOrNull { it.mcpServer == this }
     }
 
     /**
@@ -252,6 +259,24 @@ class McpRepositoryImpl(
             version = "0.1.0",
         )
 
-        private var clients = mutableMapOf<McpServer, Client>()
+        private var mcpServerStatuses by mutableStateOf(mapOf<String, McpServerStatus>())
+    }
+
+    data class McpServerStatus(
+        val config: McpServerConfig,
+        val client: Client?,
+        val tools: List<Tool>,
+    )
+
+    private fun McpServerStatus.toMcpServer(): McpServer {
+        return McpServer(
+            config = this.config,
+            tools = this.tools,
+            status = if (this.client != null) {
+                McpServer.Status.Connected
+            } else {
+                McpServer.Status.Offline
+            },
+        )
     }
 }

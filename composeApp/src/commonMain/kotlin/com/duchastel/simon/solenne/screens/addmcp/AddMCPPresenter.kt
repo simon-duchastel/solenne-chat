@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.duchastel.simon.solenne.data.tools.McpRepository
-import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -50,7 +50,7 @@ class AddMCPPresenter @Inject constructor(
                 is Event.SavePressed -> {
                     if (isSaveEnabled) {
                         coroutineScope.launch {
-                            val connection = McpServer.Connection.Sse(url = serverUrl)
+                            val connection = McpServerConfig.Connection.Sse(url = serverUrl)
                             mcpRepository.addServer(serverName, connection)
                             navigator.pop()
                         }

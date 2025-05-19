@@ -1,17 +1,12 @@
 package com.duchastel.simon.solenne.data.tools
 
 data class McpServer(
-    val id: String,
-    val name: String,
-    val connection: Connection,
+    val config: McpServerConfig,
+    val status: Status,
+    val tools: List<Tool>,
 ) {
-    sealed interface  Connection {
-        data class Stdio(
-            internal val commandToRun: String,
-        ): Connection
-
-        data class Sse(
-            internal val url: String,
-        ): Connection
+    sealed interface Status {
+        data object Connected : Status
+        data object Offline : Status
     }
 }
