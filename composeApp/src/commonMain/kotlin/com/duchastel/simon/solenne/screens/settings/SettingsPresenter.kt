@@ -1,10 +1,10 @@
 package com.duchastel.simon.solenne.screens.settings
 
 import androidx.compose.runtime.Composable
-import com.duchastel.simon.solenne.util.url.UrlOpener
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.Event
+import com.duchastel.simon.solenne.util.url.UrlOpener
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
@@ -34,6 +34,10 @@ class SettingsPresenter @Inject constructor(
 
                 is Event.ViewSourcePressed -> {
                     urlOpener.launchUrl("https://github.com/simon-duchastel/solenne-chat")
+                }
+
+                is Event.BuyMeACoffeePressed -> {
+                    urlOpener.launchUrl("https://www.buymeacoffee.com/simonduchastel")
                 }
             }
         }

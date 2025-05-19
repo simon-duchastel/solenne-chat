@@ -15,6 +15,7 @@ data object SettingsScreen : Screen {
 
     sealed interface Event : CircuitUiEvent {
         data object BackPressed : Event
+        data object BuyMeACoffeePressed : Event
         data object ViewSourcePressed : Event
         data object ConfigureAIModelPressed : Event
         data object ConfigureMcpPressed : Event

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.Event
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.State
 import com.duchastel.simon.solenne.ui.components.BackButton
+import com.duchastel.simon.solenne.ui.components.BuyMeCoffeeFooter
 import com.duchastel.simon.solenne.ui.components.GithubSourceFooter
 import com.duchastel.simon.solenne.ui.components.SettingsRow
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
@@ -55,6 +56,11 @@ fun SettingsUi(
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                BuyMeCoffeeFooter(
+                    onClick = { eventSink(Event.BuyMeACoffeePressed) },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                )
 
                 GithubSourceFooter(
                     onClick = { eventSink(Event.ViewSourcePressed) },
