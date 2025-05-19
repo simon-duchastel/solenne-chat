@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -41,16 +42,20 @@ fun SettingsUi(
             }
 
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(16.dp)
+                modifier = Modifier.weight(1f)
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
                 SettingsRow(
-                    Modifier.fillMaxWidth().padding(8.dp),
+                    Modifier.fillMaxWidth(),
                     text = "Configure AI Models",
                     onClick = { eventSink(Event.ConfigureAIModelPressed) },
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
                 SettingsRow(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     text = "Configure MCP Servers",
                     onClick = { eventSink(Event.ConfigureMcpPressed) },
                 )
@@ -59,8 +64,10 @@ fun SettingsUi(
 
                 BuyMeCoffeeFooter(
                     onClick = { eventSink(Event.BuyMeACoffeePressed) },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 GithubSourceFooter(
                     onClick = { eventSink(Event.ViewSourcePressed) },
