@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.ui.icons.coffeeIcon
@@ -43,7 +46,6 @@ fun BuyMeCoffeeFooter(
         Text(
             text = "Like this app? Buy Me a Coffee",
             textAlign = TextAlign.Center,
-            color = Color(0xFF333333),
         )
         Spacer(modifier = Modifier.weight(1f))
     }
