@@ -193,10 +193,12 @@ sqldelight {
     databases {
         create("ChatDatabase") {
             packageName.set("com.duchastel.simon.solenne.db.chat")
+            schemaOutputDirectory = file("src/main/sqldelight/com/duchastel/simon/solenne/db/chat")
             generateAsync = true
         }
         create("McpServerDatabase") {
             packageName.set("com.duchastel.simon.solenne.db.mcpserver")
+            schemaOutputDirectory = file("src/main/sqldelight/com/duchastel/simon/solenne/db/mcpserver")
             generateAsync = true
         }
     }

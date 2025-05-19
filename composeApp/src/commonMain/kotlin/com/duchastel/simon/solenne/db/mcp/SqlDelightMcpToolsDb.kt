@@ -3,6 +3,7 @@ package com.duchastel.simon.solenne.db.mcp
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.duchastel.simon.solenne.data.tools.McpServerConfig
+import com.duchastel.simon.solenne.db.mcpserver.McpServer
 import com.duchastel.simon.solenne.db.mcpserver.McpServerDatabase
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
@@ -73,7 +74,7 @@ class SqlDelightMcpToolsDb(
     /**
      * Converts a SQLDelight McpServer row to an McpServer object.
      */
-    private fun mcpServerRowToMcpServer(row: com.duchastel.simon.solenne.db.McpServer): McpServerConfig {
+    private fun mcpServerRowToMcpServer(row: McpServer): McpServerConfig {
         val connection = when (row.connection_type) {
             "sse" -> McpServerConfig.Connection.Sse(row.connection_url!!)
             "stdio" -> McpServerConfig.Connection.Stdio(row.connection_command!!)
