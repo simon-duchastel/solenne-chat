@@ -2,7 +2,6 @@ package com.duchastel.simon.solenne.db.chat
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import com.duchastel.simon.solenne.Database
 import com.duchastel.simon.solenne.db.Message
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
@@ -21,24 +20,24 @@ import kotlin.time.ExperimentalTime
 @Inject
 @OptIn(ExperimentalTime::class)
 class SQLDelightChatDb(
-    private val database: Database,
+    private val database: ChatDatabase,
     private val dispatcher: CoroutineDispatcher = IODispatcher,
 ) : ChatMessageDb {
 
     override fun getConversationIds(): Flow<List<String>> {
-        return database.conversationQueries.getConversations()
+        return database.chatQueries.getConversations()
             .asFlow()
             .mapToList(dispatcher)
     }
 
     override suspend fun createConversation(conversationId: String): String {
         val timestamp = Clock.System.now().toEpochMilliseconds()
-        database.conversationQueries.insertConversation(conversationId, timestamp)
+        database.chatQueries.insertConversation(conversationId, timestamp)
         return conversationId
     }
 
     override fun getMessagesForConversation(conversationId: String): Flow<List<DbMessage>> {
-        return database.messageQueries.getMessagesForConversation(conversationId)
+        return database.chatQueries.getMessagesForConversation(conversationId)
             .asFlow()
             .mapToList(dispatcher)
             .map { messages ->
@@ -49,7 +48,7 @@ class SQLDelightChatDb(
     override suspend fun writeMessage(message: DbMessage): DbMessage {
         when (val content = message.content) {
             is DbMessageContent.Text -> {
-                database.messageQueries.insertMessage(
+                database.chatQueries.insertMessage(
                     id = message.id,
                     conversation_id = message.conversationId,
                     author = message.author,
@@ -65,7 +64,7 @@ class SQLDelightChatDb(
             }
             is DbMessageContent.ToolUse -> {
                 val argumentsJson = Json.encodeToString(content.argumentsSupplied)
-                database.messageQueries.insertMessage(
+                database.chatQueries.insertMessage(
                     id = message.id,
                     conversation_id = message.conversationId,
                     author = message.author,
@@ -90,7 +89,7 @@ class SQLDelightChatDb(
         newContent: DbMessageContent
     ): DbMessage? {
         // Get the current message to check its type
-        val currentMessages = database.messageQueries
+        val currentMessages = database.chatQueries
             .getMessagesForConversation(conversationId)
             .executeAsList()
 
@@ -107,7 +106,7 @@ class SQLDelightChatDb(
 
         when (newContent) {
             is DbMessageContent.Text -> {
-                database.messageQueries.updateTextMessageContent(
+                database.chatQueries.updateTextMessageContent(
                     text_content = newContent.text,
                     id = messageId,
                     conversation_id = conversationId
@@ -115,7 +114,7 @@ class SQLDelightChatDb(
             }
             is DbMessageContent.ToolUse -> {
                 val argumentsJson = Json.encodeToString(newContent.argumentsSupplied)
-                database.messageQueries.updateToolUseMessageContent(
+                database.chatQueries.updateToolUseMessageContent(
                     tool_name = newContent.toolName,
                     mcp_server_id = newContent.mcpServerId,
                     arguments_supplied = argumentsJson,
