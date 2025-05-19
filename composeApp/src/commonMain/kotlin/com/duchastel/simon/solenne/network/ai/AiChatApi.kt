@@ -1,8 +1,8 @@
 package com.duchastel.simon.solenne.network.ai
 
 import com.duchastel.simon.solenne.data.ai.AIModelScope
-import com.duchastel.simon.solenne.util.Failure
-import com.duchastel.simon.solenne.util.SolenneResult
+import com.duchastel.simon.solenne.util.types.Failure
+import com.duchastel.simon.solenne.util.types.SolenneResult
 import kotlinx.coroutines.flow.Flow
 
 /**

@@ -8,11 +8,11 @@ import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.network.ai.Tool
 import com.duchastel.simon.solenne.network.wrapHttpCall
-import com.duchastel.simon.solenne.util.SolenneResult
-import com.duchastel.simon.solenne.util.asFailure
-import com.duchastel.simon.solenne.util.asSuccess
-import com.duchastel.simon.solenne.util.map
-import com.duchastel.simon.solenne.util.onFailure
+import com.duchastel.simon.solenne.util.types.SolenneResult
+import com.duchastel.simon.solenne.util.types.asFailure
+import com.duchastel.simon.solenne.util.types.asSuccess
+import com.duchastel.simon.solenne.util.types.map
+import com.duchastel.simon.solenne.util.types.onFailure
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

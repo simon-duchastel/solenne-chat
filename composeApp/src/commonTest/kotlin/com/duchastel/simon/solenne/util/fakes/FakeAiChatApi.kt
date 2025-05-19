@@ -8,8 +8,8 @@ import com.duchastel.simon.solenne.network.ai.Conversation
 import com.duchastel.simon.solenne.network.ai.ConversationResponse
 import com.duchastel.simon.solenne.network.ai.NetworkMessage
 import com.duchastel.simon.solenne.network.ai.Tool
-import com.duchastel.simon.solenne.util.SolenneResult
-import com.duchastel.simon.solenne.util.asSuccess
+import com.duchastel.simon.solenne.util.types.SolenneResult
+import com.duchastel.simon.solenne.util.types.asSuccess
 
 /**
  * A fake AiChatApi that always returns [fakeResponse], ignoring the request content.

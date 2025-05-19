@@ -16,6 +16,7 @@ import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.BackPressed
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.SendMessage
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event.TextInputChanged
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen
+import com.duchastel.simon.solenne.screens.settings.SettingsScreen
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -55,8 +56,8 @@ class ChatPresenter @Inject constructor(
                 is BackPressed -> {
                     navigator.pop()
                 }
-                is ChatScreen.Event.ToolsPressed -> {
-                    navigator.goTo(MCPListScreen)
+                is ChatScreen.Event.Settings -> {
+                    navigator.goTo(SettingsScreen)
                 }
                 is SendMessage -> coroutineScope.launch {
                     textInput = ""

@@ -18,6 +18,9 @@ import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConf
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorPresenter
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorUi
+import com.duchastel.simon.solenne.screens.settings.SettingsPresenter
+import com.duchastel.simon.solenne.screens.settings.SettingsScreen
+import com.duchastel.simon.solenne.screens.settings.SettingsUi
 import com.duchastel.simon.solenne.screens.splash.SplashPresenter
 import com.duchastel.simon.solenne.screens.splash.SplashScreen
 import com.duchastel.simon.solenne.screens.splash.SplashUi
@@ -38,6 +41,7 @@ interface CircuitProviders {
         modelProviderConfigPresenterFactory: ModelProviderConfigPresenter.Factory,
         mcpListPresenterFactory: MCPListPresenter.Factory,
         addMCPPresenterFactory: AddMCPPresenter.Factory,
+        settingsPresenterFactory: SettingsPresenter.Factory,
         splashPresenterFactory: SplashPresenter.Factory,
     ): Circuit {
         return Circuit.Builder()
@@ -82,6 +86,12 @@ interface CircuitProviders {
             }
             .addUi<AddMCPScreen, AddMCPScreen.State> { state, modifier ->
                 AddMCPUi(state, modifier)
+            }
+            .addPresenter<SettingsScreen, SettingsScreen.State> { _, navigator, _ ->
+                settingsPresenterFactory.create(navigator)
+            }
+            .addUi<SettingsScreen, SettingsScreen.State> { state, modifier ->
+                SettingsUi(state, modifier)
             }
             .build()
     }

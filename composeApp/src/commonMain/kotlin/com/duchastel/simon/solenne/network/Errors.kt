@@ -1,8 +1,8 @@
 package com.duchastel.simon.solenne.network
 
-import com.duchastel.simon.solenne.util.Failure
-import com.duchastel.simon.solenne.util.SolenneResult
-import com.duchastel.simon.solenne.util.Success
+import com.duchastel.simon.solenne.util.types.Failure
+import com.duchastel.simon.solenne.util.types.SolenneResult
+import com.duchastel.simon.solenne.util.types.Success
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.SSEClientException
 import io.modelcontextprotocol.kotlin.sdk.McpError

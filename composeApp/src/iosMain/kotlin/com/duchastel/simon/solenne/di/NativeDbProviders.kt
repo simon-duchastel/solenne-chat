@@ -3,7 +3,6 @@ package com.duchastel.simon.solenne.di
 import com.duchastel.simon.solenne.db.NativeSqlDriverFactory
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
-import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.NSUserDefaultsSettings
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.AppScope
@@ -17,7 +16,6 @@ interface NativeDbProviders {
     @Binds
     fun NativeSqlDriverFactory.bind(): SqlDriverFactory
 
-    @OptIn(ExperimentalSettingsApi::class)
     @Provides
     @AIApiKeySettings
     @SingleIn(AppScope::class)
