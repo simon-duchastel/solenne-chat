@@ -12,13 +12,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SplashUi(state: State, modifier: Modifier = Modifier) {
-    SolenneScaffold(modifier = modifier) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            CircularProgressIndicator()
-        }
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator()
     }
 }
 

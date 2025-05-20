@@ -23,7 +23,6 @@ data class ChatScreen(
     sealed interface Event : CircuitUiEvent {
         data class TextInputChanged(val text: String): Event
         data class SendMessage(val text: String): Event
-        data object Settings : Event
         data object BackPressed : Event
     }
 }

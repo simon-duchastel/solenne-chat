@@ -1,25 +1,18 @@
 package com.duchastel.simon.solenne.screens.chat
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.Event
 import com.duchastel.simon.solenne.screens.chat.ChatScreen.State
-import com.duchastel.simon.solenne.ui.components.BackButton
 import com.duchastel.simon.solenne.ui.components.ChatMessage
 import com.duchastel.simon.solenne.ui.components.MessageInput
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
@@ -33,40 +26,26 @@ fun ChatUi(state: State, modifier: Modifier) {
     val messages = state.messages
     val input = state.textInput
 
-    SolenneScaffold(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BackButton(
-                    modifier = Modifier.padding(8.dp),
-                    onClick = { eventSink(Event.BackPressed) },
-                )
-                Spacer(Modifier.weight(1f))
-                Text("Chat with Gemini")
-                Spacer(Modifier.weight(1f))
-                Button(onClick = { eventSink(Event.Settings) }) {
-                    Text("Settings")
-                }
+    SolenneScaffold(
+        title = "Chat with Gemini",
+        modifier = modifier,
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            reverseLayout = true,
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            items(messages.asReversed()) { message ->
+                ChatMessage(message)
             }
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                reverseLayout = true,
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(messages.asReversed()) { message ->
-                    ChatMessage(message)
-                }
-            }
-            MessageInput(
-                input = input,
-                onInputChange = { newInput -> eventSink(Event.TextInputChanged(newInput)) },
-                onSend = { eventSink(Event.SendMessage(input)) },
-                sendEnabled = state.sendButtonEnabled,
-                modifier = Modifier.fillMaxWidth().padding(8.dp)
-            )
         }
+        MessageInput(
+            input = input,
+            onInputChange = { newInput -> eventSink(Event.TextInputChanged(newInput)) },
+            onSend = { eventSink(Event.SendMessage(input)) },
+            sendEnabled = state.sendButtonEnabled,
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        )
     }
 }
 

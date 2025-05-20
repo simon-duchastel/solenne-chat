@@ -1,24 +1,23 @@
-package com.duchastel.simon.solenne.screens.conversationlist
+package com.duchastel.simon.solenne.screens.topbar
 
 import androidx.compose.runtime.Immutable
 import com.duchastel.simon.solenne.parcel.Parcelize
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import com.slack.circuit.runtime.screen.Screen
-import kotlinx.collections.immutable.PersistentList
 
 @Parcelize
-data object ConversationListScreen: Screen {
-
+data class TopBarScreen(
+    val title: String,
+) : Screen {
     @Immutable
     data class State(
-        val conversations: PersistentList<String>,
+        val title: String,
+        val showBackButton: Boolean,
         val eventSink: (Event) -> Unit = {},
     ) : CircuitUiState
 
     sealed interface Event : CircuitUiEvent {
-        data class ConversationClicked(val conversationId: String) : Event
-        data object NewConversationClicked : Event
-        data object SettingsClicked : Event
+        data object BackPressed : Event
     }
 }
