@@ -1,6 +1,6 @@
 package com.duchastel.simon.solenne.screens.settings
 
-import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
+import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
 import com.duchastel.simon.solenne.util.fakes.FakeUrlOpener
 import com.slack.circuit.test.FakeNavigator
@@ -56,14 +56,14 @@ class SettingsPresenterTest {
     }
     
     @Test
-    fun `present - add MCP pressed event navigates to AddMCPScreen`() = runTest {
+    fun `present - configure MCP pressed event navigates to MCPListScreen`() = runTest {
         presenter.test {
             val state = expectMostRecentItem()
             val eventSink = state.eventSink
             
             eventSink(SettingsScreen.Event.ConfigureMcpPressed)
             
-            assertEquals(AddMCPScreen, navigator.awaitNextScreen())
+            assertEquals(MCPListScreen, navigator.awaitNextScreen())
             cancelAndConsumeRemainingEvents()
         }
     }
