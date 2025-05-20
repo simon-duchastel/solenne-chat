@@ -1,6 +1,7 @@
 package com.duchastel.simon.solenne.data.tools
 
 import app.cash.turbine.test
+import com.duchastel.simon.solenne.util.fakes.FakeMcpToolsDb
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respondOk
@@ -11,8 +12,8 @@ import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 // Ignored because the MCP SDK doesn't have any fakes
 // TODO: add mocks or fakes for the MCP SDK
@@ -20,7 +21,7 @@ import kotlin.test.assertNull
 internal class McpRepositoryImplTest {
 
     private val testScope: TestScope = TestScope()
-
+    private lateinit var fakeMcpToolsDb: FakeMcpToolsDb
     private lateinit var repo: McpRepositoryImpl
 
     @BeforeTest
@@ -30,9 +31,11 @@ internal class McpRepositoryImplTest {
                 addHandler { respondOk() }
             }
         }
+        fakeMcpToolsDb = FakeMcpToolsDb()
         repo = McpRepositoryImpl(
             ioCoroutineScope = testScope,
             httpClient = client,
+            mcpToolsDb = fakeMcpToolsDb,
         )
     }
 
@@ -53,7 +56,7 @@ internal class McpRepositoryImplTest {
         repo.serverStatusFlow().test {
             val statuses = awaitItem()
             assertEquals(1, statuses.size)
-            assertEquals(server?.config, statuses[0].config)
+            assertEquals(server, statuses[0].config)
             assertTrue(statuses[0].status is McpServer.Status.Offline)
             assertTrue(statuses[0].tools.isEmpty())
 
@@ -65,23 +68,24 @@ internal class McpRepositoryImplTest {
     fun `addServer returns server`() = testScope.runTest {
         val conn = McpServerConfig.Connection.Sse("url")
         val server = repo.addServer("srv", conn)
-        assertEquals("srv", server?.config?.name)
-        assertEquals(conn, server?.config?.connection)
-        assertTrue(server?.config?.id?.isNotBlank() == true)
+
+        assertEquals("srv", server.name)
+        assertEquals(conn, server.connection)
+        assertTrue(server.id.isNotBlank())
     }
 
     @Test
     fun `loadToolsForServer not connected returns empty`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))?.config
-            ?: error("Failed to add server")
+        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))
         val tools = repo.loadToolsForServer(server)
+
         assertTrue(tools?.isEmpty() == true)
     }
 
     @Test
     fun `callTool not connected returns null`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))?.config
-            ?: error("Failed to add server")
+        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))
+
         val tool = Tool(
             name = "test-tool",
             description = "Test tool",
@@ -94,8 +98,8 @@ internal class McpRepositoryImplTest {
 
     @Test
     fun `connect with Stdio does not throw`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServerConfig.Connection.Stdio("cmd"))?.config
-            ?: error("Failed to add server")
+        val server = repo.addServer("srv", McpServerConfig.Connection.Stdio("cmd"))
+
         repo.connect(server)
         val statuses = repo.serverStatusFlow().first()
         assertTrue(statuses.isNotEmpty())
@@ -105,11 +109,11 @@ internal class McpRepositoryImplTest {
 
     @Test
     fun `disconnect without connect does not throw`() = testScope.runTest {
-        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))?.config
-            ?: error("Failed to add server")
-        val result = repo.disconnect(server)
+        val server = repo.addServer("srv", McpServerConfig.Connection.Sse("url"))
+
+        val result = repo.disconnect(server.id)
+
         // Should return status even if not connected
-        assertEquals(server, result?.mcpServerConfig)
-        assertEquals(McpServer.Status.Offline, result?.status)
+        assertEquals(server.id, result)
     }
 }

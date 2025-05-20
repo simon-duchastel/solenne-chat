@@ -2,8 +2,8 @@ package com.duchastel.simon.solenne.util.fakes
 
 import com.duchastel.simon.solenne.data.tools.CallToolResult
 import com.duchastel.simon.solenne.data.tools.McpRepository
-import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.data.tools.Tool
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ internal class FakeMcpRepository(
     override suspend fun addServer(
         name: String,
         connection: McpServerConfig.Connection
-    ): McpServerConfig? {
+    ): McpServerConfig {
         val server = McpServerConfig(id = nextId.toString(), name = name, connection = connection)
         nextId++
         val serverStatus = McpServer(
@@ -39,7 +39,7 @@ internal class FakeMcpRepository(
             tools = emptyList()
         )
         _statuses.value += serverStatus
-        return serverStatus
+        return server
     }
 
     override suspend fun connect(server: McpServerConfig): McpServer? {
@@ -59,19 +59,18 @@ internal class FakeMcpRepository(
     }
 
     override suspend fun disconnect(serverId: String): String? {
-        var updatedStatus: McpServer? = null
+        var updatedServerId: String? = null
 
         _statuses.value = _statuses.value.map { status ->
-            if (status.config == serverId) {
-                val newStatus = status.copy(status = McpServer.Status.Offline)
-                updatedStatus = newStatus
-                newStatus
+            if (status.config.id == serverId) {
+                updatedServerId = serverId
+                status.copy(status = McpServer.Status.Offline)
             } else {
                 status
             }
         }
 
-        return updatedStatus
+        return updatedServerId
     }
 
     private val toolsMap = mutableMapOf<McpServerConfig, List<Tool>>()
@@ -85,8 +84,7 @@ internal class FakeMcpRepository(
         tool: Tool,
         arguments: Map<String, JsonElement?>
     ): CallToolResult? {
-        val status = _statuses.value.find { it.config == server }
-            ?: return null
+        val status = _statuses.value.find { it.config == server } ?: return null
 
         if (status.status != McpServer.Status.Connected) {
             return null

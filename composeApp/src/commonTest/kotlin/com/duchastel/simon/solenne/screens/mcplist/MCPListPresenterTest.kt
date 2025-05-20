@@ -1,7 +1,7 @@
 package com.duchastel.simon.solenne.screens.mcplist
 
-import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -32,7 +32,7 @@ class MCPListPresenterTest {
             name = "Connected Server",
             connection = McpServerConfig.Connection.Stdio("test command"),
         ).apply {
-            mcpRepository.connect(this.config) // connect this server to test the connected status
+            mcpRepository.connect(this!!) // connect this server to test the connected status
         }
         mcpRepository.addServer(
             name = "Disconnected Server",
