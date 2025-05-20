@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.db.DbSettings
 import com.duchastel.simon.solenne.db.NativeSqlDriverFactory
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
@@ -21,6 +22,14 @@ interface NativeDbProviders {
     @SingleIn(AppScope::class)
     fun provideAIModelScopeSettings(): ObservableSettings {
         return NSUserDefaultsSettings.Factory()
-            .create(name = "com.duchastel.simon.solenne.di.ObservableSettings")
+            .create(name = "com.duchastel.simon.solenne.di.AIApiKeySettings")
+    }
+
+    @Provides
+    @DbSettings
+    @SingleIn(AppScope::class)
+    fun provideDbSettings(): ObservableSettings {
+        return NSUserDefaultsSettings.Factory()
+            .create(name = "com.duchastel.simon.solenne.di.DbSettings")
     }
 }
