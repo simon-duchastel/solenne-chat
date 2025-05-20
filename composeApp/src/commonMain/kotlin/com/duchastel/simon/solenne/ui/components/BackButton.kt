@@ -19,8 +19,7 @@ fun BackButton(
         imageVector = Icons.AutoMirrored.Default.ArrowBack,
         contentDescription = "Back",
         modifier = modifier
-            .size(48.dp)
+            .size(24.dp)
             .clickable(onClick = onClick)
-            .padding(12.dp)
     )
 }

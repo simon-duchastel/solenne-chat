@@ -7,8 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import com.duchastel.simon.solenne.data.chat.ChatMessageRepository
 import com.duchastel.simon.solenne.screens.chat.ChatScreen
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen.Event
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen.Event.ConversationClicked
 import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen.Event.NewConversationClicked
+import com.duchastel.simon.solenne.screens.conversationlist.ConversationListScreen.Event.SettingsClicked
+import com.duchastel.simon.solenne.screens.settings.SettingsScreen
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
@@ -46,6 +49,9 @@ class ConversationListPresenter @Inject constructor(
                     coroutineScope.launch {
                         chatRepository.createNewConversation()
                     }
+                }
+                is SettingsClicked -> {
+                    navigator.goTo(SettingsScreen)
                 }
             }
         }

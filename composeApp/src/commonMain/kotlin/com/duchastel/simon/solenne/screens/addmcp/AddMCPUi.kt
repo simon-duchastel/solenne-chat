@@ -23,23 +23,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier) {
     val eventSink = state.eventSink
 
-    SolenneScaffold(modifier = modifier) {
+    SolenneScaffold(
+        modifier = modifier,
+        title = "Add MCP Server",
+    ) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BackButton(
-                    modifier = Modifier.padding(8.dp),
-                    onClick = { eventSink(Event.BackPressed) },
-                )
-                Spacer(Modifier.weight(1f))
-                Text("Add MCP Server")
-                Spacer(Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             OutlinedTextField(
                 value = state.serverName,
                 onValueChange = { eventSink(Event.ServerNameChanged(it)) },

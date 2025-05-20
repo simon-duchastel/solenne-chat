@@ -56,9 +56,6 @@ class ChatPresenter @Inject constructor(
                 is BackPressed -> {
                     navigator.pop()
                 }
-                is ChatScreen.Event.Settings -> {
-                    navigator.goTo(SettingsScreen)
-                }
                 is SendMessage -> coroutineScope.launch {
                     textInput = ""
                     aiModelScope ?: return@launch

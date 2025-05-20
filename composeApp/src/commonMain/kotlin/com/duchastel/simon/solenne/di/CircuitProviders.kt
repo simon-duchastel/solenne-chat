@@ -24,6 +24,9 @@ import com.duchastel.simon.solenne.screens.settings.SettingsUi
 import com.duchastel.simon.solenne.screens.splash.SplashPresenter
 import com.duchastel.simon.solenne.screens.splash.SplashScreen
 import com.duchastel.simon.solenne.screens.splash.SplashUi
+import com.duchastel.simon.solenne.screens.topbar.TopBarPresenter
+import com.duchastel.simon.solenne.screens.topbar.TopBarScreen
+import com.duchastel.simon.solenne.screens.topbar.TopBarUi
 import com.slack.circuit.foundation.Circuit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Provides
@@ -43,6 +46,7 @@ interface CircuitProviders {
         addMCPPresenterFactory: AddMCPPresenter.Factory,
         settingsPresenterFactory: SettingsPresenter.Factory,
         splashPresenterFactory: SplashPresenter.Factory,
+        topBarPresenterFactory: TopBarPresenter.Factory,
     ): Circuit {
         return Circuit.Builder()
             .addPresenter<SplashScreen, SplashScreen.State> { _, navigator, _ ->
@@ -92,6 +96,12 @@ interface CircuitProviders {
             }
             .addUi<SettingsScreen, SettingsScreen.State> { state, modifier ->
                 SettingsUi(state, modifier)
+            }
+            .addPresenter<TopBarScreen, TopBarScreen.State> { screen, _, _ ->
+                topBarPresenterFactory.create(screen)
+            }
+            .addUi<TopBarScreen, TopBarScreen.State> { state, modifier ->
+                TopBarUi(state, modifier)
             }
             .build()
     }
