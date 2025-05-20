@@ -195,7 +195,7 @@ sqldelight {
             version = 2
 
             packageName = "com.duchastel.simon.solenne"
-            schemaOutputDirectory = file("src/main/sqldelight/databases")
+            schemaOutputDirectory = file("src/commonMain/sqldelight/databases")
 
             generateAsync = true
             verifyMigrations = true
