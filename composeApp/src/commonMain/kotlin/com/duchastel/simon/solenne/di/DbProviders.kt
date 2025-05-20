@@ -28,11 +28,13 @@ interface DbProviders {
         val sqlDriver = sqlDriverFactory.createSqlDriver()
         val oldDbVersion = settings.getLong(DB_VERSION_PERSISTENCE_KEY, 1)
         return Database(sqlDriver).apply {
-            Database.Schema.migrate(
-                driver = sqlDriver,
-                oldVersion = oldDbVersion,
-                newVersion = 2,
-            )
+            if (oldDbVersion < DB_VERSION_CURRENT) {
+                Database.Schema.migrate(
+                    driver = sqlDriver,
+                    oldVersion = oldDbVersion,
+                    newVersion = DB_VERSION_CURRENT,
+                )
+            }
             settings.putLong(DB_VERSION_PERSISTENCE_KEY, DB_VERSION_CURRENT)
         }
     }
