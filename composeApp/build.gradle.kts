@@ -191,15 +191,14 @@ compose.desktop {
 
 sqldelight {
     databases {
-        create("ChatDatabase") {
-            packageName.set("com.duchastel.simon.solenne.db.chat")
-            schemaOutputDirectory = file("src/main/sqldelight/com/duchastel/simon/solenne/db/chat")
+        create("Database") {
+            version = 2
+
+            packageName = "com.duchastel.simon.solenne"
+            schemaOutputDirectory = file("src/main/sqldelight/databases")
+
             generateAsync = true
-        }
-        create("McpServerDatabase") {
-            packageName.set("com.duchastel.simon.solenne.db.mcpserver")
-            schemaOutputDirectory = file("src/main/sqldelight/com/duchastel/simon/solenne/db/mcpserver")
-            generateAsync = true
+            verifyMigrations = true
         }
     }
 }

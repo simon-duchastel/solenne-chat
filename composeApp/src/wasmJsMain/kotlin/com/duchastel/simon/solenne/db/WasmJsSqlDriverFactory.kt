@@ -2,22 +2,15 @@ package com.duchastel.simon.solenne.db
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.worker.WebWorkerDriver
-import com.duchastel.simon.solenne.ChatDatabase
-import com.duchastel.simon.solenne.McpServerDatabase
+import com.duchastel.simon.solenne.Database
 import dev.zacsweers.metro.Inject
 import org.w3c.dom.Worker
 
 @Inject
 class WasmJsSqlDriverFactory : SqlDriverFactory {
-    override fun createChatSqlDriver(): SqlDriver {
+    override fun createSqlDriver(): SqlDriver {
         return WebWorkerDriver(Worker(sqlWorkerUrl)).also {
-            ChatDatabase.Schema.create(it)
-        }
-    }
-
-    override fun createMcpServerSqlDriver(): SqlDriver {
-        return WebWorkerDriver(Worker(sqlWorkerUrl)).also {
-            McpServerDatabase.Schema.create(it)
+            Database.Schema.create(it)
         }
     }
 }

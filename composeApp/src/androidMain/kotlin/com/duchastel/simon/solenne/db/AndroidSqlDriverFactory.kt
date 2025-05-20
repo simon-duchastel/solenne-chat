@@ -4,25 +4,16 @@ import android.content.Context
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.duchastel.simon.solenne.db.chat.ChatDatabase
-import com.duchastel.simon.solenne.db.mcpserver.McpServerDatabase
+import com.duchastel.simon.solenne.Database
 import dev.zacsweers.metro.Inject
 
 @Inject
 class AndroidSqlDriverFactory(private val context: Context) : SqlDriverFactory {
-    override fun createChatSqlDriver(): SqlDriver {
+    override fun createSqlDriver(): SqlDriver {
         return AndroidSqliteDriver(
-            schema = ChatDatabase.Schema.synchronous(),
+            schema = Database.Schema.synchronous(),
             context = context,
-            name = SqlDriverFactory.CHAT_DB_NAME,
-        )
-    }
-
-    override fun createMcpServerSqlDriver(): SqlDriver {
-        return AndroidSqliteDriver(
-            schema = McpServerDatabase.Schema.synchronous(),
-            context = context,
-            name = SqlDriverFactory.MCP_SERVER_DB_NAME,
+            name = SqlDriverFactory.DB_NAME,
         )
     }
 }
