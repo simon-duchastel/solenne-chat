@@ -3,7 +3,7 @@ package com.duchastel.simon.solenne.util.fakes
 import com.duchastel.simon.solenne.data.tools.CallToolResult
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServer
-import com.duchastel.simon.solenne.data.tools.McpServerStatus
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.data.tools.Tool
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,35 +19,35 @@ internal class FakeMcpRepository(
         isError = false
     )
 ) : McpRepository {
-    private val _statuses = MutableStateFlow<List<McpServerStatus>>(emptyList())
-    override fun serverStatusFlow(): Flow<List<McpServerStatus>> = _statuses
+    private val _statuses = MutableStateFlow<List<McpServer>>(emptyList())
+    override fun serverStatusFlow(): Flow<List<McpServer>> = _statuses
 
     private var nextId = 1
 
     // Helper method for tests to get current servers
-    fun getServers(): List<McpServerStatus> = _statuses.value
+    fun getServers(): List<McpServer> = _statuses.value
 
     override suspend fun addServer(
         name: String,
-        connection: McpServer.Connection
-    ): McpServerStatus {
-        val server = McpServer(id = nextId.toString(), name = name, connection = connection)
+        connection: McpServerConfig.Connection
+    ): McpServerConfig {
+        val server = McpServerConfig(id = nextId.toString(), name = name, connection = connection)
         nextId++
-        val serverStatus = McpServerStatus(
-            mcpServer = server,
-            status = McpServerStatus.Status.Offline,
+        val serverStatus = McpServer(
+            config = server,
+            status = McpServer.Status.Offline,
             tools = emptyList()
         )
         _statuses.value += serverStatus
-        return serverStatus
+        return server
     }
 
-    override suspend fun connect(server: McpServer): McpServerStatus? {
-        var updatedStatus: McpServerStatus? = null
+    override suspend fun connect(server: McpServerConfig): McpServer? {
+        var updatedStatus: McpServer? = null
 
         _statuses.value = _statuses.value.map { status ->
-            if (status.mcpServer == server) {
-                val newStatus = status.copy(status = McpServerStatus.Status.Connected)
+            if (status.config == server) {
+                val newStatus = status.copy(status = McpServer.Status.Connected)
                 updatedStatus = newStatus
                 newStatus
             } else {
@@ -58,37 +58,35 @@ internal class FakeMcpRepository(
         return updatedStatus
     }
 
-    override suspend fun disconnect(server: McpServer): McpServerStatus? {
-        var updatedStatus: McpServerStatus? = null
+    override suspend fun disconnect(serverId: String): String? {
+        var updatedServerId: String? = null
 
         _statuses.value = _statuses.value.map { status ->
-            if (status.mcpServer == server) {
-                val newStatus = status.copy(status = McpServerStatus.Status.Offline)
-                updatedStatus = newStatus
-                newStatus
+            if (status.config.id == serverId) {
+                updatedServerId = serverId
+                status.copy(status = McpServer.Status.Offline)
             } else {
                 status
             }
         }
 
-        return updatedStatus
+        return updatedServerId
     }
 
-    private val toolsMap = mutableMapOf<McpServer, List<Tool>>()
+    private val toolsMap = mutableMapOf<McpServerConfig, List<Tool>>()
 
-    override suspend fun loadToolsForServer(server: McpServer): List<Tool>? {
+    override suspend fun loadToolsForServer(server: McpServerConfig): List<Tool>? {
         return toolsMap[server]
     }
 
     override suspend fun callTool(
-        server: McpServer,
+        server: McpServerConfig,
         tool: Tool,
         arguments: Map<String, JsonElement?>
     ): CallToolResult? {
-        val status = _statuses.value.find { it.mcpServer == server }
-            ?: return null
+        val status = _statuses.value.find { it.config == server } ?: return null
 
-        if (status.status != McpServerStatus.Status.Connected) {
+        if (status.status != McpServer.Status.Connected) {
             return null
         }
 

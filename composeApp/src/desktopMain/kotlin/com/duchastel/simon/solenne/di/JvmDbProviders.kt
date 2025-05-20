@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.db.DbSettings
 import com.duchastel.simon.solenne.db.JvmSqlDriverFactory
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
@@ -20,6 +21,14 @@ interface JvmDbProviders {
     @SingleIn(AppScope::class)
     fun provideAIModelScopeSettings(): ObservableSettings {
         return PreferencesSettings.Factory()
-            .create("com.duchastel.simon.solenne.di.ObservableSettings")
+            .create("com.duchastel.simon.solenne.di.AIApiKeySettings")
+    }
+
+    @Provides
+    @DbSettings
+    @SingleIn(AppScope::class)
+    fun provideDbSettings(): ObservableSettings {
+        return PreferencesSettings.Factory()
+            .create("com.duchastel.simon.solenne.di.DbSettings")
     }
 }

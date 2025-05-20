@@ -1,3 +1,4 @@
+-- Conversation table
 CREATE TABLE Conversation (
   id TEXT PRIMARY KEY NOT NULL,
   created_at INTEGER NOT NULL

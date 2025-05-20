@@ -1,7 +1,7 @@
 package com.duchastel.simon.solenne.screens.mcplist
 
 import com.duchastel.simon.solenne.data.tools.McpServer
-import com.duchastel.simon.solenne.data.tools.McpServerStatus
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -30,13 +30,13 @@ class MCPListPresenterTest {
     fun `present - emits list of MCP servers`() = runTest {
         mcpRepository.addServer(
             name = "Connected Server",
-            connection = McpServer.Connection.Stdio("test command"),
+            connection = McpServerConfig.Connection.Stdio("test command"),
         ).apply {
-            mcpRepository.connect(this.mcpServer) // connect this server to test the connected status
+            mcpRepository.connect(this!!) // connect this server to test the connected status
         }
         mcpRepository.addServer(
             name = "Disconnected Server",
-            connection = McpServer.Connection.Stdio("test command"),
+            connection = McpServerConfig.Connection.Stdio("test command"),
         )
 
         presenter.test {
@@ -67,7 +67,7 @@ class MCPListPresenterTest {
     fun `present - connect to server calls repository connect`() = runTest {
         mcpRepository.addServer(
             name = "Test Server",
-            connection = McpServer.Connection.Stdio("test command"),
+            connection = McpServerConfig.Connection.Stdio("test command"),
         )
 
         presenter.test {
@@ -85,14 +85,14 @@ class MCPListPresenterTest {
     @Test
     fun `toUiModel - correctly maps McpServerStatus to UIMCPServer`() = runTest {
         // Test Connected status
-        val connectedServer = McpServer(
+        val connectedServer = McpServerConfig(
             id = "test-id-1",
             name = "Connected Test Server",
-            connection = McpServer.Connection.Stdio("test command")
+            connection = McpServerConfig.Connection.Stdio("test command")
         )
-        val connectedStatus = McpServerStatus(
-            mcpServer = connectedServer,
-            status = McpServerStatus.Status.Connected,
+        val connectedStatus = McpServer(
+            config = connectedServer,
+            status = McpServer.Status.Connected,
             tools = emptyList()
         )
 
@@ -102,14 +102,14 @@ class MCPListPresenterTest {
         assertEquals(UIMCPServer.Status.Connected, connectedUiModel.status)
 
         // Test Offline status
-        val offlineServer = McpServer(
+        val offlineServer = McpServerConfig(
             id = "test-id-2",
             name = "Offline Test Server",
-            connection = McpServer.Connection.Stdio("test command")
+            connection = McpServerConfig.Connection.Stdio("test command")
         )
-        val offlineStatus = McpServerStatus(
-            mcpServer = offlineServer,
-            status = McpServerStatus.Status.Offline,
+        val offlineStatus = McpServer(
+            config = offlineServer,
+            status = McpServer.Status.Offline,
             tools = emptyList()
         )
 

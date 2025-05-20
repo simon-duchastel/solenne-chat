@@ -8,8 +8,8 @@ import java.io.File
 
 @Inject
 class JvmSqlDriverFactory : SqlDriverFactory {
-    override fun createDriver(): SqlDriver {
-        val databasePath = File(System.getProperty("user.home"), "solenne.db")
+    override fun createSqlDriver(): SqlDriver {
+        val databasePath = File(System.getProperty("user.home"), SqlDriverFactory.DB_NAME)
         return JdbcSqliteDriver(url = "jdbc:sqlite:${databasePath.absolutePath}").apply {
             Database.Schema.create(this)
         }

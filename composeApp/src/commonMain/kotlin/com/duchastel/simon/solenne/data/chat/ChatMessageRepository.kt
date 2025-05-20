@@ -3,7 +3,7 @@ package com.duchastel.simon.solenne.data.chat
 import com.duchastel.simon.solenne.data.chat.models.ChatConversation
 import com.duchastel.simon.solenne.data.chat.models.ChatMessage
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
-import com.duchastel.simon.solenne.data.tools.McpServer
+import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonElement
 
@@ -57,7 +57,7 @@ interface ChatMessageRepository {
      */
     suspend fun addToolUseToConversation(
         conversationId: String,
-        mcpServer: McpServer,
+        mcpServer: McpServerConfig,
         toolName: String,
         argumentsSupplied: Map<String, JsonElement>,
     ): ChatMessage?

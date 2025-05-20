@@ -1,0 +1,9 @@
+-- McpServer table
+CREATE TABLE McpServer (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  connection_type TEXT NOT NULL, -- "sse" or "stdio"
+  connection_url TEXT, -- for SSE connections
+  connection_command TEXT, -- for stdio connections
+  created_at INTEGER NOT NULL
+);

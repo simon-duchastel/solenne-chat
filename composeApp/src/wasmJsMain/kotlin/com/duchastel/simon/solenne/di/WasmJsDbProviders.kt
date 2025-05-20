@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.di
 
+import com.duchastel.simon.solenne.db.DbSettings
 import com.duchastel.simon.solenne.db.SqlDriverFactory
 import com.duchastel.simon.solenne.db.WasmJsSqlDriverFactory
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
@@ -23,6 +24,14 @@ interface WasmJsDbProviders {
     @AIApiKeySettings
     @SingleIn(AppScope::class)
     fun provideAIModelScopeSettings(): ObservableSettings {
+        return StorageSettings().makeObservable()
+    }
+
+    @OptIn(ExperimentalSettingsApi::class)
+    @Provides
+    @DbSettings
+    @SingleIn(AppScope::class)
+    fun provideDbSettings(): ObservableSettings {
         return StorageSettings().makeObservable()
     }
 }

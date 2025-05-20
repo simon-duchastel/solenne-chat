@@ -6,7 +6,7 @@ CREATE TABLE Message (
   timestamp INTEGER NOT NULL,
   content_type TEXT NOT NULL, -- "text" or "tool_use"
   text_content TEXT,
-  tool_name TEXT, 
+  tool_name TEXT,
   mcp_server_id TEXT,
   arguments_supplied TEXT, -- JSON string
   result_text TEXT,
@@ -25,8 +25,8 @@ ORDER BY timestamp ASC;
 -- Insert a message
 insertMessage:
 INSERT INTO Message (
-  id, conversation_id, author, timestamp, 
-  content_type, text_content, tool_name, mcp_server_id, 
+  id, conversation_id, author, timestamp,
+  content_type, text_content, tool_name, mcp_server_id,
   arguments_supplied, result_text, result_is_error
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);

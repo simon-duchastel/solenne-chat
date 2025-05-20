@@ -9,11 +9,11 @@ import dev.zacsweers.metro.Inject
 
 @Inject
 class AndroidSqlDriverFactory(private val context: Context) : SqlDriverFactory {
-    override fun createDriver(): SqlDriver {
+    override fun createSqlDriver(): SqlDriver {
         return AndroidSqliteDriver(
             schema = Database.Schema.synchronous(),
             context = context,
-            name = "solenne.db"
+            name = SqlDriverFactory.DB_NAME,
         )
     }
 }

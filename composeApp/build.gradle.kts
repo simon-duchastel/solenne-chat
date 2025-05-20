@@ -192,8 +192,13 @@ compose.desktop {
 sqldelight {
     databases {
         create("Database") {
-            packageName.set("com.duchastel.simon.solenne")
+            version = 2
+
+            packageName = "com.duchastel.simon.solenne"
+            schemaOutputDirectory = file("src/commonMain/sqldelight/databases")
+
             generateAsync = true
+            verifyMigrations = true
         }
     }
 }
