@@ -2,6 +2,7 @@ package com.duchastel.simon.solenne.screens.settings
 
 import androidx.compose.runtime.Composable
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
+import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen
 import com.duchastel.simon.solenne.screens.modelproviderselector.ModelProviderSelectorScreen
 import com.duchastel.simon.solenne.screens.settings.SettingsScreen.Event
 import com.duchastel.simon.solenne.util.url.UrlOpener
@@ -29,7 +30,7 @@ class SettingsPresenter @Inject constructor(
                 }
 
                 is Event.ConfigureMcpPressed -> {
-                    navigator.goTo(AddMCPScreen)
+                    navigator.goTo(MCPListScreen)
                 }
 
                 is Event.ViewSourcePressed -> {
