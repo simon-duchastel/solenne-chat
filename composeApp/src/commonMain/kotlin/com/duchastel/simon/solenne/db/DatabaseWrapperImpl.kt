@@ -1,6 +1,5 @@
 package com.duchastel.simon.solenne.db
 
-import app.cash.sqldelight.db.SqlDriver
 import com.duchastel.simon.solenne.Database
 import com.duchastel.simon.solenne.db.SqlDriverFactory.Companion.DB_VERSION_CURRENT
 import com.duchastel.simon.solenne.db.SqlDriverFactory.Companion.DB_VERSION_PERSISTENCE_KEY
@@ -15,19 +14,17 @@ class DatabaseWrapperImpl(
     @DbSettings private val settings: ObservableSettings,
 ): DatabaseWrapper {
 
-    private var db: Database? = null
-
-    private val mutex = Mutex()
-
     private suspend fun initDatabase(): Database {
         val sqlDriver = driverFactory.createSqlDriver()
-        val oldDbVersion = settings.getLong(DB_VERSION_PERSISTENCE_KEY, 1)
+        val oldDbVersion = settings.getLongOrNull(DB_VERSION_PERSISTENCE_KEY)
         return Database(sqlDriver).apply {
-            Database.Schema.migrate(
-                driver = sqlDriver,
-                oldVersion = oldDbVersion,
-                newVersion = 2,
-            )
+            if (oldDbVersion != null && oldDbVersion < DB_VERSION_CURRENT) {
+                Database.Schema.migrate(
+                    driver = sqlDriver,
+                    oldVersion = oldDbVersion,
+                    newVersion = DB_VERSION_CURRENT,
+                )
+            }
             settings.putLong(DB_VERSION_PERSISTENCE_KEY, DB_VERSION_CURRENT)
         }
     }
@@ -40,5 +37,10 @@ class DatabaseWrapperImpl(
         }
 
         return db!!.block()
+    }
+
+    companion object {
+        private var db: Database? = null
+        private val mutex = Mutex()
     }
 }

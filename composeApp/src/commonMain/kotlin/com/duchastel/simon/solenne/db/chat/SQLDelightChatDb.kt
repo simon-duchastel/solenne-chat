@@ -8,7 +8,10 @@ import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlin.time.Clock
@@ -26,62 +29,79 @@ class SQLDelightChatDb(
 ) : ChatMessageDb {
 
     override fun getConversationIds(): Flow<List<String>> {
-        return database.conversationQueries.getConversations()
-            .asFlow()
-            .mapToList(dispatcher)
+        return flow {
+            val conversationFlow = database
+                .execute { conversationQueries.getConversations() }
+                .asFlow()
+                .mapToList(dispatcher)
+            emitAll(conversationFlow)
+        }
     }
 
     override suspend fun createConversation(conversationId: String): String {
         val timestamp = Clock.System.now().toEpochMilliseconds()
-        database.conversationQueries.insertConversation(conversationId, timestamp)
+        withContext(dispatcher) {
+            database.execute { conversationQueries.insertConversation(conversationId, timestamp) }
+        }
         return conversationId
     }
 
     override fun getMessagesForConversation(conversationId: String): Flow<List<DbMessage>> {
-        return database.messageQueries.getMessagesForConversation(conversationId)
-            .asFlow()
-            .mapToList(dispatcher)
-            .map { messages ->
-                messages.map { message -> messageToDbMessage(message) }
-            }
+        return flow {
+            val messagesFlow = database
+                .execute { messageQueries.getMessagesForConversation(conversationId) }
+                .asFlow()
+                .mapToList(dispatcher)
+                .map { messages ->
+                    messages.map { message -> messageToDbMessage(message) }
+                }
+            emitAll(messagesFlow)
+        }
     }
 
     override suspend fun writeMessage(message: DbMessage): DbMessage {
-        when (val content = message.content) {
-            is DbMessageContent.Text -> {
-                database.messageQueries.insertMessage(
-                    id = message.id,
-                    conversation_id = message.conversationId,
-                    author = message.author,
-                    timestamp = message.timestamp,
-                    content_type = "text",
-                    text_content = content.text,
-                    tool_name = null,
-                    mcp_server_id = null,
-                    arguments_supplied = null,
-                    result_text = null,
-                    result_is_error = null
-                )
-            }
-            is DbMessageContent.ToolUse -> {
-                val argumentsJson = Json.encodeToString(content.argumentsSupplied)
-                database.messageQueries.insertMessage(
-                    id = message.id,
-                    conversation_id = message.conversationId,
-                    author = message.author,
-                    timestamp = message.timestamp,
-                    content_type = "tool_use",
-                    text_content = null,
-                    tool_name = content.toolName,
-                    mcp_server_id = content.mcpServerId,
-                    arguments_supplied = argumentsJson,
-                    result_text = content.result?.text,
-                    result_is_error = content.result?.isError?.let { if (it) 1L else 0L }
-                )
-            }
-        }
+        return withContext(dispatcher) {
+            when (val content = message.content) {
+                is DbMessageContent.Text -> {
+                    database.execute {
+                        messageQueries.insertMessage(
+                            id = message.id,
+                            conversation_id = message.conversationId,
+                            author = message.author,
+                            timestamp = message.timestamp,
+                            content_type = "text",
+                            text_content = content.text,
+                            tool_name = null,
+                            mcp_server_id = null,
+                            arguments_supplied = null,
+                            result_text = null,
+                            result_is_error = null
+                        )
+                    }
+                }
 
-        return message
+                is DbMessageContent.ToolUse -> {
+                    val argumentsJson = Json.encodeToString(content.argumentsSupplied)
+                    database.execute {
+                        messageQueries.insertMessage(
+                            id = message.id,
+                            conversation_id = message.conversationId,
+                            author = message.author,
+                            timestamp = message.timestamp,
+                            content_type = "tool_use",
+                            text_content = null,
+                            tool_name = content.toolName,
+                            mcp_server_id = content.mcpServerId,
+                            arguments_supplied = argumentsJson,
+                            result_text = content.result?.text,
+                            result_is_error = content.result?.isError?.let { if (it) 1L else 0L }
+                        )
+                    }
+                }
+            }
+
+            message
+        }
     }
 
     override suspend fun updateMessageContent(
@@ -89,56 +109,61 @@ class SQLDelightChatDb(
         conversationId: String,
         newContent: DbMessageContent
     ): DbMessage? {
-        // Get the current message to check its type
-        val currentMessages = database.messageQueries
-            .getMessagesForConversation(conversationId)
-            .executeAsList()
+        return withContext(dispatcher) {
+            // Get the current message to check its type
+            val currentMessages = database
+                .execute { messageQueries.getMessagesForConversation(conversationId) }
+                .executeAsList()
 
-        val currentMessage = currentMessages
-            .find { it.id == messageId }
-            ?.let { messageToDbMessage(it) }
-            ?: return null
+            val currentMessage = currentMessages
+                .find { it.id == messageId }
+                ?.let { messageToDbMessage(it) }
+                ?: return@withContext null
 
-        // Ensure content types match
-        if ((currentMessage.content is DbMessageContent.Text && newContent !is DbMessageContent.Text) ||
-            (currentMessage.content is DbMessageContent.ToolUse && newContent !is DbMessageContent.ToolUse)) {
-            return null
-        }
-
-        when (newContent) {
-            is DbMessageContent.Text -> {
-                database.messageQueries.updateTextMessageContent(
-                    text_content = newContent.text,
-                    id = messageId,
-                    conversation_id = conversationId
-                )
+            // Ensure content types match
+            if ((currentMessage.content is DbMessageContent.Text && newContent !is DbMessageContent.Text) ||
+                (currentMessage.content is DbMessageContent.ToolUse && newContent !is DbMessageContent.ToolUse)
+            ) {
+                return@withContext null
             }
-            is DbMessageContent.ToolUse -> {
-                val argumentsJson = Json.encodeToString(newContent.argumentsSupplied)
-                database.messageQueries.updateToolUseMessageContent(
-                    tool_name = newContent.toolName,
-                    mcp_server_id = newContent.mcpServerId,
-                    arguments_supplied = argumentsJson,
-                    result_text = newContent.result?.text,
-                    result_is_error = newContent.result?.isError?.let { if (it) 1L else 0L },
-                    id = messageId,
-                    conversation_id = conversationId
-                )
-            }
-        }
 
-        return DbMessage(
-            id = currentMessage.id,
-            conversationId = currentMessage.conversationId,
-            author = currentMessage.author,
-            timestamp = currentMessage.timestamp,
-            content = newContent
-        )
+            when (newContent) {
+                is DbMessageContent.Text -> {
+                    database.execute {
+                        messageQueries.updateTextMessageContent(
+                            text_content = newContent.text,
+                            id = messageId,
+                            conversation_id = conversationId
+                        )
+                    }
+                }
+
+                is DbMessageContent.ToolUse -> {
+                    val argumentsJson = Json.encodeToString(newContent.argumentsSupplied)
+                    database.execute {
+                        messageQueries.updateToolUseMessageContent(
+                            tool_name = newContent.toolName,
+                            mcp_server_id = newContent.mcpServerId,
+                            arguments_supplied = argumentsJson,
+                            result_text = newContent.result?.text,
+                            result_is_error = newContent.result?.isError?.let { if (it) 1L else 0L },
+                            id = messageId,
+                            conversation_id = conversationId
+                        )
+                    }
+                }
+            }
+
+            DbMessage(
+                id = currentMessage.id,
+                conversationId = currentMessage.conversationId,
+                author = currentMessage.author,
+                timestamp = currentMessage.timestamp,
+                content = newContent
+            )
+        }
     }
 
-    /**
-     * Converts a SQLDelight Message row to a DbMessage.
-     */
     private fun messageToDbMessage(message: Message): DbMessage {
         val dbContent = when (message.content_type) {
             "text" -> DbMessageContent.Text(message.text_content!!)
