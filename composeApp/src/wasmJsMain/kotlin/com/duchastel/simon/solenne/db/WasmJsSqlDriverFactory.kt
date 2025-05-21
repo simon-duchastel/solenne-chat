@@ -8,10 +8,11 @@ import org.w3c.dom.Worker
 
 @Inject
 class WasmJsSqlDriverFactory : SqlDriverFactory {
-    override fun createSqlDriver(): SqlDriver {
-        return WebWorkerDriver(Worker(sqlWorkerUrl)).also {
-            Database.Schema.create(it)
-        }
+    override suspend fun createSqlDriver(): SqlDriver {
+        val driver = WebWorkerDriver(Worker(sqlWorkerUrl))
+        Database.Schema.create(driver).await()
+
+        return driver
     }
 }
 

@@ -10,17 +10,15 @@ import java.util.Properties
 
 @Inject
 class JvmSqlDriverFactory : SqlDriverFactory {
-    override fun createSqlDriver(): SqlDriver {
+    override suspend fun createSqlDriver(): SqlDriver {
         val databasePath = File(System.getProperty("user.home"), SqlDriverFactory.DB_NAME)
         val databaseAlreadyExists = databasePath.exists()
         return JdbcSqliteDriver(
             url = "jdbc:sqlite:${databasePath.absolutePath}",
             properties = Properties(),
         ).apply {
-            runBlocking {
-                if (!databaseAlreadyExists) {
-                    Database.Schema.create(this@apply).await()
-                }
+            if (!databaseAlreadyExists) {
+                Database.Schema.create(this@apply).await()
             }
         }
     }

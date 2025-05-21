@@ -2,7 +2,7 @@ package com.duchastel.simon.solenne.db.chat
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import com.duchastel.simon.solenne.Database
+import com.duchastel.simon.solenne.db.DatabaseWrapper
 import com.duchastel.simon.solenne.db.Message
 import com.duchastel.simon.solenne.dispatchers.IODispatcher
 import dev.zacsweers.metro.Inject
@@ -21,7 +21,7 @@ import kotlin.time.ExperimentalTime
 @Inject
 @OptIn(ExperimentalTime::class)
 class SQLDelightChatDb(
-    private val database: Database,
+    private val database: DatabaseWrapper,
     private val dispatcher: CoroutineDispatcher = IODispatcher,
 ) : ChatMessageDb {
 

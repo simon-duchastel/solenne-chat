@@ -1,10 +1,10 @@
 package com.duchastel.simon.solenne.di
 
 import com.duchastel.simon.solenne.Database
+import com.duchastel.simon.solenne.db.DatabaseWrapper
+import com.duchastel.simon.solenne.db.DatabaseWrapperImpl
 import com.duchastel.simon.solenne.db.DbSettings
 import com.duchastel.simon.solenne.db.SqlDriverFactory
-import com.duchastel.simon.solenne.db.SqlDriverFactory.Companion.DB_VERSION_CURRENT
-import com.duchastel.simon.solenne.db.SqlDriverFactory.Companion.DB_VERSION_PERSISTENCE_KEY
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeyDb
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettings
 import com.duchastel.simon.solenne.db.aiapikey.AIApiKeySettingsImpl
@@ -21,34 +21,18 @@ interface DbProviders {
 
     @SingleIn(AppScope::class)
     @Provides
-    fun provideDatabase(
-        sqlDriverFactory: SqlDriverFactory,
-        @DbSettings settings: ObservableSettings,
-    ): Database {
-        val sqlDriver = sqlDriverFactory.createSqlDriver()
-        val oldDbVersion = settings.getLong(DB_VERSION_PERSISTENCE_KEY, 1)
-        return Database(sqlDriver).apply {
-            if (oldDbVersion < DB_VERSION_CURRENT) {
-                Database.Schema.migrate(
-                    driver = sqlDriver,
-                    oldVersion = oldDbVersion,
-                    newVersion = DB_VERSION_CURRENT,
-                )
-            }
-            settings.putLong(DB_VERSION_PERSISTENCE_KEY, DB_VERSION_CURRENT)
-        }
+    fun DatabaseWrapperImpl.bind(): DatabaseWrapper
+
+    @SingleIn(AppScope::class)
+    @Provides
+    fun provideChatMessageDb(databaseWrapper: DatabaseWrapper): ChatMessageDb {
+        return SQLDelightChatDb(databaseWrapper)
     }
 
     @SingleIn(AppScope::class)
     @Provides
-    fun provideChatMessageDb(database: Database): ChatMessageDb {
-        return SQLDelightChatDb(database)
-    }
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideMcpToolsDb(database: Database): McpToolsDb {
-        return SqlDelightMcpToolsDb(database)
+    fun provideMcpToolsDb(databaseWrapper: DatabaseWrapper): McpToolsDb {
+        return SqlDelightMcpToolsDb(databaseWrapper)
     }
 
     @SingleIn(AppScope::class)
