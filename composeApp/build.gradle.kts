@@ -95,6 +95,8 @@ kotlin {
             implementation(libs.multiplatform.settings.coroutines)
 
             implementation(compose.components.resources)
+
+            implementation(libs.markdown)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -135,6 +137,13 @@ kotlin {
             implementation(libs.turbine)
             implementation(libs.ktor.client.test)
         }
+        androidUnitTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.robolectric)
+            implementation(libs.androidx.test.core)
+            implementation(libs.androidx.junit)
+        }
     }
 }
 
@@ -156,6 +165,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
