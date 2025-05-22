@@ -1,5 +1,6 @@
 package com.duchastel.simon.solenne.screens.chat
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,22 +31,24 @@ fun ChatUi(state: State, modifier: Modifier) {
         title = "Chat with Gemini",
         modifier = modifier,
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            reverseLayout = true,
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            items(messages.asReversed()) { message ->
-                ChatMessage(message)
+        Column(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                reverseLayout = true,
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(messages.asReversed()) { message ->
+                    ChatMessage(message)
+                }
             }
+            MessageInput(
+                input = input,
+                onInputChange = { newInput -> eventSink(Event.TextInputChanged(newInput)) },
+                onSend = { eventSink(Event.SendMessage(input)) },
+                sendEnabled = state.sendButtonEnabled,
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            )
         }
-        MessageInput(
-            input = input,
-            onInputChange = { newInput -> eventSink(Event.TextInputChanged(newInput)) },
-            onSend = { eventSink(Event.SendMessage(input)) },
-            sendEnabled = state.sendButtonEnabled,
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
-        )
     }
 }
 
