@@ -16,6 +16,7 @@ import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
+import com.duchastel.simon.solenne.util.parseMarkdown
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.resources.stringResource
 import solennechatapp.composeapp.generated.resources.Res
@@ -55,7 +56,7 @@ fun ChatMessage(
                     toolMessage
                 }
             } else {
-                message.text
+                message.text.parseMarkdown()
             }
             Text(text = displayText)
         }
