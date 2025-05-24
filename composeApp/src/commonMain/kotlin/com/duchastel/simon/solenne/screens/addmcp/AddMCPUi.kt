@@ -29,8 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
+import com.duchastel.simon.solenne.ui.resources.Strings
 
 @Composable
 fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
@@ -38,7 +40,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
 
     SolenneScaffold(
         modifier = modifier,
-        title = "Add MCP Server",
+        title = Strings.AddMCP.TITLE,
     ) {
         Column(
             modifier = Modifier
@@ -49,7 +51,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
             OutlinedTextField(
                 value = state.serverName,
                 onValueChange = { eventSink(Event.ServerNameChanged(it)) },
-                label = { Text("Server Name") },
+                label = { Text(Strings.AddMCP.SERVER_NAME) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -57,43 +59,49 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
-                    selected = state.serverType == ServerType.REMOTE,
+                    selected = state.config is ServerConfig.Remote,
                     onClick = { eventSink(Event.ServerTypeChanged(ServerType.REMOTE)) }
                 )
-                Text("Remote Server")
+                Text(Strings.AddMCP.REMOTE_SERVER)
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
                 RadioButton(
-                    selected = state.serverType == ServerType.LOCAL,
+                    selected = state.config is ServerConfig.Local,
                     onClick = { eventSink(Event.ServerTypeChanged(ServerType.LOCAL)) }
                 )
-                Text("Local Server")
+                Text(Strings.AddMCP.LOCAL_SERVER)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Show appropriate config based on server type
-            when (state.serverType) {
-                ServerType.REMOTE -> RemoteServerConfig(state, eventSink)
-                ServerType.LOCAL -> LocalServerConfig(state, eventSink)
+            when (state.config) {
+                is ServerConfig.Remote -> RemoteServerConfig(
+                    state.config,
+                    onUrlChanged = state.config.onUrlChanged,
+                )
+                is ServerConfig.Local -> LocalServerConfig(
+                    state.config,
+                    onCommandChanged = state.config.onCommandChanged,
+                    onEnvironmentVariableAdded = { key, value ->
+                        state.config.onEnvironmentVariableUpdated(key, value)
+                    },
+                    onEnvironmentVariableRemoved = { key ->
+                        state.config.onEnvironmentVariableUpdated(key, null)
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { 
-                    val config = if (state.serverType == ServerType.REMOTE) {
-                        state.remoteConfig
-                    } else {
-                        state.localConfig
-                    }
-                    state.saveEnabled?.onSavePressed?.invoke(state.serverName, config)
+                onClick = {
+                    state.saveEnabled?.onSavePressed?.invoke(state.serverName, state.config)
                 },
-                enabled = state.isSaveEnabled,
+                enabled = state.saveEnabled != null,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save")
+                Text(Strings.AddMCP.SAVE)
             }
         }
     }
@@ -101,43 +109,48 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
 
 @Composable
 private fun RemoteServerConfig(
-    state: AddMCPScreen.State,
-    eventSink: (AddMCPScreen.Event) -> Unit
+    config: ServerConfig.Remote,
+    onUrlChanged: (String) -> Unit,
 ) {
     OutlinedTextField(
-        value = state.remoteConfig.url,
-        onValueChange = { eventSink(Event.RemoteUrlChanged(it)) },
-        label = { Text("Server URL") },
+        value = config.url,
+        onValueChange = onUrlChanged,
+        label = { Text(Strings.AddMCP.SERVER_URL) },
         modifier = Modifier.fillMaxWidth()
     )
 }
 
 @Composable
 private fun LocalServerConfig(
-    state: AddMCPScreen.State,
-    eventSink: (Event) -> Unit
+    config: ServerConfig.Local,
+    onCommandChanged: (String) -> Unit,
+    onEnvironmentVariableAdded: (String, String) -> Unit,
+    onEnvironmentVariableRemoved: (String) -> Unit,
 ) {
     Column {
         OutlinedTextField(
-            value = state.localConfig.command,
-            onValueChange = { eventSink(Event.CommandChanged(it)) },
-            label = { Text("Command") },
+            value = config.command,
+            onValueChange = onCommandChanged,
+            label = { Text(Strings.AddMCP.COMMAND) },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        Text(Strings.AddMCP.ENVIRONMENT_VARIABLES)
         
-        Text("Environment Variables")
-        
-        state.localConfig.environmentVariables.forEach { (name, value) ->
+        config.environmentVariables.forEach { (name, value) ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
                 Text(name, modifier = Modifier.weight(1f))
                 Text(value, modifier = Modifier.weight(1f))
-                IconButton(onClick = { eventSink(Event.RemoveEnvironmentVariable(name)) }) {
-                    Icon(Icons.Default.Close, contentDescription = "Remove")
+                IconButton(onClick = { onEnvironmentVariableRemoved(name) }) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = Strings.AddMCP.REMOVE_ENVIRONMENT_VAR
+                    )
                 }
             }
         }
@@ -147,7 +160,7 @@ private fun LocalServerConfig(
         // Add new environment variable
         var newVarName by remember { mutableStateOf("") }
         var newVarValue by remember { mutableStateOf("") }
-        
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -155,7 +168,7 @@ private fun LocalServerConfig(
             OutlinedTextField(
                 value = newVarName,
                 onValueChange = { newVarName = it },
-                label = { Text("Name") },
+                label = { Text(Strings.AddMCP.VAR_NAME) },
                 modifier = Modifier.weight(1f)
             )
             
@@ -164,20 +177,20 @@ private fun LocalServerConfig(
             OutlinedTextField(
                 value = newVarValue,
                 onValueChange = { newVarValue = it },
-                label = { Text("Value") },
+                label = { Text(Strings.AddMCP.VAR_VALUE) },
                 modifier = Modifier.weight(1f)
             )
             
             IconButton(
                 onClick = { 
                     if (newVarName.isNotEmpty()) {
-                        eventSink(Event.AddEnvironmentVariable(newVarName, newVarValue))
+                        onEnvironmentVariableAdded(newVarName, newVarValue)
                         newVarName = ""
                         newVarValue = ""
                     }
                 }
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                Icon(Icons.Default.Add, contentDescription = Strings.AddMCP.ADD_ENVIRONMENT_VAR)
             }
         }
 
@@ -186,13 +199,13 @@ private fun LocalServerConfig(
         // Config Preview
         Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Config Preview")
+                Text(Strings.AddMCP.CONFIG_PREVIEW)
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                val envVars = state.localConfig.environmentVariables
+                val envVars = config.environmentVariables
                 val jsonPreview = buildString {
                     appendLine("{")
-                    appendLine("  \"command\": \"${state.localConfig.command.split("\"").joinToString("\\\"")}\"")
+                    appendLine("  \"command\": \"${config.command.split("\"").joinToString("\\\"")}\"")
                     
                     if (envVars.isNotEmpty()) {
                         appendLine(",")

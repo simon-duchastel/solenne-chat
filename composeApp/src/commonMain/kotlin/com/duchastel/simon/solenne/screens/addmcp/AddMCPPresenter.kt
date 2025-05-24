@@ -9,8 +9,8 @@ import androidx.compose.runtime.setValue
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
-import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
+import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
@@ -26,15 +26,18 @@ class AddMCPPresenter @Inject constructor(
     @Composable
     override fun present(): AddMCPScreen.State {
         val coroutineScope = rememberCoroutineScope()
-        var serverName by remember { mutableStateOf("") }
+        var serverName: String? by remember { mutableStateOf(null) }
         var serverType by remember { mutableStateOf(ServerType.REMOTE) }
-        var remoteConfig by remember { mutableStateOf(ServerConfig.Remote()) }
-        var localConfig by remember { mutableStateOf(ServerConfig.Local()) }
+        var remoteConfigUrl: String? by remember { mutableStateOf(null) }
+        var localConfigCommand: String? by remember { mutableStateOf("") }
+        var localConfigEnvironmentVariables: Map<String, String> by remember {
+            mutableStateOf(emptyMap())
+        }
 
         val saveEnabled = if (
-            serverName.isNotEmpty() && when (serverType) {
-                ServerType.REMOTE -> remoteConfig.isComplete
-                ServerType.LOCAL -> localConfig.isComplete
+            !serverName.isNullOrEmpty() && when (serverType) {
+                ServerType.REMOTE -> !remoteConfigUrl.isNullOrEmpty()
+                ServerType.LOCAL -> !localConfigCommand.isNullOrEmpty()
             }
         ) {
             AddMCPScreen.SaveEnabled { name, config ->
@@ -51,12 +54,33 @@ class AddMCPPresenter @Inject constructor(
             null
         }
 
+        val serverConfig = when (serverType) {
+            ServerType.REMOTE -> {
+                ServerConfig.Remote(
+                    url = remoteConfigUrl ?: "",
+                    onUrlChanged = { remoteConfigUrl = it }
+                )
+            }
+            ServerType.LOCAL -> {
+                ServerConfig.Local(
+                    command = localConfigCommand ?: "",
+                    environmentVariables = localConfigEnvironmentVariables,
+                    onCommandChanged = { localConfigCommand = it },
+                    onEnvironmentVariableUpdated = { key, value ->
+                        if (value == null) {
+                            localConfigEnvironmentVariables -= key
+                        } else {
+                            localConfigEnvironmentVariables += (key to value)
+                        }
+                    }
+                )
+            }
+        }
+
         return AddMCPScreen.State(
-            serverName = serverName,
-            serverType = serverType,
-            remoteConfig = remoteConfig,
-            localConfig = localConfig,
-            saveEnabled = saveEnabled
+            serverName = serverName ?: "",
+            saveEnabled = saveEnabled,
+            config = serverConfig,
         ) { event ->
             when (event) {
                 is Event.BackPressed -> {
@@ -67,22 +91,6 @@ class AddMCPPresenter @Inject constructor(
                 }
                 is Event.ServerTypeChanged -> {
                     serverType = event.type
-                }
-                is Event.RemoteUrlChanged -> {
-                    remoteConfig = remoteConfig.copy(url = event.url)
-                }
-                is Event.CommandChanged -> {
-                    localConfig = localConfig.copy(command = event.command)
-                }
-                is Event.AddEnvironmentVariable -> {
-                    localConfig = localConfig.copy(
-                        environmentVariables = localConfig.environmentVariables + (event.name to event.value)
-                    )
-                }
-                is Event.RemoveEnvironmentVariable -> {
-                    localConfig = localConfig.copy(
-                        environmentVariables = localConfig.environmentVariables.filterKeys { it != event.name }
-                    )
                 }
             }
         }
