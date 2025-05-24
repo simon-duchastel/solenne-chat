@@ -24,15 +24,28 @@ class AddMCPPresenter @Inject constructor(
     @Composable
     override fun present(): AddMCPScreen.State {
         val coroutineScope = rememberCoroutineScope()
-        var serverName by remember { mutableStateOf("") }
-        var serverUrl by remember { mutableStateOf("") }
+        var serverName: String? by remember { mutableStateOf(null) }
+        var serverUrl: String? by remember { mutableStateOf(null) }
 
-        val isSaveEnabled = serverName.isNotBlank() && serverUrl.isNotBlank()
+
+        val isSaveEnabled = !serverName.isNullOrEmpty() && !serverUrl.isNullOrEmpty()
 
         return AddMCPScreen.State(
-            serverName = serverName,
-            serverUrl = serverUrl,
-            isSaveEnabled = isSaveEnabled,
+            serverName = serverName ?: "",
+            serverUrl = serverUrl ?: "",
+            saveEnabled = if (isSaveEnabled) {
+                AddMCPScreen.SaveEnabled(
+                    onSavePressed = { serverName: String, serverUrl: String ->
+                        coroutineScope.launch {
+                            val connection = McpServerConfig.Connection.Sse(url = serverUrl)
+                            mcpRepository.addServer(serverName, connection)
+                            navigator.pop()
+                        }
+                    }
+                )
+            } else {
+                null
+            },
         ) { event ->
             when (event) {
                 is Event.BackPressed -> {
@@ -45,16 +58,6 @@ class AddMCPPresenter @Inject constructor(
 
                 is Event.ServerUrlChanged -> {
                     serverUrl = event.url
-                }
-
-                is Event.SavePressed -> {
-                    if (isSaveEnabled) {
-                        coroutineScope.launch {
-                            val connection = McpServerConfig.Connection.Sse(url = serverUrl)
-                            mcpRepository.addServer(serverName, connection)
-                            navigator.pop()
-                        }
-                    }
                 }
             }
         }
