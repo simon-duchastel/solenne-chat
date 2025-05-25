@@ -4,7 +4,6 @@ import com.duchastel.simon.solenne.data.features.Features
 import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
-import com.duchastel.simon.solenne.util.expectNoNavigationEvents
 import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
 import com.duchastel.simon.solenne.util.fakes.FakeFeatures
 import com.slack.circuit.test.FakeNavigator

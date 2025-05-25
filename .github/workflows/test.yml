@@ -34,7 +34,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run all tests
-        run: ./gradlew test
+        run: ./gradlew allTest
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4
