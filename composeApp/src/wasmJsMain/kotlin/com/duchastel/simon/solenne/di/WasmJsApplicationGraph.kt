@@ -6,4 +6,5 @@ import dev.zacsweers.metro.DependencyGraph
 @DependencyGraph(AppScope::class)
 interface WasmJsApplicationGraph : ApplicationGraph,
     WasmJsDbProviders,
-    WasmJsUtilProviders
+    WasmJsUtilProviders,
+    WasmJsFeatureProviders

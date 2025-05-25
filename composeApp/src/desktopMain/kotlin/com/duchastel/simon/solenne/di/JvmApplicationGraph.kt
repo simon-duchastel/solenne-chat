@@ -6,4 +6,5 @@ import dev.zacsweers.metro.DependencyGraph
 @DependencyGraph(AppScope::class)
 interface JvmApplicationGraph : ApplicationGraph,
     JvmDbProviders,
-    JvmUtilProviders
+    JvmUtilProviders,
+    JvmFeatureProviders

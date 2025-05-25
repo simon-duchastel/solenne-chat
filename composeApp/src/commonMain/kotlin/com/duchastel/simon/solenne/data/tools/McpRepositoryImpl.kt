@@ -128,13 +128,7 @@ class McpRepositoryImpl(
                 )
             }
             is Connection.Stdio -> {
-                val process = ProcessBuilder(
-                    server.connection.commandToRun
-                ).start()
-                StdioServerTransport(
-                    inputStream = process.inputStream.asSource().buffered(),
-                    outputStream = process.outputStream.asSink().buffered(),
-                )
+                createStdioServerTransport(server.connection) ?: return null
             }
         }.apply {
             onClose {

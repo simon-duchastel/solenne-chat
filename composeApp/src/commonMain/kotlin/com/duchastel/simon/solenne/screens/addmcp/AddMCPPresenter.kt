@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.duchastel.simon.solenne.data.features.Features
 import com.duchastel.simon.solenne.data.tools.McpRepository
 import com.duchastel.simon.solenne.data.tools.McpServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 class AddMCPPresenter @Inject constructor(
     @Assisted private val navigator: Navigator,
     private val mcpRepository: McpRepository,
+    private val features: Features,
 ) : Presenter<AddMCPScreen.State> {
 
     @Composable
@@ -80,6 +82,7 @@ class AddMCPPresenter @Inject constructor(
         return AddMCPScreen.State(
             serverName = serverName ?: "",
             saveEnabled = saveEnabled,
+            localMcpEnabled = features.localMcpServerAvailable,
             config = serverConfig,
         ) { event ->
             when (event) {

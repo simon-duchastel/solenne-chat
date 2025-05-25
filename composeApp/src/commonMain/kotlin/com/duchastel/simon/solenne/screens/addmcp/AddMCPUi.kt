@@ -33,6 +33,7 @@ import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
@@ -74,6 +75,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
 
                 Row(
                     modifier = Modifier.clickable(
+                        enabled = state.localMcpEnabled,
                         onClick = { eventSink(Event.ServerTypeChanged(ServerType.LOCAL)) }
                     )
                 ) {
@@ -241,4 +243,77 @@ private fun LocalServerConfig(
             }
         }
     }
+}
+
+@Preview
+@Composable
+internal fun AddMCPUi_RemotePreview() {
+    AddMCPUi(
+        state = AddMCPScreen.State(
+            serverName = "Remote Production Server",
+            config = ServerConfig.Remote(
+                url = "https://example.com/api",
+                onUrlChanged = {},
+            ),
+            localMcpEnabled = true,
+            saveEnabled = AddMCPScreen.SaveEnabled(
+                onSavePressed = { _, _ -> }
+            )
+        )
+    )
+}
+
+@Preview
+@Composable
+internal fun AddMCPUi_LocalPreview() {
+    AddMCPUi(
+        state = AddMCPScreen.State(
+            serverName = "Local Development Server",
+            config = ServerConfig.Local(
+                command = "python server.py",
+                environmentVariables = mapOf(
+                    "PORT" to "8080",
+                    "DEBUG" to "true"
+                ),
+                onCommandChanged = {},
+                onEnvironmentVariableUpdated = { _, _ -> }
+            ),
+            localMcpEnabled = true,
+            saveEnabled = AddMCPScreen.SaveEnabled(
+                onSavePressed = { _, _ -> }
+            )
+        )
+    )
+}
+
+@Preview
+@Composable
+internal fun RemoteServerConfig_Preview() {
+    RemoteServerConfig(
+        config = ServerConfig.Remote(
+            url = "https://example.com/api",
+            onUrlChanged = {},
+        ),
+        onUrlChanged = {},
+    )
+}
+
+@Preview
+@Composable
+internal fun LocalServerConfig_Preview() {
+    LocalServerConfig(
+        config = ServerConfig.Local(
+            command = "python server.py",
+            environmentVariables = mapOf(
+                "PORT" to "8080",
+                "DEBUG" to "true",
+                "API_KEY" to "abc123"
+            ),
+            onCommandChanged = {},
+            onEnvironmentVariableUpdated = { _, _ -> }
+        ),
+        onCommandChanged = {},
+        onEnvironmentVariableAdded = { _, _ -> },
+        onEnvironmentVariableRemoved = { }
+    )
 }

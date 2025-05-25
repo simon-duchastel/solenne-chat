@@ -12,6 +12,7 @@ data object AddMCPScreen : Screen {
     data class State(
         val serverName: String,
         val config: ServerConfig,
+        val localMcpEnabled: Boolean,
         val saveEnabled: SaveEnabled?,
         val eventSink: (Event) -> Unit = {},
     ) : CircuitUiState
