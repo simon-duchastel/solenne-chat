@@ -1,5 +1,7 @@
 package com.duchastel.simon.solenne.screens.addmcp
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -58,19 +60,31 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = state.config is ServerConfig.Remote,
-                    onClick = { eventSink(Event.ServerTypeChanged(ServerType.REMOTE)) }
-                )
-                Text(Strings.AddMCP.REMOTE_SERVER)
+                Row(
+                    modifier = Modifier.clickable(
+                        onClick = { eventSink(Event.ServerTypeChanged(ServerType.REMOTE)) }
+                    )
+                ) {
+                    RadioButton(
+                        selected = state.config is ServerConfig.Remote,
+                        onClick = null,
+                    )
+                    Text(Strings.AddMCP.REMOTE_SERVER)
+                }
                 
                 Spacer(modifier = Modifier.width(16.dp))
-                
-                RadioButton(
-                    selected = state.config is ServerConfig.Local,
-                    onClick = { eventSink(Event.ServerTypeChanged(ServerType.LOCAL)) }
-                )
-                Text(Strings.AddMCP.LOCAL_SERVER)
+
+                Row(
+                    modifier = Modifier.clickable(
+                        onClick = { eventSink(Event.ServerTypeChanged(ServerType.LOCAL)) }
+                    )
+                ) {
+                    RadioButton(
+                        selected = state.config is ServerConfig.Local,
+                        onClick = null,
+                    )
+                    Text(Strings.AddMCP.LOCAL_SERVER)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
