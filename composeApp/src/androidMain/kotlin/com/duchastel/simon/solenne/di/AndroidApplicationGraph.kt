@@ -9,7 +9,8 @@ import dev.zacsweers.metro.Provides
 interface AndroidApplicationGraph :
     ApplicationGraph,
     AndroidDbProviders,
-    AndroidUtilProviders {
+    AndroidUtilProviders,
+    AndroidFeatureProviders {
 
     @DependencyGraph.Factory
     fun interface Factory {

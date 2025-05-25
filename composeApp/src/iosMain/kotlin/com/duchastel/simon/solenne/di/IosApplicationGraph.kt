@@ -7,7 +7,8 @@ import dev.zacsweers.metro.createGraph
 @DependencyGraph(AppScope::class)
 interface IosApplicationGraph : ApplicationGraph,
     NativeDbProviders,
-    IosUtilProviders {
+    IosUtilProviders,
+    NativeFeatureProviders {
 
     companion object {
         fun create(): IosApplicationGraph = createGraph()
