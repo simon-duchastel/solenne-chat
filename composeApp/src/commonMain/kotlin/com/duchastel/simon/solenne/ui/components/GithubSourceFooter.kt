@@ -19,6 +19,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.ui.icons.githubIcon
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.github_repo_description
+import solennechatapp.composeapp.generated.resources.view_source_button
 
 @Composable
 fun GithubSourceFooter(
@@ -34,12 +38,12 @@ fun GithubSourceFooter(
     ) {
         Icon(
             painter = githubIcon(),
-            contentDescription = "GitHub Repository",
+            contentDescription = stringResource(Res.string.github_repo_description),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "View Source",
+            text = stringResource(Res.string.view_source_button),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.weight(1f))

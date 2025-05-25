@@ -20,6 +20,9 @@ import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import kotlinx.collections.immutable.toPersistentList
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.screen_title_chat
 
 @Composable
 fun ChatUi(state: State, modifier: Modifier) {
@@ -28,7 +31,7 @@ fun ChatUi(state: State, modifier: Modifier) {
     val input = state.textInput
 
     SolenneScaffold(
-        title = "Chat with Gemini",
+        title = stringResource(Res.string.screen_title_chat),
         modifier = modifier,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {

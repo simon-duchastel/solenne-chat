@@ -13,6 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.api_key_label
+import solennechatapp.composeapp.generated.resources.save_button
+import solennechatapp.composeapp.generated.resources.screen_title_configure_provider
 import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen.Event
 import com.duchastel.simon.solenne.screens.modelproviderconfig.ModelProviderConfigScreen.State
 import com.duchastel.simon.solenne.screens.modelproviderselector.UiModelProvider
@@ -27,7 +32,7 @@ fun ModelProviderConfigUi(
     val eventSink = state.eventSink
 
     SolenneScaffold(
-        title = "Configure ${state.modelProvider}",
+        title = stringResource(Res.string.screen_title_configure_provider, state.modelProvider),
         modifier = modifier,
     ) {
         Column(
@@ -36,7 +41,7 @@ fun ModelProviderConfigUi(
             OutlinedTextField(
                 value = state.apiKey ?: "",
                 onValueChange = { eventSink(Event.ApiKeyChanged(it)) },
-                label = { Text("API Key") },
+                label = { Text(stringResource(Res.string.api_key_label)) },
                 isError = state.apiKey?.isBlank() == true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
@@ -48,7 +53,7 @@ fun ModelProviderConfigUi(
                 onClick = { eventSink(Event.SavePressed) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Save")
+                Text(stringResource(Res.string.save_button))
             }
         }
     }

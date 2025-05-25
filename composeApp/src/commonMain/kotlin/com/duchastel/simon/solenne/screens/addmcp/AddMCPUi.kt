@@ -34,6 +34,21 @@ import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.screen_title_add_mcp_server
+import solennechatapp.composeapp.generated.resources.server_name_label
+import solennechatapp.composeapp.generated.resources.remote_server_type
+import solennechatapp.composeapp.generated.resources.local_server_type
+import solennechatapp.composeapp.generated.resources.save_button
+import solennechatapp.composeapp.generated.resources.server_url_label
+import solennechatapp.composeapp.generated.resources.command_label
+import solennechatapp.composeapp.generated.resources.environment_variables_title
+import solennechatapp.composeapp.generated.resources.remove_env_var_description
+import solennechatapp.composeapp.generated.resources.env_var_name_label
+import solennechatapp.composeapp.generated.resources.env_var_value_label
+import solennechatapp.composeapp.generated.resources.add_env_var_description
+import solennechatapp.composeapp.generated.resources.config_preview_title
 
 @Composable
 fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
@@ -41,7 +56,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
 
     SolenneScaffold(
         modifier = modifier,
-        title = "Add MCP Server",
+        title = stringResource(Res.string.screen_title_add_mcp_server),
     ) {
         Column(
             modifier = Modifier
@@ -52,7 +67,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
             OutlinedTextField(
                 value = state.serverName,
                 onValueChange = { eventSink(Event.ServerNameChanged(it)) },
-                label = { Text("Server Name") },
+                label = { Text(stringResource(Res.string.server_name_label)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -68,7 +83,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
                         selected = state.config is ServerConfig.Remote,
                         onClick = null,
                     )
-                    Text("Remote Server")
+                    Text(stringResource(Res.string.remote_server_type))
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -83,7 +98,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
                         selected = state.config is ServerConfig.Local,
                         onClick = null,
                     )
-                    Text("Local Server")
+                    Text(stringResource(Res.string.local_server_type))
                 }
             }
 
@@ -115,7 +130,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
                 enabled = state.saveEnabled != null,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save")
+                Text(stringResource(Res.string.save_button))
             }
         }
     }
@@ -129,7 +144,7 @@ private fun RemoteServerConfig(
     OutlinedTextField(
         value = config.url,
         onValueChange = onUrlChanged,
-        label = { Text("Server URL") },
+        label = { Text(stringResource(Res.string.server_url_label)) },
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -145,13 +160,13 @@ private fun LocalServerConfig(
         OutlinedTextField(
             value = config.command,
             onValueChange = onCommandChanged,
-            label = { Text("Command") },
+            label = { Text(stringResource(Res.string.command_label)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Environment Variables")
+        Text(stringResource(Res.string.environment_variables_title))
         
         config.environmentVariables.forEach { (name, value) ->
             Row(
@@ -163,7 +178,7 @@ private fun LocalServerConfig(
                 IconButton(onClick = { onEnvironmentVariableRemoved(name) }) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Remove environment variable"
+                        contentDescription = stringResource(Res.string.remove_env_var_description)
                     )
                 }
             }
@@ -182,7 +197,7 @@ private fun LocalServerConfig(
             OutlinedTextField(
                 value = newVarName,
                 onValueChange = { newVarName = it },
-                label = { Text("Name") },
+                label = { Text(stringResource(Res.string.env_var_name_label)) },
                 modifier = Modifier.weight(1f)
             )
             
@@ -191,7 +206,7 @@ private fun LocalServerConfig(
             OutlinedTextField(
                 value = newVarValue,
                 onValueChange = { newVarValue = it },
-                label = { Text("Value") },
+                label = { Text(stringResource(Res.string.env_var_value_label)) },
                 modifier = Modifier.weight(1f)
             )
             
@@ -204,7 +219,10 @@ private fun LocalServerConfig(
                     }
                 }
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add environment variable")
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.add_env_var_description)
+                )
             }
         }
 
@@ -213,7 +231,7 @@ private fun LocalServerConfig(
         // Config Preview
         Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Config Preview")
+                Text(stringResource(Res.string.config_preview_title))
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 val envVars = config.environmentVariables

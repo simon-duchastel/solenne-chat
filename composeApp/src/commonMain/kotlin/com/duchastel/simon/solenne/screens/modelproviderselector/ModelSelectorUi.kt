@@ -12,6 +12,9 @@ import com.duchastel.simon.solenne.ui.components.ModelProviderButton
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.screen_title_select_ai_model
 
 @Composable
 fun ModelProviderSelectorUi(
@@ -21,7 +24,7 @@ fun ModelProviderSelectorUi(
     val eventSink = state.eventSink
 
     SolenneScaffold(
-        title = "Select AI Model",
+        title = stringResource(Res.string.screen_title_select_ai_model),
         modifier = modifier,
     ) {
         LazyColumn(
