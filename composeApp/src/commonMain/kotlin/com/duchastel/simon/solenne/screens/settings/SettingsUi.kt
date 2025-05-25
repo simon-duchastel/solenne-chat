@@ -16,6 +16,11 @@ import com.duchastel.simon.solenne.ui.components.GithubSourceFooter
 import com.duchastel.simon.solenne.ui.components.SettingsRow
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.screen_title_settings
+import solennechatapp.composeapp.generated.resources.configure_ai_models_button
+import solennechatapp.composeapp.generated.resources.configure_mcp_servers_button
 
 @Composable
 fun SettingsUi(
@@ -25,7 +30,7 @@ fun SettingsUi(
     val eventSink = state.eventSink
 
     SolenneScaffold(
-        title = "Settings",
+        title = stringResource(Res.string.screen_title_settings),
         modifier = modifier,
     ) {
         Column(modifier = Modifier
@@ -34,7 +39,7 @@ fun SettingsUi(
         ) {
             SettingsRow(
                 Modifier.fillMaxWidth(),
-                text = "Configure AI Models",
+                text = stringResource(Res.string.configure_ai_models_button),
                 onClick = { eventSink(Event.ConfigureAIModelPressed) },
             )
 
@@ -42,7 +47,7 @@ fun SettingsUi(
 
             SettingsRow(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Configure MCP Servers",
+                text = stringResource(Res.string.configure_mcp_servers_button),
                 onClick = { eventSink(Event.ConfigureMcpPressed) },
             )
 

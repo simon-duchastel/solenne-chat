@@ -10,7 +10,13 @@ data class UIChatMessage(
     val text: String,
     val isUser: Boolean,
     val id: String,
-)
+    val toolInfo: ToolInfo? = null,
+) {
+    data class ToolInfo(
+        val toolName: String,
+        val result: String? = null,
+    )
+}
 
 /**
  * Maps a domain ChatMessage to its UI counterpart.

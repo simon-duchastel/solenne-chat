@@ -17,6 +17,10 @@ import com.duchastel.simon.solenne.fakes.ChatMessagesFake
 import com.duchastel.simon.solenne.ui.model.UIChatMessage
 import com.duchastel.simon.solenne.ui.model.toUIChatMessage
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.using_tool_message
+import solennechatapp.composeapp.generated.resources.tool_result_message
 
 @Composable
 fun ChatMessage(
@@ -39,7 +43,21 @@ fun ChatMessage(
                 )
                 .padding(12.dp)
         ) {
-            Text(text = message.text)
+            val displayText = if (message.toolInfo != null) {
+                val toolMessage =
+                    stringResource(Res.string.using_tool_message, message.toolInfo.toolName)
+                if (message.toolInfo.result != null) {
+                    toolMessage + "\n" + stringResource(
+                        Res.string.tool_result_message,
+                        message.toolInfo.result
+                    )
+                } else {
+                    toolMessage
+                }
+            } else {
+                message.text
+            }
+            Text(text = displayText)
         }
     }
 }

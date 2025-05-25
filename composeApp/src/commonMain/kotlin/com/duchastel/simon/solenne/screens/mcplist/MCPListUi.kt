@@ -20,7 +20,13 @@ import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.Event
 import com.duchastel.simon.solenne.screens.mcplist.MCPListScreen.State
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.mcp_add_server_description
+import solennechatapp.composeapp.generated.resources.mcp_connect_button
+import solennechatapp.composeapp.generated.resources.mcp_server_item_text
+import solennechatapp.composeapp.generated.resources.screen_title_mcp_servers
 
 @Composable
 fun MCPListUi(state: State, modifier: Modifier) {
@@ -28,7 +34,7 @@ fun MCPListUi(state: State, modifier: Modifier) {
     val servers = state.mcpServers
 
     SolenneScaffold(
-        title = "MCP Servers",
+        title = stringResource(Res.string.screen_title_mcp_servers),
         modifier = modifier,
     ) {
         LazyColumn(
@@ -45,7 +51,7 @@ fun MCPListUi(state: State, modifier: Modifier) {
             onClick = { eventSink(Event.AddServerPressed) },
             modifier = Modifier.padding(16.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Server")
+            Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.mcp_add_server_description))
         }
     }
 }
@@ -56,12 +62,12 @@ private fun MCPServerItem(
     onConnectClick: () -> Unit,
 ) {
     Row {
-        Text("Server: ${server.name} (${server.status})")
+        Text(stringResource(Res.string.mcp_server_item_text, server.name, server.status))
 
         if (server.status == UIMCPServer.Status.Disconnected) {
             Spacer(modifier = Modifier.width(8.dp))
             TextButton(onClick = onConnectClick) {
-                Text("Connect")
+                Text(stringResource(Res.string.mcp_connect_button))
             }
         }
     }

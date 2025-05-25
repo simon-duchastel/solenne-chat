@@ -11,6 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
+import solennechatapp.composeapp.generated.resources.message_input_placeholder
+import solennechatapp.composeapp.generated.resources.send_button
 
 @Composable
 fun MessageInput(
@@ -25,7 +29,7 @@ fun MessageInput(
             value = input,
             onValueChange = onInputChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Type a message...") }
+            placeholder = { Text(stringResource(Res.string.message_input_placeholder)) }
         )
         Spacer(Modifier.width(8.dp))
         Button(
@@ -34,7 +38,7 @@ fun MessageInput(
             },
             enabled = sendEnabled
         ) {
-            Text("Send")
+            Text(stringResource(Res.string.send_button))
         }
     }
 }

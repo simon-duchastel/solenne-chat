@@ -17,7 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.ui.icons.coffeeIcon
+import org.jetbrains.compose.resources.stringResource
+import solennechatapp.composeapp.generated.resources.Res
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import solennechatapp.composeapp.generated.resources.like_app_buy_coffee
 
 @Composable
 fun BuyMeCoffeeFooter(
@@ -39,7 +42,7 @@ fun BuyMeCoffeeFooter(
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "Like this app? Buy Me a Coffee",
+            text = stringResource(Res.string.like_app_buy_coffee),
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.weight(1f))
