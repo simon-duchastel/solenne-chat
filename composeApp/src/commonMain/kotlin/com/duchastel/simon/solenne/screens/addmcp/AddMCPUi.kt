@@ -1,7 +1,6 @@
 package com.duchastel.simon.solenne.screens.addmcp
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +33,6 @@ import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.Event
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
 import com.duchastel.simon.solenne.ui.components.SolenneScaffold
-import com.duchastel.simon.solenne.ui.resources.Strings
 
 @Composable
 fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
@@ -42,7 +40,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
 
     SolenneScaffold(
         modifier = modifier,
-        title = Strings.AddMCP.TITLE,
+        title = "Add MCP Server",
     ) {
         Column(
             modifier = Modifier
@@ -53,7 +51,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
             OutlinedTextField(
                 value = state.serverName,
                 onValueChange = { eventSink(Event.ServerNameChanged(it)) },
-                label = { Text(Strings.AddMCP.SERVER_NAME) },
+                label = { Text("Server Name") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -69,7 +67,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
                         selected = state.config is ServerConfig.Remote,
                         onClick = null,
                     )
-                    Text(Strings.AddMCP.REMOTE_SERVER)
+                    Text("Remote Server")
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -83,7 +81,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
                         selected = state.config is ServerConfig.Local,
                         onClick = null,
                     )
-                    Text(Strings.AddMCP.LOCAL_SERVER)
+                    Text("Local Server")
                 }
             }
 
@@ -115,7 +113,7 @@ fun AddMCPUi(state: AddMCPScreen.State, modifier: Modifier = Modifier) {
                 enabled = state.saveEnabled != null,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(Strings.AddMCP.SAVE)
+                Text("Save")
             }
         }
     }
@@ -129,7 +127,7 @@ private fun RemoteServerConfig(
     OutlinedTextField(
         value = config.url,
         onValueChange = onUrlChanged,
-        label = { Text(Strings.AddMCP.SERVER_URL) },
+        label = { Text("Server URL") },
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -145,13 +143,13 @@ private fun LocalServerConfig(
         OutlinedTextField(
             value = config.command,
             onValueChange = onCommandChanged,
-            label = { Text(Strings.AddMCP.COMMAND) },
+            label = { Text("Command") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(Strings.AddMCP.ENVIRONMENT_VARIABLES)
+        Text("Environment Variables")
         
         config.environmentVariables.forEach { (name, value) ->
             Row(
@@ -163,7 +161,7 @@ private fun LocalServerConfig(
                 IconButton(onClick = { onEnvironmentVariableRemoved(name) }) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = Strings.AddMCP.REMOVE_ENVIRONMENT_VAR
+                        contentDescription = "Remove environment variable"
                     )
                 }
             }
@@ -182,7 +180,7 @@ private fun LocalServerConfig(
             OutlinedTextField(
                 value = newVarName,
                 onValueChange = { newVarName = it },
-                label = { Text(Strings.AddMCP.VAR_NAME) },
+                label = { Text("Name") },
                 modifier = Modifier.weight(1f)
             )
             
@@ -191,7 +189,7 @@ private fun LocalServerConfig(
             OutlinedTextField(
                 value = newVarValue,
                 onValueChange = { newVarValue = it },
-                label = { Text(Strings.AddMCP.VAR_VALUE) },
+                label = { Text("Value") },
                 modifier = Modifier.weight(1f)
             )
             
@@ -204,7 +202,7 @@ private fun LocalServerConfig(
                     }
                 }
             ) {
-                Icon(Icons.Default.Add, contentDescription = Strings.AddMCP.ADD_ENVIRONMENT_VAR)
+                Icon(Icons.Default.Add, contentDescription = "Add environment variable")
             }
         }
 
@@ -213,7 +211,7 @@ private fun LocalServerConfig(
         // Config Preview
         Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(Strings.AddMCP.CONFIG_PREVIEW)
+                Text("Config Preview")
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 val envVars = config.environmentVariables

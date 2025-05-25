@@ -25,6 +25,7 @@ import io.modelcontextprotocol.kotlin.sdk.TextContent
 import io.modelcontextprotocol.kotlin.sdk.ToolListChangedNotification
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.SseClientTransport
+import io.modelcontextprotocol.kotlin.sdk.server.StdioServerTransport
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -33,7 +34,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import kotlinx.serialization.json.JsonElement
@@ -111,22 +111,32 @@ class McpRepositoryImpl(
     }
 
     override suspend fun connect(server: McpServerConfig): McpServer? {
-        // only SSE supported for now
-        if (server.connection !is Connection.Sse) return mcpServerStatuses[server.id]?.toMcpServer()
-
         // if we already have an existing connection, don't try to reconnect
         val existingConnection = mcpServerStatuses[server.id]
         if (existingConnection?.client != null) return existingConnection.toMcpServer()
 
-        val url = server.connection.url
-        val sseTransport = SseClientTransport(
-            client = httpClient,
-            urlString = url,
-            requestBuilder = {
-                accept(ContentType.Application.Json)
-                accept(ContentType.Text.EventStream)
+        val transport = when (server.connection) {
+            is Connection.Sse -> {
+                val url = server.connection.url
+                SseClientTransport(
+                    client = httpClient,
+                    urlString = url,
+                    requestBuilder = {
+                        accept(ContentType.Application.Json)
+                        accept(ContentType.Text.EventStream)
+                    }
+                )
             }
-        ).apply {
+            is Connection.Stdio -> {
+                val process = ProcessBuilder(
+                    server.connection.commandToRun
+                ).start()
+                StdioServerTransport(
+                    inputStream = process.inputStream.asSource().buffered(),
+                    outputStream = process.outputStream.asSink().buffered(),
+                )
+            }
+        }.apply {
             onClose {
                 val connectionToClose = mcpServerStatuses[server.id] ?: return@onClose
                 mcpServerStatuses += (server.id to connectionToClose.copy(client = null))
@@ -141,7 +151,7 @@ class McpRepositoryImpl(
         }
 
         val serverStatus = wrapMcpServerCall {
-            client.connect(sseTransport)
+            client.connect(transport)
             val serverStatus = McpServerStatus(
                 config = server,
                 client = client,
