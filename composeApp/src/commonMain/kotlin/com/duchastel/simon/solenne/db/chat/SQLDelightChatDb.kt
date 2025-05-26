@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlin.time.Clock
@@ -113,9 +114,11 @@ class SQLDelightChatDb(
             // Get the current message to check its type
             val currentMessages = database
                 .execute { messageQueries.getMessagesForConversation(conversationId) }
-                .executeAsList()
+                .asFlow()
+                .mapToList(dispatcher)
 
-            val currentMessage = currentMessages
+            val firstBatch = currentMessages.first()
+            val currentMessage = firstBatch
                 .find { it.id == messageId }
                 ?.let { messageToDbMessage(it) }
                 ?: return@withContext null
