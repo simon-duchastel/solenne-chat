@@ -95,4 +95,5 @@ jobs:
           git commit -m "Deploy WebAssembly build from main"
           git push origin releases --force
         env:
+          GITHUB_ACTOR: simon-duchastel
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
