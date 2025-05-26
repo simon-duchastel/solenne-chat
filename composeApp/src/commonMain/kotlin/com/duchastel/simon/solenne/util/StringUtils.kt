@@ -21,20 +21,14 @@ fun parseHtmlToAnnotatedString(html: String): AnnotatedString {
                     "i", "em" -> styleStack.add(SpanStyle(fontStyle = FontStyle.Italic))
                     "u" -> styleStack.add(SpanStyle(textDecoration = TextDecoration.Underline))
 
-                    "p", "div" -> append("\n")
-                    "br" -> append("\n")
-
                     "ul" -> {
                         listLevel++
-                        append("\n")
                     }
 
                     "li" -> {
                         append("\n")
                         append(" ".repeat((listLevel - 1) * 4) + "• ")
                     }
-
-                    else -> styleStack.add(SpanStyle())
                 }
             }
 
@@ -43,12 +37,13 @@ fun parseHtmlToAnnotatedString(html: String): AnnotatedString {
                     "p", "div" -> append("\n")
                     "ul" -> {
                         listLevel = maxOf(0, listLevel - 1)
-                        append("\n")
                     }
-                }
-
-                if (styleStack.isNotEmpty()) {
-                    styleStack.removeAt(styleStack.size - 1)
+                    "br" -> append("\n")
+                    "b", "strong", "i", "em", "u" -> {
+                        if (styleStack.isNotEmpty()) {
+                            styleStack.removeAt(styleStack.size - 1)
+                        }
+                    }
                 }
             }
 
@@ -68,6 +63,23 @@ fun parseHtmlToAnnotatedString(html: String): AnnotatedString {
         parser.end()
     }
 
-    return annotatedString
+    return annotatedString.trim()
+}
+
+fun AnnotatedString.trim(): AnnotatedString {
+    if (text.isEmpty()) return this
+
+    val trimmedTextEnd = text.trimEnd()
+    val trimmedTextStart = text.trimStart()
+    val indexOfTrimmedStart = text.length - trimmedTextStart.length
+    val indexOfTrimmedEnd = trimmedTextEnd.lastIndex
+
+    // if no trimming occurred, return the same AnnotatedString
+    if (indexOfTrimmedStart == 0 && indexOfTrimmedEnd == text.lastIndex) {
+        return this
+    }
+
+    // Return the subsequence without the trimmed beginning and end
+    return subSequence(indexOfTrimmedStart, indexOfTrimmedEnd + 1) // +1 because subSequence is exclusive
 }
 

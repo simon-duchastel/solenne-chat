@@ -14,7 +14,7 @@ internal class MarkdownExtensionsTest {
         val markdown = "This is **bold** and *italic* text"
         val result = parseMarkdownToAnnotatedString(markdown)
 
-        assertEquals("This is bold and italic text", result.text.trim())
+        assertEquals("This is bold and italic text", result.text)
 
         val boldStart = result.text.indexOf("bold")
         val boldEnd = boldStart + "bold".length
@@ -83,7 +83,7 @@ internal class MarkdownExtensionsTest {
         val markdown = "This is regular text with no markdown"
         val result = parseMarkdownToAnnotatedString(markdown)
 
-        assertEquals("This is regular text with no markdown", result.text.trim())
+        assertEquals("This is regular text with no markdown", result.text)
         assertTrue(
             actual = result.spanStyles.isEmpty(),
             message = "Unexpected styles found in plain text: ${result.spanStyles}",
@@ -97,7 +97,7 @@ internal class MarkdownExtensionsTest {
 
         assertEquals(
             expected = "First line\nSecond line\n\n\nThird line way below",
-            actual = result.text.trim()
+            actual = result.text
         )
         assertTrue(
             actual = result.spanStyles.isEmpty(),

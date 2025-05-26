@@ -11,11 +11,20 @@ import kotlin.test.assertTrue
 class StringUtilsTest {
 
     @Test
+    fun parseHtmlToAnnotatedString_HandlesBodyAndPTag() {
+        val html = "<body><p>explain dune</p></body>"
+
+        val result = parseHtmlToAnnotatedString(html)
+
+        assertEquals("explain dune", result.text)
+    }
+
+    @Test
     fun parseHtmlToAnnotatedString_handlesBasicFormatting() {
         val html = "This is <b>bold</b> and <i>italic</i> text"
         val result = parseHtmlToAnnotatedString(html)
 
-        assertEquals("This is bold and italic text", result.text.trim())
+        assertEquals("This is bold and italic text", result.text)
 
         val boldStart = result.text.indexOf("bold")
         val boldEnd = boldStart + "bold".length
@@ -54,7 +63,7 @@ class StringUtilsTest {
         val html = "Text with <strong>strong</strong> and <em>emphasis</em>"
         val result = parseHtmlToAnnotatedString(html)
 
-        assertEquals("Text with strong and emphasis", result.text.trim())
+        assertEquals("Text with strong and emphasis", result.text)
 
         val strongStart = result.text.indexOf("strong")
         val strongEnd = strongStart + "strong".length
@@ -85,7 +94,7 @@ class StringUtilsTest {
         val html = "This has <u>underlined</u> text"
         val result = parseHtmlToAnnotatedString(html)
 
-        assertEquals("This has underlined text", result.text.trim())
+        assertEquals("This has underlined text", result.text)
 
         val underlineStart = result.text.indexOf("underlined")
         val underlineEnd = underlineStart + "underlined".length
@@ -123,7 +132,7 @@ class StringUtilsTest {
         val html = "Line 1<br>Line 2<br/>Line 3"
         val result = parseHtmlToAnnotatedString(html)
 
-        assertEquals("Line 1\nLine 2\nLine 3", result.text.trim())
+        assertEquals("Line 1\nLine 2\nLine 3", result.text)
     }
 
     @Test
@@ -188,7 +197,7 @@ class StringUtilsTest {
         val html = "This is plain text with no HTML"
         val result = parseHtmlToAnnotatedString(html)
 
-        assertEquals("This is plain text with no HTML", result.text.trim())
+        assertEquals("This is plain text with no HTML", result.text)
         assertTrue(
             actual = result.spanStyles.isEmpty(),
             message = "Unexpected styles found in plain text"
