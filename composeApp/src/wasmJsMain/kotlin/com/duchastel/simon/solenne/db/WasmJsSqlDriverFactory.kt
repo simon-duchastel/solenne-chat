@@ -9,7 +9,8 @@ import org.w3c.dom.Worker
 @Inject
 class WasmJsSqlDriverFactory : SqlDriverFactory {
     override suspend fun createSqlDriver(): SqlDriver {
-        val driver = WebWorkerDriver(createSqlWorker())
+        val webWorker = createSqlWorker()
+        val driver = WebWorkerDriver(webWorker)
         Database.Schema.create(driver).await()
 
         return driver
@@ -17,7 +18,7 @@ class WasmJsSqlDriverFactory : SqlDriverFactory {
 }
 
 fun createSqlWorker(): Worker = js(
-    """new Worker(new URL("@cashapp/sqldelight-sqljs-worker/sqljs.worker.js", import.meta.url))"""
+    """new Worker(new URL("sqlite.worker.js", import.meta.url))"""
 )
 
 
