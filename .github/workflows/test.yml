@@ -83,6 +83,12 @@ jobs:
 
       - name: Copy productionExecutable to webOutput
         run: |
+          ls composeApp
+          ls composeApp/build
+          ls composeApp/build/dist
+          ls composeApp/build/dist/wasmJs
+          ls composeApp/build/dist/wasmJs/productionExecutable/
+          ls webOutput
           mkdir -p webOutput
           cp -r composeApp/build/dist/wasmJs/productionExecutable/* webOutput/
 
