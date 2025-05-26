@@ -29,6 +29,5 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
     val parsedTree = MarkdownParser(flavor).buildMarkdownTreeFromString(markdown)
     val html = HtmlGenerator(markdown, parsedTree, flavor).generateHtml()
 
-    val foo = parseHtmlToAnnotatedString(html)
-    return foo
+    return parseHtmlToAnnotatedString(html)
 }

@@ -54,8 +54,12 @@ fun parseHtmlToAnnotatedString(html: String): AnnotatedString {
 
 
             override fun onText(text: String) {
-                val combinedStyle = styleStack.fold(SpanStyle()) { acc, style -> acc.merge(style) }
-                append(AnnotatedString(text, combinedStyle))
+                if (styleStack.isEmpty()) {
+                    append(text)
+                } else {
+                    val combinedStyle = styleStack.reduce { acc, style -> acc.merge(style) }
+                    append(AnnotatedString(text, combinedStyle))
+                }
             }
         }
 

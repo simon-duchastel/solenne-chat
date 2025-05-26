@@ -3,11 +3,13 @@ package com.duchastel.simon.solenne.tests.util
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.duchastel.simon.solenne.util.parseMarkdownToAnnotatedString
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class MarkdownExtensionsTest {
+internal class MarkdownExtensionsTest {
 
+    @Test
     fun fromMarkdown_correctlyConvertsBasicFormatting() {
         val markdown = "This is **bold** and *italic* text"
         val result = parseMarkdownToAnnotatedString(markdown)
@@ -46,6 +48,7 @@ class MarkdownExtensionsTest {
         )
     }
 
+    @Test
     fun fromMarkdown_handlesHeadersCorrectly() {
         val markdown = "# Heading 1\n## Heading 2"
         val result = parseMarkdownToAnnotatedString(markdown)
@@ -75,6 +78,7 @@ class MarkdownExtensionsTest {
         )
     }
 
+    @Test
     fun fromMarkdown_NoOpsForPlainText() {
         val markdown = "This is regular text with no markdown"
         val result = parseMarkdownToAnnotatedString(markdown)
@@ -82,7 +86,22 @@ class MarkdownExtensionsTest {
         assertEquals("This is regular text with no markdown", result.text.trim())
         assertTrue(
             actual = result.spanStyles.isEmpty(),
-            message = "Unexpected styles found in plain text",
+            message = "Unexpected styles found in plain text: ${result.spanStyles}",
+        )
+    }
+
+    @Test
+    fun fromMarkdown_HandlesNewLines() {
+        val markdown = "First line\nSecond line\n\n\nThird line way below"
+        val result = parseMarkdownToAnnotatedString(markdown)
+
+        assertEquals(
+            expected = "First line\nSecond line\n\n\nThird line way below",
+            actual = result.text.trim()
+        )
+        assertTrue(
+            actual = result.spanStyles.isEmpty(),
+            message = "Unexpected styles found in plain text: ${result.spanStyles}",
         )
     }
 }
