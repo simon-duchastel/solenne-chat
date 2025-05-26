@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Tests and Build Web
 
 on:
   push:
@@ -47,3 +47,52 @@ jobs:
           path: |
             composeApp/build/reports/tests/
             build/reports/tests/
+
+  build_and_deploy_wasm:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build wasmJsProductionWebpack
+        run: ./gradlew wasmJsProductionWebpack
+
+      - name: Copy productionExecutable to webOutput
+        run: |
+          mkdir -p webOutput
+          cp -r composeApp/build/dist/wasmJs/productionExecutable/* webOutput/
+
+      - name: Deploy to releases branch
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git fetch origin
+          git checkout -B releases
+          rm -rf ./*
+          cp -r webOutput/* .
+          git add .
+          git commit -m "Deploy WebAssembly build from main"
+          git push origin releases --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
