@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -35,6 +35,9 @@ jobs:
 
       - name: Run all tests
         run: ./gradlew allTest
+        env:
+          GITHUB_ACTOR: simon-duchastel
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4
