@@ -32,6 +32,13 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }
+        maven {
+            url = uri("https://maven.pkg.github.com/simon-duchastel/modelcontextprotocol-kotlin-sdk")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
         mavenLocal()
     }
 }
