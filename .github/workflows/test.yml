@@ -111,6 +111,3 @@ jobs:
           git add webOutput
           git commit -m "Update release"
           git push origin releases
-        env:
-          GITHUB_ACTOR: simon-duchastel
-          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
