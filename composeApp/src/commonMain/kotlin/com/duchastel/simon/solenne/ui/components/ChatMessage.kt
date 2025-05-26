@@ -11,6 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.duchastel.simon.solenne.data.chat.models.MessageAuthor
 import com.duchastel.simon.solenne.fakes.ChatMessagesFake
@@ -48,12 +49,12 @@ fun ChatMessage(
                 val toolMessage =
                     stringResource(Res.string.using_tool_message, message.toolInfo.toolName)
                 if (message.toolInfo.result != null) {
-                    toolMessage + "\n" + stringResource(
-                        Res.string.tool_result_message,
-                        message.toolInfo.result
+                    AnnotatedString(toolMessage
+                            + "\n"
+                            + stringResource(Res.string.tool_result_message, message.toolInfo.result)
                     )
                 } else {
-                    toolMessage
+                    AnnotatedString(toolMessage)
                 }
             } else {
                 message.text.parseMarkdown()

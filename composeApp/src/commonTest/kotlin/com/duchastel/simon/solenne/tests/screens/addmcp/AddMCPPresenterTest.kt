@@ -2,14 +2,12 @@ package com.duchastel.simon.solenne.tests.screens.addmcp
 
 import com.duchastel.simon.solenne.data.features.Features
 import com.duchastel.simon.solenne.data.tools.McpServerConfig
+import com.duchastel.simon.solenne.fakes.FakeFeatures
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPPresenter
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen
-import com.duchastel.simon.solenne.util.expectNoNavigationEvents
 import com.duchastel.simon.solenne.fakes.FakeMcpRepository
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerConfig
 import com.duchastel.simon.solenne.screens.addmcp.AddMCPScreen.ServerType
-import com.duchastel.simon.solenne.util.fakes.FakeMcpRepository
-import com.duchastel.simon.solenne.util.fakes.FakeFeatures
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlinx.coroutines.test.runTest
