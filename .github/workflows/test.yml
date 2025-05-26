@@ -55,6 +55,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for full history for merge
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -81,28 +83,34 @@ jobs:
           GITHUB_ACTOR: simon-duchastel
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
 
-      - name: Copy productionExecutable to webOutput
-        run: |
-          ls composeApp
-          ls composeApp/build
-          ls composeApp/build/dist
-          ls composeApp/build/dist/wasmJs
-          ls composeApp/build/dist/wasmJs/productionExecutable/
-          ls webOutput
-          mkdir -p webOutput
-          cp -r composeApp/build/dist/wasmJs/productionExecutable/* webOutput/
-
-      - name: Deploy to releases branch
+      - name: Set up Git config
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+
+      - name: Checkout releases branch and merge main
+        run: |
           git fetch origin
-          git checkout -B releases
-          rm -rf ./*
-          cp -r webOutput/* .
-          git add .
-          git commit -m "Deploy WebAssembly build from main"
-          git push origin releases --force
+          git checkout releases
+          git merge origin/main
+
+      - name: Replace webOutput with new build
+        run: |
+          rm -rf webOutput
+          mkdir -p webOutput
+          cp -r composeApp/build/dist/wasmJs/productionExecutable/* webOutput/
+
+      - name: Add _headers file
+        run: |
+          echo '/*' > webOutput/_headers
+          echo '  Cross-Origin-Opener-Policy: same-origin' >> webOutput/_headers
+          echo '  Cross-Origin-Embedder-Policy: require-corp' >> webOutput/_headers
+
+      - name: Commit and push webOutput
+        run: |
+          git add webOutput
+          git commit -m "Update release"
+          git push origin releases
         env:
           GITHUB_ACTOR: simon-duchastel
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
