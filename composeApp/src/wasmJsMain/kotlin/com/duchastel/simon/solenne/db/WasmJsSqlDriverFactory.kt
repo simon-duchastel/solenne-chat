@@ -9,11 +9,15 @@ import org.w3c.dom.Worker
 @Inject
 class WasmJsSqlDriverFactory : SqlDriverFactory {
     override suspend fun createSqlDriver(): SqlDriver {
-        val driver = WebWorkerDriver(Worker(sqlWorkerUrl))
+        val driver = WebWorkerDriver(createSqlWorker())
         Database.Schema.create(driver).await()
 
         return driver
     }
 }
 
-val sqlWorkerUrl: String = js("""new URL("@cashapp/sqldelight-sqljs-worker/sqljs.worker.js", import.meta.url)""")
+fun createSqlWorker(): Worker = js(
+    """new Worker(new URL("@cashapp/sqldelight-sqljs-worker/sqljs.worker.js", import.meta.url))"""
+)
+
+
