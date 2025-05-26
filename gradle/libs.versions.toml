@@ -14,6 +14,7 @@ kotlinx-coroutines = "1.10.2"
 metro = "0.2.0"
 ktor = "3.1.2"
 sqldelight = "2.1.0-SNAPSHOT"
+sqljs = "1.8.0"
 turbine = "1.2.0"
 multiplatform-settings = "1.3.0"
 

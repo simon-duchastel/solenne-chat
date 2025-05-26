@@ -59,6 +59,7 @@ kotlin {
                 }
             }
         }
+        useCommonJs()
         binaries.executable()
     }
     
@@ -117,10 +118,9 @@ kotlin {
             implementation(libs.multiplatform.settings.makeobservable)
 
             implementation(libs.sqldelight.js)
-            implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.0.2"))
-            implementation(npm("sql.js", "1.8.0"))
-            implementation(devNpm("copy-webpack-plugin", "11.0.0"))
-
+            implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+            implementation(npm("sql.js", libs.versions.sqljs.get()))
+            implementation(npm("@sqlite.org/sqlite-wasm", "3.49.2-build1"))
         }
         nativeMain.dependencies {
             implementation(libs.ktor.client.darwin)
