@@ -98,6 +98,7 @@ kotlin {
             implementation(compose.components.resources)
 
             implementation(libs.markdown)
+            implementation(libs.ksoup.html)
         }
         androidMain.dependencies {
             implementation(compose.preview)

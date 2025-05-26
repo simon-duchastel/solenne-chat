@@ -3,7 +3,6 @@ package com.duchastel.simon.solenne.util
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.fromHtml
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
@@ -30,5 +29,6 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
     val parsedTree = MarkdownParser(flavor).buildMarkdownTreeFromString(markdown)
     val html = HtmlGenerator(markdown, parsedTree, flavor).generateHtml()
 
-    return AnnotatedString.fromHtml(html)
+    val foo = parseHtmlToAnnotatedString(html)
+    return foo
 }
