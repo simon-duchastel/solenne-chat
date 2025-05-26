@@ -75,8 +75,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build wasmJsProductionWebpack
-        run: ./gradlew wasmJsProductionWebpack
+      - name: Build browser distribution
+        run: ./gradlew wasmJsBrowserDistribution
         env:
           GITHUB_ACTOR: simon-duchastel
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
