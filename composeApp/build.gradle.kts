@@ -73,6 +73,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(compose.ui)
+            implementation(compose.uiUtil)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
@@ -96,6 +97,8 @@ kotlin {
             implementation(libs.multiplatform.settings.coroutines)
 
             implementation(compose.components.resources)
+            implementation(libs.multiplatform.markdown.renderer)
+            implementation(libs.androidx.material3)
         }
         androidMain.dependencies {
             implementation(compose.preview)
