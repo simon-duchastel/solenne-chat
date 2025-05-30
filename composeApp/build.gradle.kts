@@ -72,7 +72,10 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
+            implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.uiUtil)
+            implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
@@ -96,6 +99,7 @@ kotlin {
             implementation(libs.multiplatform.settings.coroutines)
 
             implementation(compose.components.resources)
+            implementation(libs.multiplatform.markdown.renderer)
         }
         androidMain.dependencies {
             implementation(compose.preview)

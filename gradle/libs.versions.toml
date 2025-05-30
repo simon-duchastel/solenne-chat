@@ -1,18 +1,19 @@
 [versions]
-agp = "8.9.1"
+agp = "8.10.1"
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
 androidx-activityCompose = "1.10.1"
 androidx-lifecycle = "2.8.4"
-compose-multiplatform = "1.7.3"
+compose-multiplatform = "1.8.1"
 circuit = "0.27.1"
-kotlin = "2.1.20"
+kotlin = "2.1.21"
 coroutines = "1.10.2"
 mcpKotlin = "0.5.0"
 kotlinx-coroutines = "1.10.2"
-metro = "0.2.0"
+metro = "0.3.4"
 ktor = "3.1.2"
+multiplatformMarkdownRenderer = "0.35.0"
 sqldelight = "2.1.0-SNAPSHOT"
 sqljs = "1.8.0"
 turbine = "1.2.0"
@@ -41,7 +42,7 @@ ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.r
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 ktor-client-test = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
-sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+multiplatform-markdown-renderer = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "multiplatformMarkdownRenderer" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-native = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
