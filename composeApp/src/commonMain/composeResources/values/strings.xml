@@ -45,6 +45,8 @@
 
     <!-- General UI -->
     <string name="back_button_description">Back</string>
+    <string name="collapse">Collapse</string>
+    <string name="expand">Expand</string>
 
     <!-- Footer components -->
     <string name="like_app_buy_coffee">Like this app? Buy Me a Coffee</string>
