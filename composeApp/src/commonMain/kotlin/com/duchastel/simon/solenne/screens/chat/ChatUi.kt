@@ -60,7 +60,7 @@ fun ChatUi(state: State, modifier: Modifier) {
 internal fun ChatUi_Preview() {
     ChatUi(
         modifier = Modifier,
-        state = ChatScreen.State(
+        state = State(
             sendButtonEnabled = true,
             textInput = "My input",
             messages = ChatMessagesFake.chatMessages
